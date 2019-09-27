@@ -238,6 +238,12 @@ We need to consider other personas, whose funciton is to support the IP we creat
 |-------|---------|
 | 0     | TBD     |
 
+## The IMM Schema
+
+The IMM schema is designed to be very flexible as you may decide that you want to add or alter categories. The [current RuleSet](https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Matrix/master/Solutions/Endjin.Imm.App/RuleSet.yaml) is defined in the `Endjin.Imm.App` project in the solution.
+
+Each rule needs a unique, guid based Id, a name, and a data type which can either be `Discrete` (meaning it can only be scored by a single item listed in the schema), or `Continuous` (meaning that the score can be cumulative). These two data types are used to select and run the correct rules engine to calculate the values to be used to render the badges.
+
 ## How to use the IP Maturity Matrix
 
 Each project that adopts the IMM simply adds a `imm.yaml` file into the root of the repo. `Endjin.Ip.Maturity.Matrix.Host` is an Azure Function, which when given the path to the GitHub repo, will render the IMM Measure as a badge, which can be displayed in the repo and provide an "at a glance" view of the quality of the project. 
