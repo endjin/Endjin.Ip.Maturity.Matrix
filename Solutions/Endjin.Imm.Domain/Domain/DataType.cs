@@ -3,6 +3,7 @@
     public enum DataType
     {
         Continuous = 0,
-        Discrete = 1
+        Discrete = 1,
+        Age = 2
     }
 }
