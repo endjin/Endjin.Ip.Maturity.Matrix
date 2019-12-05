@@ -43,9 +43,6 @@
     <None Update="imm-default.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="RuleSet.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="RuleSet.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
