@@ -31,7 +31,7 @@
     ///             Description: '> 1 month'
     ///         -
     ///             Score: 1
-    ///             Age: *
+    ///             Age: '*'
     ///             Description: '> 3 months'
     ///         -
     ///             Score: 0
