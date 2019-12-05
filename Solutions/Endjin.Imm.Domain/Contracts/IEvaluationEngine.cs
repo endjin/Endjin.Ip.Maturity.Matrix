@@ -5,6 +5,6 @@
 
     public interface IEvaluationEngine
     {
-        IEnumerable<RuleEvaluation> Evaluate(IpMaturityMatrix imm);
+        IEnumerable<RuleEvaluation> Evaluate(IpMaturityMatrix imm, IEvaluationContext context = null);
     }
 }

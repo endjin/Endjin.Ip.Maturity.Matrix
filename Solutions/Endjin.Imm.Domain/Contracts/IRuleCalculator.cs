@@ -4,8 +4,8 @@
 
     public interface IRuleCalculator
     {
-        decimal Percentage(Rule rule);
+        decimal Percentage(Rule rule, IEvaluationContext context);
 
-        long Score(Rule rule);
+        long Score(Rule rule, IEvaluationContext context);
     }
 }

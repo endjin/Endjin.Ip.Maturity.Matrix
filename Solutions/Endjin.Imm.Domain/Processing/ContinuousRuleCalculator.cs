@@ -14,15 +14,15 @@
             this.rdr = rdr;
         }
 
-        public decimal Percentage(Rule rule)
+        public decimal Percentage(Rule rule, IEvaluationContext context)
         {
             var definition = this.rdr.Get(rule);
             var higestScore = definition.Measures.Sum(x => x.Score);
 
-            return Math.Round(Convert.ToDecimal(this.Score(rule) / Convert.ToDecimal(higestScore)) * 100);
+            return Math.Round(Convert.ToDecimal(this.Score(rule, context) / Convert.ToDecimal(higestScore)) * 100);
         }
 
-        public long Score(Rule rule)
+        public long Score(Rule rule, IEvaluationContext context)
         {
             return rule.Measures.Sum(x => x.Score);
         }

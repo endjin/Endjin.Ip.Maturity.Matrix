@@ -87,7 +87,7 @@ namespace Endjin.Ip.Maturity.Matrix.Host
             {
                 HttpClient client = this.httpClientFactory.CreateClient();
 
-                var rulesetTask = client.GetAsync($"https://gist.githubusercontent.com/HowardvanRooijen/342a696e772782411ae5b3e9fe0e6863/raw/0c37972eb34495627513372eefc18e807ca2f8e1/RuleSet.yaml");
+                var rulesetTask = client.GetAsync(IpMaturityMatrixRuleset.RuleSetDefinitionsUrl);
                 var scoreTask = client.GetAsync($"https://raw.githubusercontent.com/{org}/{project}/master/imm.yaml");
 
                 await Task.WhenAll(new[] { rulesetTask, scoreTask });

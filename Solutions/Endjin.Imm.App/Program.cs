@@ -5,16 +5,21 @@
 
     using System;
     using System.IO;
-    using System.Linq;
     using System.Net;
+    using System.Net.Http;
     using System.Text;
+    using System.Threading.Tasks;
 
     public static class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            var jsonRules = IpMaturityMatrixRuleset.FromJson(File.ReadAllText("RuleSet.json"));
-            var yamlRules = IpMaturityMatrixRuleset.FromYaml(File.ReadAllText("RuleSet.yaml"));
+            var client = new HttpClient();
+            HttpResponseMessage ruleSetResponse = await client.GetAsync(IpMaturityMatrixRuleset.RuleSetDefinitionsUrl).ConfigureAwait(false);
+            ruleSetResponse.EnsureSuccessStatusCode();
+            string yamlRuleText = await ruleSetResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            var yamlRules = IpMaturityMatrixRuleset.FromYaml(yamlRuleText);
             var immProjectScore = IpMaturityMatrix.FromYaml(File.ReadAllText("imm-default.yaml"));
 
             var evaluationEngine = new EvaluationEngine(yamlRules);

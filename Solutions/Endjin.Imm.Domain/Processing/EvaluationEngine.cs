@@ -3,6 +3,8 @@
     using Endjin.Imm.Contracts;
     using Endjin.Imm.Domain;
     using Endjin.Imm.Repository;
+    using NodaTime;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -19,14 +21,15 @@
             this.ruleCalculatorFactory = new RuleCalculatorFactory(this.ruleDefinitionRepository);
         }
 
-        public IEnumerable<RuleEvaluation> Evaluate(IpMaturityMatrix imm)
+        public IEnumerable<RuleEvaluation> Evaluate(IpMaturityMatrix imm, IEvaluationContext context = null)
         {
+            context ??= new Context();
             foreach (var rule in imm.Rules)
             {
                 var ruleDefinition = this.ruleDefinitionRepository.Get(rule);
                 var calculator = this.ruleCalculatorFactory.Create(ruleDefinition.DataType);
 
-                yield return new RuleEvaluation { Rule = rule, Percentage = calculator.Percentage(rule), Score = calculator.Score(rule) };
+                yield return new RuleEvaluation { Rule = rule, Percentage = calculator.Percentage(rule, context), Score = calculator.Score(rule, context) };
             }
         }
 
@@ -51,6 +54,16 @@
             }
 
             return runningTotal;
+        }
+
+        private class Context : IEvaluationContext
+        {
+            public Context()
+            {
+                LocalDate.FromDateTime(DateTime.Now);
+            }
+
+            public LocalDate EvaluationReferenceDate { get; }
         }
     }
 }
