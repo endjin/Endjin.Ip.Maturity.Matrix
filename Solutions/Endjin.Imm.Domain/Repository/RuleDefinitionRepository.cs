@@ -13,6 +13,7 @@
             this.ruleSet = ruleSet;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "RCS1077:Optimize LINQ method call.", Justification = "Very minor perf impact doesn't justify clumsier code")]
         public RuleDefinition Get(Rule rule)
         {
             return this.ruleSet.Rules.FirstOrDefault(x => x.Id == rule.Id);

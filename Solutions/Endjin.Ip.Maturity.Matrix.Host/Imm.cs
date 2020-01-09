@@ -24,7 +24,7 @@ namespace Endjin.Ip.Maturity.Matrix.Host
     {
         private readonly IHttpClientFactory httpClientFactory;
         private readonly MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions();
-        private IMemoryCache cache;
+        private readonly IMemoryCache cache;
 
         public Imm(IMemoryCache cache, IHttpClientFactory httpClientFactory)
         {
@@ -90,7 +90,7 @@ namespace Endjin.Ip.Maturity.Matrix.Host
                 var rulesetTask = client.GetAsync(IpMaturityMatrixRuleset.RuleSetDefinitionsUrl);
                 var scoreTask = client.GetAsync($"https://raw.githubusercontent.com/{org}/{project}/master/imm.yaml");
 
-                await Task.WhenAll(new[] { rulesetTask, scoreTask });
+                await Task.WhenAll(new[] { rulesetTask, scoreTask }).ConfigureAwait(false);
 
                 rulesetTask.Result.EnsureSuccessStatusCode();
                 scoreTask.Result.EnsureSuccessStatusCode();
@@ -110,19 +110,15 @@ namespace Endjin.Ip.Maturity.Matrix.Host
 
         private string GetColourSchemeForPercentage(decimal percentage)
         {
-            switch (percentage)
+            return percentage switch
             {
-                case var expression when percentage < 33:
-                    return ColorScheme.Red;
-                case var expression when percentage < 66:
-                    return ColorScheme.Yellow;
-                case var expression when percentage > 66 && percentage < 99 :
-                    return ColorScheme.YellowGreen;
-                case 100:
-                    return ColorScheme.Green;
-                default:
-                    return ColorScheme.Red;
-            }
+                var _ when percentage < 33 => ColorScheme.Red,
+                var _ when percentage < 66 => ColorScheme.Yellow,
+                var _ when percentage > 66
+                        && percentage < 99 => ColorScheme.YellowGreen,
+                100                        => ColorScheme.Green,
+                _                          => ColorScheme.Red,
+            };
         }
     }
 }

@@ -15,7 +15,7 @@
         Plastic
     }
 
-    public class ColorScheme
+    public static class ColorScheme
     {
         public static string BrightGreen = "#4c1";
         public static string Green = "#97CA00";
@@ -34,23 +34,13 @@
     {
         public string DrawSVG(string subject, string status, string statusColor, Style style = Style.Flat)
         {
-            string template;
-            switch (style)
+            var template = style switch
             {
-                case Style.Flat:
-                    template = Resources.flat;
-                    break;
-                case Style.FlatSquare:
-                    template = Resources.flatSquare;
-                    break;
-                case Style.Plastic:
-                    template = Resources.plastic;
-                    break;
-                default:
-                    template = File.ReadAllText("templates/flat-template.xml");
-                    break;
-            }
-    
+                Style.Flat       => Resources.flat,
+                Style.FlatSquare => Resources.flatSquare,
+                Style.Plastic    => Resources.plastic,
+                _ =>                File.ReadAllText("templates/flat-template.xml"),
+            };
             Font font = new Font(SystemFonts.Find("verdana"), 11, FontStyle.Regular);
 
             var subjectWidth = TextMeasurer.MeasureBounds(WebUtility.HtmlDecode(subject), new RendererOptions(font, 96)).Width; //34.25086
@@ -62,8 +52,8 @@
                 subjectWidth + statusWidth, //width
                 subjectWidth,
                 statusWidth,
-                subjectWidth / 2 + 1,
-                subjectWidth + statusWidth / 2 - 1,
+                (subjectWidth / 2) + 1,
+                subjectWidth + (statusWidth / 2) - 1,
                 subject,
                 status,
                 statusColor);
@@ -73,16 +63,14 @@
 
         public string ParseColor(string input)
         {
-            var cs = new ColorScheme();
-
-            var fieldInfo = cs.GetType().GetField(input);
+            var fieldInfo = typeof(ColorScheme).GetField(input);
 
             if (fieldInfo == null)
             {
                 return string.Empty;
             }
 
-            return (string)fieldInfo.GetValue(cs.GetType());
+            return (string)fieldInfo.GetValue(null);
         }
     }
 }

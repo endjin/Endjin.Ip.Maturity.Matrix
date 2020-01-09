@@ -11,7 +11,7 @@
         Plastic
     }
 
-    public class ColorScheme
+    public static class ColorScheme
     {
         public static string BrightGreen = "#4c1";
         public static string Green = "#97CA00";
@@ -51,7 +51,7 @@
 
             Graphics g = Graphics.FromImage(new Bitmap(1, 1));
 
-            var subjectWidth = g.MeasureString(subject, font).Width; 
+            var subjectWidth = g.MeasureString(subject, font).Width;
             var statusWidth = g.MeasureString(status, font).Width;
 
             var result = string.Format(
@@ -60,8 +60,8 @@
                 subjectWidth + statusWidth,
                 subjectWidth,
                 statusWidth,
-                subjectWidth / 2 + 1,
-                subjectWidth + statusWidth / 2 - 1,
+                (subjectWidth / 2) + 1,
+                subjectWidth + (statusWidth / 2) - 1,
                 subject,
                 status,
                 statusColor);
@@ -71,16 +71,14 @@
 
         public string ParseColor(string input)
         {
-            var cs = new ColorScheme();
-
-            var fieldInfo = cs.GetType().GetField(input);
+            var fieldInfo = typeof(ColorScheme).GetField(input);
 
             if (fieldInfo == null)
             {
                 return string.Empty;
             }
 
-            return (string)fieldInfo.GetValue(cs.GetType());
+            return (string)fieldInfo.GetValue(null);
         }
     }
 }

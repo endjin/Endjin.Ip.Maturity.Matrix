@@ -38,7 +38,7 @@
             var definitions = this.ruleDefinitionRepository.GetAll();
             long runningTotal = 0;
 
-            foreach(var definition in definitions)
+            foreach (var definition in definitions)
             {
                 switch (definition.DataType)
                 {
@@ -46,7 +46,7 @@
                         runningTotal += definition.Measures.Sum(x => x.Score);
                         break;
                     case DataType.Discrete:
-                        runningTotal += definition.Measures.LastOrDefault().Score;
+                        runningTotal += definition.Measures.Last().Score;
                         break;
                     default:
                         break;
