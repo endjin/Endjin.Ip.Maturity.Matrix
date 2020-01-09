@@ -56,7 +56,7 @@ namespace Endjin.Ip.Maturity.Matrix.Host
             var evaluationEngine = new EvaluationEngine(results.RuleSet);
             var result = evaluationEngine.Evaluate(results.Rules).FirstOrDefault(x => x.Rule.Id == ruleIdAsGuid);
 
-            return this.CreateUncacheResponse(request, new ByteArrayContent(Encoding.ASCII.GetBytes(new Badge().DrawSVG(WebUtility.HtmlEncode(result.Rule.Name), $"{result.Percentage}%", GetColourSchemeForPercentage(result.Percentage), Style.Flat))), "image/svg+xml");
+            return this.CreateUncacheResponse(request, new ByteArrayContent(Encoding.ASCII.GetBytes(new Badge().DrawSVG(WebUtility.HtmlEncode(result.Rule.Name!), $"{result.Percentage}%", GetColourSchemeForPercentage(result.Percentage), Style.Flat))), "image/svg+xml");
         }
 
         private HttpResponseMessage CreateUncacheResponse(HttpRequestMessage req, HttpContent content, string mediaType)

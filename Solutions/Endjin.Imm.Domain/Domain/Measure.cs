@@ -10,7 +10,7 @@
         public long Score { get; set; }
 
         [JsonProperty("description")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         // TODO: this gets icky for a few reasons
         // First, we've ended up merging all possible measure structures into a single type, when it
@@ -21,9 +21,9 @@
         // IMM entry now look different. But we've got both the Age (which is what appears in the rule
         // definition) and the Date (which is what appears in the IMM instances) in the same type.
         [JsonProperty("age")]
-        public string Age { get; set; }
+        public string? Age { get; set; }
 
         [JsonProperty("date")]
-        public string Date { get; set; }
+        public string? Date { get; set; }
     }
 }

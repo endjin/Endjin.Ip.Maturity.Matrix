@@ -4,6 +4,8 @@
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
 
     <NoWarn>IDE0042</NoWarn>
+
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />

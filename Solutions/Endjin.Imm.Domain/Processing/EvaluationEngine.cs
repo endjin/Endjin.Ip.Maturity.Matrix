@@ -21,15 +21,15 @@
             this.ruleCalculatorFactory = new RuleCalculatorFactory(this.ruleDefinitionRepository);
         }
 
-        public IEnumerable<RuleEvaluation> Evaluate(IpMaturityMatrix imm, IEvaluationContext context = null)
+        public IEnumerable<RuleEvaluation> Evaluate(IpMaturityMatrix imm, IEvaluationContext? context = null)
         {
             context ??= new Context();
             foreach (var rule in imm.Rules)
             {
-                var ruleDefinition = this.ruleDefinitionRepository.Get(rule);
+                var ruleDefinition = this.ruleDefinitionRepository.GetDefinitionFor(rule);
                 var calculator = this.ruleCalculatorFactory.Create(ruleDefinition.DataType);
 
-                yield return new RuleEvaluation { Rule = rule, Percentage = calculator.Percentage(rule, context), Score = calculator.Score(rule, context) };
+                yield return new RuleEvaluation(rule, calculator.Percentage(rule, context), calculator.Score(rule, context));
             }
         }
 

@@ -65,12 +65,7 @@
         {
             var fieldInfo = typeof(ColorScheme).GetField(input);
 
-            if (fieldInfo == null)
-            {
-                return string.Empty;
-            }
-
-            return (string)fieldInfo.GetValue(null);
+            return ((string?)fieldInfo?.GetValue(null)) ?? string.Empty;
         }
     }
 }

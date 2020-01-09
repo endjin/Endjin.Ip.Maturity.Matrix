@@ -30,23 +30,13 @@
     {
         public string DrawSVG(string subject, string status, string statusColor, Style style = Style.Flat)
         {
-            string template;
-            switch (style)
+            var template = style switch
             {
-                case Style.Flat:
-                    template = Resources.flat;
-                    break;
-                case Style.FlatSquare:
-                    template = Resources.flatSquare;
-                    break;
-                case Style.Plastic:
-                    template = Resources.plastic;
-                    break;
-                default:
-                    template = File.ReadAllText("templates/flat-template.xml");
-                    break;
-            }
-
+                Style.Flat       => Resources.flat,
+                Style.FlatSquare => Resources.flatSquare,
+                Style.Plastic    => Resources.plastic,
+                _                => File.ReadAllText("templates/flat-template.xml"),
+            };
             Font font = new Font("DejaVu Sans,Verdana,Geneva,sans-serif", 11, FontStyle.Regular);
 
             Graphics g = Graphics.FromImage(new Bitmap(1, 1));
@@ -73,12 +63,7 @@
         {
             var fieldInfo = typeof(ColorScheme).GetField(input);
 
-            if (fieldInfo == null)
-            {
-                return string.Empty;
-            }
-
-            return (string)fieldInfo.GetValue(null);
+            return ((string?)fieldInfo?.GetValue(null)) ?? string.Empty;
         }
     }
 }

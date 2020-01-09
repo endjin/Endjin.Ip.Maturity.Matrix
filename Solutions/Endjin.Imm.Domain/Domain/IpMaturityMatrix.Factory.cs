@@ -8,17 +8,17 @@
 
     public partial class IpMaturityMatrix
     {
-        public static IpMaturityMatrix FromJson(string json) => JsonConvert.DeserializeObject<IpMaturityMatrix>(json, Converter.Settings);
+        public static IpMaturityMatrix FromJson(string json) => JsonConvert.DeserializeObject<IpMaturityMatrix>(json, Converter.Settings) ?? new IpMaturityMatrix();
 
         public static IpMaturityMatrix FromYaml(string yaml)
         {
-            var input = new StringReader(yaml);
+            using var input = new StringReader(yaml);
 
             var deserializer = new DeserializerBuilder().Build();
 
-            var rules = deserializer.Deserialize<List<Rule>>(input);
+            var rules = deserializer.Deserialize<Rule[]>(input);
 
-            return new IpMaturityMatrix { Rules = rules.ToArray() };
+            return new IpMaturityMatrix(rules);
         }
     }
 }

@@ -71,7 +71,7 @@
 
         public decimal Percentage(Rule rule, IEvaluationContext context)
         {
-            RuleDefinition definition = this.rdr.Get(rule);
+            RuleDefinition definition = this.rdr.GetDefinitionFor(rule);
             long higestScore = definition.Measures.Max(m => m.Score);
 
             return Math.Round((Convert.ToDecimal(this.Score(rule, context)) / Convert.ToDecimal(higestScore)) * 100);
@@ -79,7 +79,7 @@
 
         public long Score(Rule rule, IEvaluationContext context)
         {
-            RuleDefinition definition = this.rdr.Get(rule);
+            RuleDefinition definition = this.rdr.GetDefinitionFor(rule);
 
             // We need to handle two cases.
             // 1) Most IMMs should specify a Date.
@@ -91,6 +91,13 @@
 
                 foreach (Measure rd in definition.Measures)
                 {
+                    if (rd.Age == null)
+                    {
+                        throw new ArgumentException(
+                            "Rule definition's Age is not set, so it should not be used with " + nameof(AgeRuleCalculator),
+                            nameof(rule));
+                    }
+
                     // Need to work out which kind of rule: < or *
                     // If <, then parse the rule as Period in ISO8601 form, and 
                     if (LocalDateMatchesRule(dateInImm, context.EvaluationReferenceDate, rd.Age))

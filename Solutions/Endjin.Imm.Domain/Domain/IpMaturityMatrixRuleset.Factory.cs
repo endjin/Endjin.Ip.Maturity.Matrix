@@ -13,17 +13,17 @@
         /// </summary>
         public const string RuleSetDefinitionsUrl = "https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Matrix.RuleDefinitions/master/RuleSet.yaml";
 
-        public static IpMaturityMatrixRuleset FromJson(string json) => JsonConvert.DeserializeObject<IpMaturityMatrixRuleset>(json, Converter.Settings);
+        public static IpMaturityMatrixRuleset FromJson(string json) => JsonConvert.DeserializeObject<IpMaturityMatrixRuleset>(json, Converter.Settings) ?? new IpMaturityMatrixRuleset();
 
         public static IpMaturityMatrixRuleset FromYaml(string yaml)
         {
-            var input = new StringReader(yaml);
+            using var input = new StringReader(yaml);
 
             var deserializer = new DeserializerBuilder().Build();
 
-            var rules = deserializer.Deserialize<List<RuleDefinition>>(input);
+            var rules = deserializer.Deserialize<RuleDefinition[]>(input);
 
-            return new IpMaturityMatrixRuleset { Rules = rules.ToArray() };
+            return new IpMaturityMatrixRuleset(rules);
         }
     }
 }

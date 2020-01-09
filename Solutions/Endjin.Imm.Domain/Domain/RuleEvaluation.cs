@@ -2,10 +2,17 @@
 {
     public class RuleEvaluation
     {
-        public Rule Rule { get; set; }
+        public RuleEvaluation(Rule rule, decimal percentage, long score)
+        {
+            Rule = rule;
+            Percentage = percentage;
+            Score = score;
+        }
 
-        public decimal Percentage { get; set; }
+        public Rule Rule { get; }
 
-        public long Score { get; set; }
+        public decimal Percentage { get; }
+
+        public long Score { get; }
     }
 }
