@@ -21,9 +21,9 @@ namespace Endjin.Imm.Specs.Steps
     {
         private readonly TestEvaluationContext evaluationContext = new TestEvaluationContext();
         private readonly StringBuilder immText = new StringBuilder();
-        private IpMaturityMatrixRuleset ruleSet;
-        private IpMaturityMatrix imm;
-        private Dictionary<Guid, RuleEvaluation> results;
+        private IpMaturityMatrixRuleset? ruleSet;
+        private IpMaturityMatrix? imm;
+        private Dictionary<Guid, RuleEvaluation>? results;
 
         [Given("I have a rule named '(.*)' with id '(.*)' and DataType '(.*)'")]
         public void GivenIHaveARuleNamedWithIdAndDataType(string ruleName, string id, string dataType, Table table)
@@ -100,14 +100,14 @@ namespace Endjin.Imm.Specs.Steps
         {
             this.imm = IpMaturityMatrix.FromYaml(this.immText.ToString());
 
-            var evaluationEngine = new EvaluationEngine(this.ruleSet);
+            var evaluationEngine = new EvaluationEngine(this.ruleSet!);
             this.results = evaluationEngine.Evaluate(this.imm, this.evaluationContext).ToDictionary(r => r.Rule.Id);
         }
 
         [Then("the score for the '(.*)' rule should be (.*)")]
         public void ThenTheScoreForTheRuleShouldBe(Guid id, int score)
         {
-            Assert.AreEqual(score, this.results[id].Score);
+            Assert.AreEqual(score, this.results![id].Score);
         }
 
         private class TestEvaluationContext : IEvaluationContext

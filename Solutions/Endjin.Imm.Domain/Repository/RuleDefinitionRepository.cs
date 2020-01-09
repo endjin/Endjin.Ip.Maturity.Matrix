@@ -2,6 +2,7 @@
 {
     using Endjin.Imm.Contracts;
     using Endjin.Imm.Domain;
+    using System.Collections.Generic;
     using System.Linq;
 
     public class RuleDefinitionRepository : IRuleDefinitionRepository
@@ -13,12 +14,12 @@
             this.ruleSet = ruleSet;
         }
 
-        public RuleDefinition Get(Rule rule)
+        public RuleDefinition GetDefinitionFor(Rule rule)
         {
             return this.ruleSet.Rules.FirstOrDefault(x => x.Id == rule.Id);
         }
 
-        public RuleDefinition[] GetAll()
+        public IList<RuleDefinition> GetAll()
         {
             return this.ruleSet.Rules;
         }

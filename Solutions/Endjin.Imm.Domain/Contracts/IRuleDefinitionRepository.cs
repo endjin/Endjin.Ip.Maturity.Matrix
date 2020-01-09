@@ -1,11 +1,12 @@
 ﻿namespace Endjin.Imm.Contracts
 {
     using Endjin.Imm.Domain;
+    using System.Collections.Generic;
 
     public interface IRuleDefinitionRepository
     {
-        RuleDefinition Get(Rule rule);
+        RuleDefinition GetDefinitionFor(Rule rule);
 
-        RuleDefinition[] GetAll();
+        IList<RuleDefinition> GetAll();
     }
 }

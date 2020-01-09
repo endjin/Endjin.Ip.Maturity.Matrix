@@ -12,7 +12,7 @@
 
     public static class Program
     {
-        static async Task Main(string[] args)
+        private static async Task Main()
         {
             var client = new HttpClient();
             HttpResponseMessage ruleSetResponse = await client.GetAsync(IpMaturityMatrixRuleset.RuleSetDefinitionsUrl).ConfigureAwait(false);
@@ -27,13 +27,15 @@
 
             var col1 = new StringBuilder();
             var col2 = new StringBuilder();
-                        
+
             foreach (var result in evaluationEngine.Evaluate(immProjectScore))
             {
                 Console.WriteLine($"{result.Rule.Name} {result.Percentage}% Score: {result.Score}");
 
+#pragma warning disable RCS1197 // Optimize StringBuilder.Append/AppendLine call.
                 col1.AppendLine($"<tspan x='30' dy='1.5em'>{WebUtility.HtmlEncode(result.Rule.Name)}</tspan>");
                 col2.AppendLine($"<tspan x='310' dy='1.5em'>{result.Percentage}%</tspan>");
+#pragma warning restore RCS1197 // Optimize StringBuilder.Append/AppendLine call.
 
                 totalScore += result.Score;
 
@@ -42,8 +44,8 @@
 
             Console.WriteLine($"{totalScore} / {evaluationEngine.MaximumScore()}");
 
-            File.WriteAllText(@"imm.svg", new BadgePainter().DrawSVG("IMM", $"{totalScore} / {evaluationEngine.MaximumScore()}", ColorScheme.Red, Style.Flat));
-            File.WriteAllText(@"imm-table.svg", string.Format(Resources.Table, col1.ToString(), col2.ToString()));
+            File.WriteAllText("imm.svg", new BadgePainter().DrawSVG("IMM", $"{totalScore} / {evaluationEngine.MaximumScore()}", ColorScheme.Red, Style.Flat));
+            File.WriteAllText("imm-table.svg", string.Format(Resources.Table, col1.ToString(), col2.ToString()));
         }
     }
 }

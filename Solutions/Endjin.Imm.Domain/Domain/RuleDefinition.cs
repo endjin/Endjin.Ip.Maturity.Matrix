@@ -1,6 +1,7 @@
 ﻿namespace Endjin.Imm.Domain
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
@@ -9,7 +10,7 @@
     public partial class RuleDefinition
     {
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [JsonProperty("id")]
         public Guid Id { get; set; }
@@ -18,6 +19,7 @@
         public DataType DataType { get; set; }
 
         [JsonProperty("measures")]
-        public Measure[] Measures { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "YamlDotNet.Serialization doesn't know how to deserialize a collection into a pre-initialized read-only property")]
+        public IList<Measure> Measures { get; set; } = new List<Measure>();
     }
 }

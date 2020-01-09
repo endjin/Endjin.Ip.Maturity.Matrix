@@ -14,17 +14,13 @@
 
         public IRuleCalculator Create(DataType dataType)
         {
-            switch (dataType)
+            return dataType switch
             {
-                case DataType.Continuous:
-                    return new ContinuousRuleCalculator(this.rdr);
-                case DataType.Discrete:
-                    return new DiscreteRuleCalculator(this.rdr);
-                case DataType.Age:
-                    return new AgeRuleCalculator(this.rdr);
-                default:
-                    return new NullRuleCalculator();
-            }
+                DataType.Continuous => new ContinuousRuleCalculator(this.rdr),
+                DataType.Discrete => new DiscreteRuleCalculator(this.rdr),
+                DataType.Age => new AgeRuleCalculator(this.rdr),
+                _ => new NullRuleCalculator(),
+            };
         }
     }
 }
