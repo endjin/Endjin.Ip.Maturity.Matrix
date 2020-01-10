@@ -2,7 +2,7 @@ namespace Endjin.Ip.Maturity.Matrix.Host
 {
     #region Using Directives
 
-    using Endjin.Imm.App;
+    using Endjin.Badger;
     using Endjin.Imm.Domain;
     using Endjin.Imm.Processing;
 
@@ -45,7 +45,7 @@ namespace Endjin.Ip.Maturity.Matrix.Host
                 totalScore += result.Score;
             }
 
-            return this.CreateUncacheResponse(request, new ByteArrayContent(Encoding.ASCII.GetBytes(new Badge().DrawSVG("IMM", $"{totalScore} / {evaluationEngine.MaximumScore()}", ColorScheme.Red, Style.Flat))), "image/svg+xml");
+            return this.CreateUncacheResponse(request, new ByteArrayContent(Encoding.ASCII.GetBytes(BadgePainter.DrawSVG("IMM", $"{totalScore} / {evaluationEngine.MaximumScore()}", ColorScheme.Red, Style.Flat))), "image/svg+xml");
         }
 
         [FunctionName(nameof(GitHubImmByRule))]
@@ -56,7 +56,7 @@ namespace Endjin.Ip.Maturity.Matrix.Host
             var evaluationEngine = new EvaluationEngine(results.RuleSet);
             var result = evaluationEngine.Evaluate(results.Rules).FirstOrDefault(x => x.Rule.Id == ruleIdAsGuid);
 
-            return this.CreateUncacheResponse(request, new ByteArrayContent(Encoding.ASCII.GetBytes(new Badge().DrawSVG(WebUtility.HtmlEncode(result.Rule.Name!), $"{result.Percentage}%", GetColourSchemeForPercentage(result.Percentage), Style.Flat))), "image/svg+xml");
+            return this.CreateUncacheResponse(request, new ByteArrayContent(Encoding.ASCII.GetBytes(BadgePainter.DrawSVG(WebUtility.HtmlEncode(result.Rule.Name!), $"{result.Percentage}%", GetColourSchemeForPercentage(result.Percentage), Style.Flat))), "image/svg+xml");
         }
 
         private HttpResponseMessage CreateUncacheResponse(HttpRequestMessage req, HttpContent content, string mediaType)

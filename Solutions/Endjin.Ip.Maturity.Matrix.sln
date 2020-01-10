@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Endjin.Ip.Maturity.Matrix.H
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Endjin.Imm", "Endjin.Imm.Domain\Endjin.Imm.csproj", "{FC1AE1E9-A036-42CD-A1F3-D0E0D0862B39}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Endjin.Imm.Specs", "Endjin.Imm.Specs\Endjin.Imm.Specs.csproj", "{4466B232-91AF-472F-802F-8B8A3C3E58FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Endjin.Imm.Specs", "Endjin.Imm.Specs\Endjin.Imm.Specs.csproj", "{4466B232-91AF-472F-802F-8B8A3C3E58FF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Endjin.Badger", "Endjin.Badger\Endjin.Badger.csproj", "{2A8D8BCA-1A0D-4D12-B793-AB39FAFFAB67}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{4466B232-91AF-472F-802F-8B8A3C3E58FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4466B232-91AF-472F-802F-8B8A3C3E58FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4466B232-91AF-472F-802F-8B8A3C3E58FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A8D8BCA-1A0D-4D12-B793-AB39FAFFAB67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A8D8BCA-1A0D-4D12-B793-AB39FAFFAB67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A8D8BCA-1A0D-4D12-B793-AB39FAFFAB67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A8D8BCA-1A0D-4D12-B793-AB39FAFFAB67}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
