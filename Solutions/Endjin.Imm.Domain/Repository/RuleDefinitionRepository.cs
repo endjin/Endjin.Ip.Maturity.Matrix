@@ -1,9 +1,11 @@
 ﻿namespace Endjin.Imm.Repository
 {
-    using Endjin.Imm.Contracts;
-    using Endjin.Imm.Domain;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
+
+    using Endjin.Imm.Contracts;
+    using Endjin.Imm.Domain;
 
     public class RuleDefinitionRepository : IRuleDefinitionRepository
     {
@@ -16,7 +18,12 @@
 
         public RuleDefinition GetDefinitionFor(Rule rule)
         {
-            return this.ruleSet.Rules.FirstOrDefault(x => x.Id == rule.Id);
+            RuleDefinition? result = this.ruleSet.Rules.FirstOrDefault(x => x.Id == rule.Id);
+            if (result == null)
+            {
+                throw new ArgumentException("No definition found for rule id " + rule.Id);
+            }
+            return result;
         }
 
         public IList<RuleDefinition> GetAll()

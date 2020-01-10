@@ -1,6 +1,5 @@
 ﻿namespace Endjin.Imm.Domain
 {
-    using System.Collections.Generic;
     using System.IO;
     using Endjin.Imm.Serialisation;
     using Newtonsoft.Json;

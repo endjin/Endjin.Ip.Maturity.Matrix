@@ -6,6 +6,12 @@
     <IsPackable>false</IsPackable>
 
     <Nullable>enable</Nullable>
+
+    <!-- 
+    We used StringBuilder.AppendLine mainly because it's the neatest way to generate multiple lines of text.
+    We're not in it for the efficiency, so we don't want Roslynator's helpful hint in this case.
+    -->
+    <NoWarn>RCS1197</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
