@@ -27,9 +27,12 @@
             foreach (var rule in imm.Rules)
             {
                 var ruleDefinition = this.ruleDefinitionRepository.GetDefinitionFor(rule);
-                var calculator = this.ruleCalculatorFactory.Create(ruleDefinition.DataType);
+                if (ruleDefinition != null)
+                {
+                    var calculator = this.ruleCalculatorFactory.Create(ruleDefinition.DataType);
 
-                yield return new RuleEvaluation(rule, calculator.Percentage(rule, context), calculator.Score(rule, context));
+                    yield return new RuleEvaluation(rule, calculator.Percentage(rule, context), calculator.Score(rule, context));
+                }
             }
         }
 

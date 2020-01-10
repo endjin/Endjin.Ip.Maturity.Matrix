@@ -6,7 +6,7 @@
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
 
-    [DebuggerDisplay("RuleDefinition = {Name}, {Measures.Length} Measures")]
+    [DebuggerDisplay("RuleDefinition = {Name}, {Measures.Count} Measures")]
     public partial class RuleDefinition
     {
         [JsonProperty("name")]

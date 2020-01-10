@@ -25,5 +25,8 @@
 
         [JsonProperty("date")]
         public string? Date { get; set; }
+
+        [JsonProperty("framework")]
+        public string? Framework { get; set; }
     }
 }

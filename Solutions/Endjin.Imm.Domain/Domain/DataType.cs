@@ -4,6 +4,7 @@
     {
         Continuous = 0,
         Discrete = 1,
-        Age = 2
+        Age = 2,
+        Framework = 3,
     }
 }
