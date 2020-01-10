@@ -1,14 +1,15 @@
 ﻿namespace Endjin.Imm.App
 {
-    using Endjin.Imm.Domain;
-    using Endjin.Imm.Processing;
-
     using System;
     using System.IO;
     using System.Net;
     using System.Net.Http;
     using System.Text;
     using System.Threading.Tasks;
+
+    using Endjin.Badger;
+    using Endjin.Imm.Domain;
+    using Endjin.Imm.Processing;
 
     public static class Program
     {
@@ -39,12 +40,12 @@
 
                 totalScore += result.Score;
 
-                //File.WriteAllText($"imm-{result.Rule.Id}.svg", new BadgePainter().DrawSVG(WebUtility.HtmlEncode(result.Rule.Name), $"{result.Percentage}%", ColorScheme.Red, Style.FlatSquare));
+                File.WriteAllText($"imm-{result.Rule.Id}.svg", BadgePainter.DrawSVG(WebUtility.HtmlEncode(result.Rule.Name!), $"{result.Percentage}%", ColorScheme.Red, Style.FlatSquare));
             }
 
             Console.WriteLine($"{totalScore} / {evaluationEngine.MaximumScore()}");
 
-            File.WriteAllText("imm.svg", new BadgePainter().DrawSVG("IMM", $"{totalScore} / {evaluationEngine.MaximumScore()}", ColorScheme.Red, Style.Flat));
+            File.WriteAllText("imm.svg", BadgePainter.DrawSVG("IMM", $"{totalScore} / {evaluationEngine.MaximumScore()}", ColorScheme.Red, Style.Flat));
             File.WriteAllText("imm-table.svg", string.Format(Resources.Table, col1.ToString(), col2.ToString()));
         }
     }

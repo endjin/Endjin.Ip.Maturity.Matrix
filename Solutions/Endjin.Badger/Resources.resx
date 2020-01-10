@@ -117,23 +117,62 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Table" xml:space="preserve">
-    <value>&lt;?xml version='1.0' standalone='no'?&gt;
-&lt;!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN'
-  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'&gt;
-&lt;svg width='100%' height='100%' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'&gt;
-
-   &lt;g id='columnGroup' font-family="DejaVu Sans,Verdana,Geneva,sans-serif"&gt;
-
-      &lt;text x='30' y='30' font-size='11px' font-weight='bold'&gt;
-         {0}
-      &lt;/text&gt;
-
-      &lt;text x='100' y='30' font-size='11px' text-anchor='middle' fill='crimson'&gt;
-         {1}
-      &lt;/text&gt;
-
-   &lt;/g&gt;
+  <data name="flat" xml:space="preserve">
+    <value>&lt;svg xmlns="http://www.w3.org/2000/svg" width="{0}" height="20"&gt;
+  &lt;linearGradient id="b" x2="0" y2="100%"&gt;
+    &lt;stop offset="0" stop-color="#bbb" stop-opacity=".1"/&gt;
+    &lt;stop offset="1" stop-opacity=".1"/&gt;
+  &lt;/linearGradient&gt;
+  &lt;mask id="a"&gt;
+    &lt;rect width="{0}" height="20" rx="3" fill="#fff"/&gt;
+  &lt;/mask&gt;
+  &lt;g mask="url(#a)"&gt;
+    &lt;path fill="#555" d="M0 0h{1}v20H0z"/&gt;
+    &lt;path fill="{7}" d="M{1} 0h{2}v20H{1}z"/&gt;
+    &lt;path fill="url(#b)" d="M0 0h{0}v20H0z"/&gt;
+  &lt;/g&gt;
+  &lt;g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11px"&gt;
+    &lt;text x="{3}" y="15" fill="#010101" fill-opacity=".3"&gt;{5}&lt;/text&gt;
+    &lt;text x="{3}" y="14"&gt;{5}&lt;/text&gt;
+    &lt;text x="{4}" y="15" fill="#010101" fill-opacity=".3"&gt;{6}&lt;/text&gt;
+    &lt;text x="{4}" y="14"&gt;{6}&lt;/text&gt;
+  &lt;/g&gt;
+&lt;/svg&gt;</value>
+  </data>
+  <data name="flatSquare" xml:space="preserve">
+    <value>&lt;svg xmlns="http://www.w3.org/2000/svg" width="{0}" height="20"&gt;
+  &lt;g shape-rendering="crispEdges"&gt;
+    &lt;path fill="#555" d="M0 0h{1}v20H0z"/&gt;
+    &lt;path fill="{7}" d="M{1} 0h{2}v20H{1}z"/&gt;
+  &lt;/g&gt;
+  &lt;g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11px"&gt;
+    &lt;text x="{3}" y="14"&gt;{5}&lt;/text&gt;
+    &lt;text x="{4}" y="14"&gt;{6}&lt;/text&gt;
+  &lt;/g&gt;
+&lt;/svg&gt;</value>
+  </data>
+  <data name="plastic" xml:space="preserve">
+    <value>&lt;svg xmlns="http://www.w3.org/2000/svg" width="{0}" height="18"&gt;
+  &lt;linearGradient id="b" x2="0" y2="100%"&gt;
+    &lt;stop offset="0" stop-color="#fff" stop-opacity=".7"/&gt;
+    &lt;stop offset=".1" stop-color="#aaa" stop-opacity=".1"/&gt;
+    &lt;stop offset=".9" stop-opacity=".3"/&gt;
+    &lt;stop offset="1" stop-opacity=".5"/&gt;
+  &lt;/linearGradient&gt;
+  &lt;mask id="a"&gt;
+    &lt;rect width="{0}" height="18" rx="4" fill="#fff"/&gt;
+  &lt;/mask&gt;
+  &lt;g mask="url(#a)"&gt;
+    &lt;path fill="#555" d="M0 0h{1}v18H0z"/&gt;
+    &lt;path fill="{7}" d="M{1} 0h{2}v18H{1}z"/&gt;
+    &lt;path fill="url(#b)" d="M0 0h{0}v18H0z"/&gt;
+  &lt;/g&gt;
+  &lt;g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11px"&gt;
+    &lt;text x="{3}" y="14" fill="#010101" fill-opacity=".3"&gt;{5}&lt;/text&gt;
+    &lt;text x="{3}" y="13"&gt;{5}&lt;/text&gt;
+    &lt;text x="{4}" y="14" fill="#010101" fill-opacity=".3"&gt;{6}&lt;/text&gt;
+    &lt;text x="{4}" y="13"&gt;{6}&lt;/text&gt;
+  &lt;/g&gt;
 &lt;/svg&gt;</value>
   </data>
 </root>

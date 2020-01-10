@@ -15,6 +15,7 @@
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta0006" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Endjin.Badger\Endjin.Badger.csproj" />
     <ProjectReference Include="..\Endjin.Imm.Domain\Endjin.Imm.csproj" />
   </ItemGroup>
   <ItemGroup>

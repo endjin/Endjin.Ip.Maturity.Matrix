@@ -8,7 +8,7 @@
     
     <Nullable>enable</Nullable>
 
-    <!-- CA1062 does nullability warning,s which are not necessary when nullability analysis is on.
+    <!-- CA1062 does nullability warnings which are not necessary when nullability analysis is on.
          CA1303 is the insistence that exception arguments be localized which isn't useful for us.
     -->
     <NoWarn>CA1062;CA1303</NoWarn>
