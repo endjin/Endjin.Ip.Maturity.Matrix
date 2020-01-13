@@ -63,7 +63,7 @@
         {
             public Context()
             {
-                LocalDate.FromDateTime(DateTime.Now);
+                this.EvaluationReferenceDate = LocalDate.FromDateTime(DateTime.Now);
             }
 
             public LocalDate EvaluationReferenceDate { get; }
