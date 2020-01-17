@@ -14,7 +14,7 @@
             this.rdr = rdr;
         }
 
-        public decimal Percentage(Rule rule, IEvaluationContext context)
+        public decimal Percentage(RuleAssertion rule, IEvaluationContext context)
         {
             var definition = this.rdr.GetDefinitionFor(rule);
             var higestScore = definition.Measures.Last().Score;
@@ -22,7 +22,7 @@
             return Math.Round((Convert.ToDecimal(this.Score(rule, context)) / Convert.ToDecimal(higestScore)) * 100);
         }
 
-        public long Score(Rule rule, IEvaluationContext context)
+        public long Score(RuleAssertion rule, IEvaluationContext context)
         {
             return rule.Measures[0].Score;
         }

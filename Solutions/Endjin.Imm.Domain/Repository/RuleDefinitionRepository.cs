@@ -16,7 +16,7 @@
             this.ruleSet = ruleSet;
         }
 
-        public RuleDefinition GetDefinitionFor(Rule rule)
+        public RuleDefinition GetDefinitionFor(RuleAssertion rule)
         {
             RuleDefinition? result = this.ruleSet.Rules.FirstOrDefault(x => x.Id == rule.Id);
             if (result == null)

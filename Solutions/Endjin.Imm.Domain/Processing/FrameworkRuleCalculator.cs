@@ -67,7 +67,7 @@ namespace Endjin.Imm.Processing
             this.rdr = rdr;
         }
 
-        public decimal Percentage(Rule rule, IEvaluationContext context)
+        public decimal Percentage(RuleAssertion rule, IEvaluationContext context)
         {
             RuleDefinition definition = this.rdr.GetDefinitionFor(rule);
             long higestScore = definition.Measures.Max(m => m.Score);
@@ -75,36 +75,34 @@ namespace Endjin.Imm.Processing
             return Math.Round((Convert.ToDecimal(this.Score(rule, context)) / Convert.ToDecimal(higestScore)) * 100);
         }
 
-        public long Score(Rule rule, IEvaluationContext context)
+        public long Score(RuleAssertion ruleAssertion, IEvaluationContext context)
         {
-            RuleDefinition definition = this.rdr.GetDefinitionFor(rule);
+            RuleDefinition ruleDefinition = this.rdr.GetDefinitionFor(ruleAssertion);
 
             // We need to handle two cases.
             // 1) Most IMMs should specify a framework.
             // 2) Because we used not to support self-aging properties, older IMMs just put a Score.
-            if (rule.Measures?.SingleOrDefault(m => !string.IsNullOrWhiteSpace(m?.Framework)) is Measure frameworkMeasure)
+            if (ruleAssertion.Measures?.OfType<FrameworkMeasureAssertion>()?.SingleOrDefault() is FrameworkMeasureAssertion frameworkMeasure)
             {
                 // There was a Framework, so we can do this properly.
 
-                //LocalDate dateInImm = LocalDatePattern.Iso.Parse(dateMeasure.Date).Value;
-
-                foreach (Measure rd in definition.Measures)
+                foreach (MeasureDefinition measureDefinition in ruleDefinition.Measures)
                 {
-                    if (rd.Framework == null)
+                    if (!(measureDefinition is FrameworkMeasureDefinition fmd))
                     {
                         throw new ArgumentException(
-                            "Rule definition's Framework is not set, so it should not be used with " + nameof(FrameworkRuleCalculator),
-                            nameof(rule));
+                            "Rule measure definition's Framework is not set, so it should not be used with " + nameof(FrameworkRuleCalculator),
+                            nameof(ruleAssertion));
                     }
 
-                    if (rd.Framework == "*" ||
-                        rd.Framework.Equals(frameworkMeasure.Framework, StringComparison.OrdinalIgnoreCase))
+                    if (fmd.Framework == "*" ||
+                        fmd.Framework.Equals(frameworkMeasure.Framework, StringComparison.OrdinalIgnoreCase))
                     {
-                        return rd.Score;
+                        return measureDefinition.Score;
                     }
                 }
             }
-            else if (rule.Measures?.SingleOrDefault(m => m?.Score != 0) is Measure scoreMeasure)
+            else if (ruleAssertion.Measures?.SingleOrDefault(m => m?.Score != 0) is MeasureAssertion scoreMeasure)
             {
                 // The IMM did not specify a Framework for this, but there is a Score entry, so we need
                 // to return that.
@@ -113,7 +111,7 @@ namespace Endjin.Imm.Processing
 
             // No Score or Framework, so see if the rule definition includes an entry saying what to do if
             // the Framework is unknown.
-            if (definition.Measures.SingleOrDefault(m => string.IsNullOrWhiteSpace(m.Framework)) is Measure measureDefForWhenFrameworkNotPresent)
+            if (ruleDefinition.Measures.SingleOrDefault(m => !(m is FrameworkMeasureDefinition)) is MeasureDefinition measureDefForWhenFrameworkNotPresent)
             {
                 return measureDefForWhenFrameworkNotPresent.Score;
             }

@@ -2,14 +2,14 @@
 {
     public class RuleEvaluation
     {
-        public RuleEvaluation(Rule rule, decimal percentage, long score)
+        public RuleEvaluation(RuleAssertion rule, decimal percentage, long score)
         {
             Rule = rule;
             Percentage = percentage;
             Score = score;
         }
 
-        public Rule Rule { get; }
+        public RuleAssertion Rule { get; }
 
         public decimal Percentage { get; }
 

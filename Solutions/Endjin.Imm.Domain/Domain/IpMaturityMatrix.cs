@@ -6,16 +6,16 @@
     public partial class IpMaturityMatrix
     {
         public IpMaturityMatrix()
-            : this(new List<Rule>())
+            : this(new List<RuleAssertion>())
         {
         }
 
-        private IpMaturityMatrix(IList<Rule> rules)
+        private IpMaturityMatrix(IList<RuleAssertion> rules)
         {
             this.Rules = rules;
         }
 
         [JsonProperty("rules")]
-        public IList<Rule> Rules { get; }
+        public IList<RuleAssertion> Rules { get; }
     }
 }
