@@ -35,9 +35,9 @@ namespace Endjin.Imm.Specs.Features
         public virtual void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "AgeBasedRule", "\tIn order to detect when some aspect of IP is stale\r\n\tAs a developer looking at s" +
-                    "ome IP\r\n\tI want age-related measures to be accurate even if the maturity matrix " +
-                    "has not been updated in a long while", ProgrammingLanguage.CSharp, ((string[])(null)));
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "AgeBasedRule", "    In order to detect when some aspect of IP is stale\r\n    As a developer lookin" +
+                    "g at some IP\r\n    I want age-related measures to be accurate even if the maturit" +
+                    "y matrix has not been updated in a long while", ProgrammingLanguage.CSharp, ((string[])(null)));
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -106,6 +106,9 @@ namespace Endjin.Imm.Specs.Features
 #line 13
     testRunner.And("the reference date for evaluation purposes is \'2019-12-03\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
+#line 14
+    testRunner.And("I load the rules", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
         }
         
         [NUnit.Framework.TestAttribute()]
@@ -117,7 +120,7 @@ namespace Endjin.Imm.Specs.Features
         {
             string[] tagsOfScenario = exampleTags;
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Less than one month old", null, exampleTags);
-#line 15
+#line 16
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -140,15 +143,21 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 this.FeatureBackground();
 #line hidden
-#line 16
+#line 17
     testRunner.Given(string.Format("my IMM has an entry named \'Date of Last IP Review\' with id \'da4ed776-0365-4d8a-a2" +
                             "97-c4e91a14d646\' with a Date of \'{0}\'", date), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 17
+#line 18
     testRunner.When("I evaluate the IMM", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 18
+#line 19
     testRunner.Then("the score for the \'da4ed776-0365-4d8a-a297-c4e91a14d646\' rule should be 3", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 20
+    testRunner.And("the evalution total score should be 3", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 21
+    testRunner.And("the evalution maximum possible score should be 3", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -164,7 +173,7 @@ this.FeatureBackground();
         {
             string[] tagsOfScenario = exampleTags;
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Between one and three months old", null, exampleTags);
-#line 31
+#line 34
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -187,15 +196,21 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 this.FeatureBackground();
 #line hidden
-#line 32
+#line 35
     testRunner.Given(string.Format("my IMM has an entry named \'Date of Last IP Review\' with id \'da4ed776-0365-4d8a-a2" +
                             "97-c4e91a14d646\' with a Date of \'{0}\'", date), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 33
+#line 36
     testRunner.When("I evaluate the IMM", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 34
+#line 37
     testRunner.Then("the score for the \'da4ed776-0365-4d8a-a297-c4e91a14d646\' rule should be 2", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 38
+    testRunner.And("the evalution total score should be 2", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 39
+    testRunner.And("the evalution maximum possible score should be 3", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -212,7 +227,7 @@ this.FeatureBackground();
         {
             string[] tagsOfScenario = exampleTags;
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("At least three months old", null, exampleTags);
-#line 43
+#line 48
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -235,15 +250,21 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 this.FeatureBackground();
 #line hidden
-#line 44
+#line 49
     testRunner.Given(string.Format("my IMM has an entry named \'Date of Last IP Review\' with id \'da4ed776-0365-4d8a-a2" +
                             "97-c4e91a14d646\' with a Date of \'{0}\'", date), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 45
+#line 50
     testRunner.When("I evaluate the IMM", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 46
+#line 51
     testRunner.Then("the score for the \'da4ed776-0365-4d8a-a297-c4e91a14d646\' rule should be 1", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 52
+    testRunner.And("the evalution total score should be 1", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 53
+    testRunner.And("the evalution maximum possible score should be 3", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -255,7 +276,7 @@ this.FeatureBackground();
         {
             string[] tagsOfScenario = ((string[])(null));
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Date not specified", null, ((string[])(null)));
-#line 56
+#line 63
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -278,15 +299,21 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 this.FeatureBackground();
 #line hidden
-#line 57
+#line 64
     testRunner.Given("my IMM has an entry named \'Date of Last IP Review\' with id \'da4ed776-0365-4d8a-a2" +
                         "97-c4e91a14d646\' with no Date", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 58
+#line 65
     testRunner.When("I evaluate the IMM", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 59
+#line 66
     testRunner.Then("the score for the \'da4ed776-0365-4d8a-a297-c4e91a14d646\' rule should be 0", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 67
+    testRunner.And("the evalution total score should be 0", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 68
+    testRunner.And("the evalution maximum possible score should be 3", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -302,7 +329,7 @@ this.FeatureBackground();
         {
             string[] tagsOfScenario = exampleTags;
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Legacy format", null, exampleTags);
-#line 61
+#line 70
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -325,15 +352,21 @@ this.ScenarioInitialize(scenarioInfo);
 #line 6
 this.FeatureBackground();
 #line hidden
-#line 62
+#line 71
     testRunner.Given(string.Format("my IMM has an entry named \'Date of Last IP Review\' with id \'da4ed776-0365-4d8a-a2" +
                             "97-c4e91a14d646\' with a Score of {0} and description of \'{1}\'", score, description), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 63
+#line 72
     testRunner.When("I evaluate the IMM", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 64
+#line 73
     testRunner.Then(string.Format("the score for the \'da4ed776-0365-4d8a-a297-c4e91a14d646\' rule should be {0}", score), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 74
+    testRunner.And(string.Format("the evalution total score should be {0}", score), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 75
+    testRunner.And("the evalution maximum possible score should be 3", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();

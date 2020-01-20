@@ -1,7 +1,7 @@
 ﻿Feature: FrameworkNameRule
-	In order to detect when some aspect of IP is stale
-	As a developer looking at some IP
-	I want supported framework version measures to be accurate even if the maturity matrix has not been updated in a long while
+    In order to detect when some aspect of IP is stale
+    As a developer looking at some IP
+    I want supported framework version measures to be accurate even if the maturity matrix has not been updated in a long while
 
 
 Background:
@@ -16,13 +16,16 @@ Background:
     | 2     | node8         | Using a LTS version                |
     | 1     | '*'           | Using an unsupported version       |
     | 0     |               | None                               |
+    And I load the rules
 
 
 Scenario Outline: Most current version
     Given my IMM has an entry named 'Framework Version' with id '6c0402b3-f0e3-4bd7-83fe-04bb6dca7924' with a Framework of '<framework>'
     When I evaluate the IMM
     Then the score for the '6c0402b3-f0e3-4bd7-83fe-04bb6dca7924' rule should be 3
-    Then the percentage for the '6c0402b3-f0e3-4bd7-83fe-04bb6dca7924' rule should be 100
+    And the percentage for the '6c0402b3-f0e3-4bd7-83fe-04bb6dca7924' rule should be 100
+    And the evalution total score should be 3
+    And the evalution maximum possible score should be 3
 
     # We support the idea of multiple current versions. This doesn't happen for .NET, but with node.js,
     # things get a little confused by the distinction between the "current" version and the latest LTS
@@ -46,7 +49,9 @@ Scenario Outline: Supported LTS version
     Given my IMM has an entry named 'Framework Version' with id '6c0402b3-f0e3-4bd7-83fe-04bb6dca7924' with a Framework of '<framework>'
     When I evaluate the IMM
     Then the score for the '6c0402b3-f0e3-4bd7-83fe-04bb6dca7924' rule should be 2
-    Then the percentage for the '6c0402b3-f0e3-4bd7-83fe-04bb6dca7924' rule should be 67
+    And the percentage for the '6c0402b3-f0e3-4bd7-83fe-04bb6dca7924' rule should be 67
+    And the evalution total score should be 2
+    And the evalution maximum possible score should be 3
 
     Examples:
     | framework     |
@@ -59,7 +64,9 @@ Scenario Outline: Unsupported version
     Given my IMM has an entry named 'Framework Version' with id '6c0402b3-f0e3-4bd7-83fe-04bb6dca7924' with a Framework of '<framework>'
     When I evaluate the IMM
     Then the score for the '6c0402b3-f0e3-4bd7-83fe-04bb6dca7924' rule should be 1
-    Then the percentage for the '6c0402b3-f0e3-4bd7-83fe-04bb6dca7924' rule should be 33
+    And the percentage for the '6c0402b3-f0e3-4bd7-83fe-04bb6dca7924' rule should be 33
+    And the evalution total score should be 1
+    And the evalution maximum possible score should be 3
 
     Examples:
     | framework     |
@@ -73,6 +80,8 @@ Scenario Outline: Legacy format
     Given my IMM has an entry named 'Framework Version' with id '6c0402b3-f0e3-4bd7-83fe-04bb6dca7924' with a Score of <score> and description of '<description>'
     When I evaluate the IMM
     Then the score for the '6c0402b3-f0e3-4bd7-83fe-04bb6dca7924' rule should be <score>
+	And the evalution total score should be <score>
+	And the evalution maximum possible score should be 3
 
     Examples:
     | score | percentage | description                        |

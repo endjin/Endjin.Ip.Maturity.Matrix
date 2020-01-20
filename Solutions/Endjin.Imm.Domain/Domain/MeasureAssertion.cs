@@ -14,6 +14,17 @@
         public long Score { get; set; }
 
         [JsonProperty("description")]
-        public string? Description { get; set; }
+        public string Description { get; set; } = "";
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the project has opted out of this particular
+        /// measure.
+        /// </summary>
+        /// <remarks>
+        /// This may be true only if the corresponding <see cref="MeasureDefinition.CanOptOut"/>
+        /// property is true.
+        /// </remarks>
+        [JsonProperty("optOut")]
+        public bool OptOut { get; set; }
     }
 }

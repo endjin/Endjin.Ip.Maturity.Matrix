@@ -11,6 +11,7 @@
     /// based on which properties are present.
     /// </summary>
     internal class PropertySwitchedNodeDeserializer<TBase> : INodeDeserializer
+        where TBase : new()
     {
         private readonly (string propertyName, Type type)[] mappings;
 
@@ -69,6 +70,10 @@
                 }
                 var jo = JObject.FromObject(properties);
                 value = jo.ToObject(targetType);
+            }
+            else
+            {
+                value = new TBase();
             }
 
             return true;

@@ -145,10 +145,10 @@ this.ScenarioInitialize(scenarioInfo);
                         "7924\' and DataType \'Framework\'", ((string)(null)), table3, "Given ");
 #line hidden
 #line 18
- testRunner.When("I load the rules", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("I load the rules", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 19
- testRunner.Then("the rule definition name should be \'Framework Version\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.Then("the rule definition name should be \'Framework Version\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 20
     testRunner.And("the rule definition id should be \'6c0402b3-f0e3-4bd7-83fe-04bb6dca7924\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
@@ -227,10 +227,10 @@ this.ScenarioInitialize(scenarioInfo);
                         "91a14d646\' and DataType \'Age\'", ((string)(null)), table4, "Given ");
 #line hidden
 #line 34
- testRunner.When("I load the rules", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+    testRunner.When("I load the rules", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 35
- testRunner.Then("the rule definition name should be \'Date of Last IP Review\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+    testRunner.Then("the rule definition name should be \'Date of Last IP Review\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 36
     testRunner.And("the rule definition id should be \'da4ed776-0365-4d8a-a297-c4e91a14d646\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");

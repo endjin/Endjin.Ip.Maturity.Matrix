@@ -33,6 +33,22 @@
         [JsonProperty("dataType", ItemConverterType = typeof(StringEnumConverter))]
         public DataType DataType { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether there are situations in which this rule might
+        /// not be applicable, meaning certain projects may need to opt out of it in their IMM.
+        /// </summary>
+        /// <remarks>
+        /// Opting out of a rule reduces the maximum total number of points achievable for an IMM.
+        /// This has an impact on the IMM summary score badge rendering, which shows the number of
+        /// points achieved next to the maximum possible, and also colour codes the badge based on
+        /// what proportion of the maximum score has been achieved. The ability to opt out means
+        /// that projects for which a rule is not applicable do not get their IMM score
+        /// distorted. (E.g., a project could conceivably get a perfect IMM score without scoring
+        /// any points on a rule that it has legitimately opted out of.)
+        /// </remarks>
+        [JsonProperty("canOptOut")]
+        public bool CanOptOut { get; set; }
+
         [JsonProperty("measures")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "YamlDotNet.Serialization doesn't know how to deserialize a collection into a pre-initialized read-only property")]
         public IList<MeasureDefinition> Measures { get; set; } = new List<MeasureDefinition>();

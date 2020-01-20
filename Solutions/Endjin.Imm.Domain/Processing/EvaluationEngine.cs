@@ -21,42 +21,41 @@
             this.ruleCalculatorFactory = new RuleCalculatorFactory(this.ruleDefinitionRepository);
         }
 
-        public IEnumerable<RuleEvaluation> Evaluate(IpMaturityMatrix imm, IEvaluationContext? context = null)
+        public ImmEvaluation Evaluate(IpMaturityMatrix imm, IEvaluationContext? context = null)
         {
             context ??= new Context();
-            foreach (var rule in imm.Rules)
+
+            var ruleEvaluations = new List<RuleEvaluation>();
+            long totalScore = 0;
+            long maximumPossibleScore = 0;
+            foreach (var rule in imm.Rules.Where(r => !r.OptOut))
             {
                 var ruleDefinition = this.ruleDefinitionRepository.GetDefinitionFor(rule);
                 if (ruleDefinition != null)
                 {
                     var calculator = this.ruleCalculatorFactory.Create(ruleDefinition.DataType);
 
-                    yield return new RuleEvaluation(rule, calculator.Percentage(rule, context), calculator.Score(rule, context));
+                    var ruleEvaluation = new RuleEvaluation(rule, calculator.Percentage(rule, context), calculator.Score(rule, context));
+                    ruleEvaluations.Add(ruleEvaluation);
+
+                    totalScore += ruleEvaluation.Score;
+                    maximumPossibleScore += GetMaximumScoreForRule(ruleDefinition, rule);
                 }
             }
+
+            return new ImmEvaluation(ruleEvaluations, totalScore, maximumPossibleScore);
         }
 
-        public long MaximumScore()
+        private static long GetMaximumScoreForRule(RuleDefinition definition, RuleAssertion assertion)
         {
-            var definitions = this.ruleDefinitionRepository.GetAll();
-            long runningTotal = 0;
+            var optedOut = assertion.Measures.Where(m => m.OptOut).Select(m => m.Description).ToHashSet();
 
-            foreach (var definition in definitions)
+            var applicableMeasures = definition.Measures.Where(m => !optedOut.Contains(m.Description)).ToList();
+            return definition.DataType switch
             {
-                switch (definition.DataType)
-                {
-                    case DataType.Continuous:
-                        runningTotal += definition.Measures.Sum(x => x.Score);
-                        break;
-                    case DataType.Discrete:
-                        runningTotal += definition.Measures.Last().Score;
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            return runningTotal;
+                DataType.Continuous => applicableMeasures.Sum(x => x.Score),
+                _ => applicableMeasures.Max(m => m.Score),
+            };
         }
 
         private class Context : IEvaluationContext

@@ -1,30 +1,16 @@
 ﻿namespace Endjin.Imm.Processing
 {
-    using Endjin.Imm.Contracts;
-    using Endjin.Imm.Domain;
-    using System;
     using System.Linq;
+    using Endjin.Imm.Contracts;
 
-    public class DiscreteRuleCalculator : IRuleCalculator
+    public class DiscreteRuleCalculator : DiscreteRuleCalculatorBase
     {
-        private readonly IRuleDefinitionRepository rdr;
-
         public DiscreteRuleCalculator(IRuleDefinitionRepository rdr)
+            : base(rdr)
         {
-            this.rdr = rdr;
         }
 
-        public decimal Percentage(RuleAssertion rule, IEvaluationContext context)
-        {
-            var definition = this.rdr.GetDefinitionFor(rule);
-            var higestScore = definition.Measures.Last().Score;
-
-            return Math.Round((Convert.ToDecimal(this.Score(rule, context)) / Convert.ToDecimal(higestScore)) * 100);
-        }
-
-        public long Score(RuleAssertion rule, IEvaluationContext context)
-        {
-            return rule.Measures[0].Score;
-        }
+        protected override long ScoreFromApplicableMeasures(CalculationContext context)
+            => context.ApplicableMeasureAssertions.Single().Score;
     }
 }

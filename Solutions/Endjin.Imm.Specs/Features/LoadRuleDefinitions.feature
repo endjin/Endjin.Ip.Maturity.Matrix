@@ -15,8 +15,8 @@ Scenario: Framework rules
     | 2     | node8         | Using a LTS version                |
     | 1     | '*'           | Using an unsupported version       |
     | 0     |               | None                               |
-	When I load the rules
-	Then the rule definition name should be 'Framework Version'
+    When I load the rules
+    Then the rule definition name should be 'Framework Version'
     And the rule definition id should be '6c0402b3-f0e3-4bd7-83fe-04bb6dca7924'
     And the rule definition should have the same number of measures as were in the YAML
     And all the rule definition measure definitions with Framework property should be of type 'Endjin.Imm.Domain.FrameworkMeasureDefinition'
@@ -31,8 +31,8 @@ Scenario: Age rules
     | 2     | <P3M | > 1 month   |
     | 1     | '*'  | > 3 months  |
     | 0     |      | None        |
-	When I load the rules
-	Then the rule definition name should be 'Date of Last IP Review'
+    When I load the rules
+    Then the rule definition name should be 'Date of Last IP Review'
     And the rule definition id should be 'da4ed776-0365-4d8a-a297-c4e91a14d646'
     And the rule definition should have the same number of measures as were in the YAML
     And all the rule definition measure definitions with Age property should be of type 'Endjin.Imm.Domain.AgeMeasureDefinition'
