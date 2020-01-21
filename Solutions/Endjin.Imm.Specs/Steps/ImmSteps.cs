@@ -90,7 +90,7 @@ namespace Endjin.Imm.Specs.Steps
 
             var evaluationEngine = new EvaluationEngine(this.ruleSet!);
             this.evaluationResult = evaluationEngine.Evaluate(this.imm, this.evaluationContext);
-            this.ruleEvaluations = this.evaluationResult.RuleEvaluations.ToDictionary(r => r.Rule.Id);
+            this.ruleEvaluations = this.evaluationResult.RuleEvaluations.ToDictionary(r => r.RuleAssertion.Id);
         }
 
         [Then("the rule definition name should be '(.*)'")]

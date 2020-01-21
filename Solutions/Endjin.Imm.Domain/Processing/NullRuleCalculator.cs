@@ -5,12 +5,12 @@
 
     public class NullRuleCalculator : IRuleCalculator
     {
-        public decimal Percentage(RuleAssertion rule, IEvaluationContext context)
+        public decimal Percentage(RuleAssertion ruleAssertion, IEvaluationContext context)
         {
             return 0m;
         }
 
-        public long Score(RuleAssertion rule, IEvaluationContext context)
+        public long Score(RuleAssertion ruleAssertion, IEvaluationContext context)
         {
             return 0;
         }

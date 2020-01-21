@@ -54,9 +54,9 @@ namespace Endjin.Ip.Maturity.Matrix.Host
             var ruleIdAsGuid = Guid.Parse(ruleId);
             var results = await this.GetImmRulesFromGitHubAsync(org, project).ConfigureAwait(false);
             var evaluationEngine = new EvaluationEngine(results.RuleSet);
-            var result = evaluationEngine.Evaluate(results.Rules).RuleEvaluations.First(x => x.Rule.Id == ruleIdAsGuid);
+            var result = evaluationEngine.Evaluate(results.Rules).RuleEvaluations.First(x => x.RuleAssertion.Id == ruleIdAsGuid);
 
-            return this.CreateUncacheResponse(request, new ByteArrayContent(Encoding.ASCII.GetBytes(BadgePainter.DrawSVG(WebUtility.HtmlEncode(result.Rule.Name!), $"{result.Percentage}%", GetColourSchemeForPercentage(result.Percentage), Style.Flat))), "image/svg+xml");
+            return this.CreateUncacheResponse(request, new ByteArrayContent(Encoding.ASCII.GetBytes(BadgePainter.DrawSVG(WebUtility.HtmlEncode(result.RuleAssertion.Name!), $"{result.Percentage}%", GetColourSchemeForPercentage(result.Percentage), Style.Flat))), "image/svg+xml");
         }
 
         private HttpResponseMessage CreateUncacheResponse(HttpRequestMessage req, HttpContent content, string mediaType)
