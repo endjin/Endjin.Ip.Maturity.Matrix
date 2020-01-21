@@ -5,7 +5,7 @@
 
     public interface IRuleDefinitionRepository
     {
-        RuleDefinition GetDefinitionFor(Rule rule);
+        RuleDefinition GetDefinitionFor(RuleAssertion ruleAssertion);
 
         IList<RuleDefinition> GetAll();
     }

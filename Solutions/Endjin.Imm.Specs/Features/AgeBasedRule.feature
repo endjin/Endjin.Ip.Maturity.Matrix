@@ -1,7 +1,7 @@
 ﻿Feature: AgeBasedRule
-	In order to detect when some aspect of IP is stale
-	As a developer looking at some IP
-	I want age-related measures to be accurate even if the maturity matrix has not been updated in a long while
+    In order to detect when some aspect of IP is stale
+    As a developer looking at some IP
+    I want age-related measures to be accurate even if the maturity matrix has not been updated in a long while
 
 Background:
     Given I have a rule named 'Date of Last IP Review' with id 'da4ed776-0365-4d8a-a297-c4e91a14d646' and DataType 'Age'
@@ -11,11 +11,14 @@ Background:
     | 1     | '*'  | > 3 months  |
     | 0     |      | None        |
     And the reference date for evaluation purposes is '2019-12-03'
+    And I load the rules
 
 Scenario Outline: Less than one month old
     Given my IMM has an entry named 'Date of Last IP Review' with id 'da4ed776-0365-4d8a-a297-c4e91a14d646' with a Date of '<date>'
     When I evaluate the IMM
     Then the score for the 'da4ed776-0365-4d8a-a297-c4e91a14d646' rule should be 3
+    And the evalution total score should be 3
+    And the evalution maximum possible score should be 3
 
     Examples:
     | date       |
@@ -32,6 +35,8 @@ Scenario Outline: Between one and three months old
     Given my IMM has an entry named 'Date of Last IP Review' with id 'da4ed776-0365-4d8a-a297-c4e91a14d646' with a Date of '<date>'
     When I evaluate the IMM
     Then the score for the 'da4ed776-0365-4d8a-a297-c4e91a14d646' rule should be 2
+    And the evalution total score should be 2
+    And the evalution maximum possible score should be 3
 
     Examples:
     | date       |
@@ -44,6 +49,8 @@ Scenario Outline: At least three months old
     Given my IMM has an entry named 'Date of Last IP Review' with id 'da4ed776-0365-4d8a-a297-c4e91a14d646' with a Date of '<date>'
     When I evaluate the IMM
     Then the score for the 'da4ed776-0365-4d8a-a297-c4e91a14d646' rule should be 1
+    And the evalution total score should be 1
+    And the evalution maximum possible score should be 3
 
     Examples:
     | date       |
@@ -57,11 +64,15 @@ Scenario: Date not specified
     Given my IMM has an entry named 'Date of Last IP Review' with id 'da4ed776-0365-4d8a-a297-c4e91a14d646' with no Date
     When I evaluate the IMM
     Then the score for the 'da4ed776-0365-4d8a-a297-c4e91a14d646' rule should be 0
+    And the evalution total score should be 0
+    And the evalution maximum possible score should be 3
 
 Scenario Outline: Legacy format
     Given my IMM has an entry named 'Date of Last IP Review' with id 'da4ed776-0365-4d8a-a297-c4e91a14d646' with a Score of <score> and description of '<description>'
     When I evaluate the IMM
     Then the score for the 'da4ed776-0365-4d8a-a297-c4e91a14d646' rule should be <score>
+    And the evalution total score should be <score>
+    And the evalution maximum possible score should be 3
 
     Examples:
     | score | description |

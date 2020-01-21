@@ -16,12 +16,12 @@
             this.ruleSet = ruleSet;
         }
 
-        public RuleDefinition GetDefinitionFor(Rule rule)
+        public RuleDefinition GetDefinitionFor(RuleAssertion ruleAssertion)
         {
-            RuleDefinition? result = this.ruleSet.Rules.FirstOrDefault(x => x.Id == rule.Id);
+            RuleDefinition? result = this.ruleSet.Rules.FirstOrDefault(x => x.Id == ruleAssertion.Id);
             if (result == null)
             {
-                throw new ArgumentException("No definition found for rule id " + rule.Id);
+                throw new ArgumentException("No definition found for rule id " + ruleAssertion.Id);
             }
             return result;
         }

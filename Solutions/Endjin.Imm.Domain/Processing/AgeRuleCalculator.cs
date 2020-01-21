@@ -60,53 +60,44 @@
     /// evaluated on 2020-06-06, the score will have dropped to just 1 if the IMM still has the date of 2019-11-28.
     /// </para>
     /// </remarks>
-    internal class AgeRuleCalculator : IRuleCalculator
+    internal class AgeRuleCalculator : DiscreteRuleCalculatorBase
     {
-        private readonly IRuleDefinitionRepository rdr;
-
         public AgeRuleCalculator(IRuleDefinitionRepository rdr)
+            : base(rdr)
         {
-            this.rdr = rdr;
         }
 
-        public decimal Percentage(Rule rule, IEvaluationContext context)
+        protected override long ScoreFromApplicableMeasures(CalculationContext context)
         {
-            RuleDefinition definition = this.rdr.GetDefinitionFor(rule);
-            long higestScore = definition.Measures.Max(m => m.Score);
-
-            return Math.Round((Convert.ToDecimal(this.Score(rule, context)) / Convert.ToDecimal(higestScore)) * 100);
-        }
-
-        public long Score(Rule rule, IEvaluationContext context)
-        {
-            RuleDefinition definition = this.rdr.GetDefinitionFor(rule);
-
             // We need to handle two cases.
-            // 1) Most IMMs should specify a Date.
+            // 1) Most IMMs should specify a Date for rules of this type.
             // 2) Because we used not to support self-aging properties, older IMMs just put a Score.
-            if (rule.Measures?.SingleOrDefault(m => !string.IsNullOrWhiteSpace(m?.Date)) is Measure dateMeasure)
+            if (context.ApplicableMeasureAssertions.OfType<AgeMeasureAssertion>().SingleOrDefault() is AgeMeasureAssertion dateMeasure)
             {
                 // There was a Date, so we can do this properly.
                 LocalDate dateInImm = LocalDatePattern.Iso.Parse(dateMeasure.Date).Value;
 
-                foreach (Measure rd in definition.Measures)
+                foreach (MeasureDefinition measureDefinition in context.ApplicableMeasureDefinitions)
                 {
-                    if (rd.Age == null)
+                    if (!(measureDefinition is AgeMeasureDefinition amd))
                     {
+#pragma warning disable CA2208 // Instantiate argument exceptions correctly
+                        // The "ruleAssertion" argument name here is defined in IRuleCalculator.Score
                         throw new ArgumentException(
                             "Rule definition's Age is not set, so it should not be used with " + nameof(AgeRuleCalculator),
-                            nameof(rule));
+                            "ruleAssertion");
+#pragma warning restore CA2208 // Instantiate argument exceptions correctly
                     }
 
                     // Need to work out which kind of rule: < or *
                     // If <, then parse the rule as Period in ISO8601 form, and 
-                    if (LocalDateMatchesRule(dateInImm, context.EvaluationReferenceDate, rd.Age))
+                    if (LocalDateMatchesRule(dateInImm, context.EvaluationContext.EvaluationReferenceDate, amd.Age))
                     {
-                        return rd.Score;
+                        return measureDefinition.Score;
                     }
                 }
             }
-            else if (rule.Measures?.SingleOrDefault(m => m?.Score != 0) is Measure scoreMeasure)
+            else if (context.ApplicableMeasureAssertions.SingleOrDefault(m => m?.Score != 0) is MeasureAssertion scoreMeasure)
             {
                 // The IMM did not specify a Date for this, but there is a Score entry, so we need
                 // to return that.
@@ -115,7 +106,7 @@
 
             // No Score or Date, so see if the rule definition includes an entry saying what to do if
             // the Age is unknown.
-            if (definition.Measures.SingleOrDefault(m => string.IsNullOrWhiteSpace(m.Age)) is Measure measureDefForWhenAgeNotPresent)
+            if (context.ApplicableMeasureDefinitions.SingleOrDefault(m => !(m is AgeMeasureDefinition)) is MeasureDefinition measureDefForWhenAgeNotPresent)
             {
                 return measureDefForWhenAgeNotPresent.Score;
             }

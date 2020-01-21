@@ -36,16 +36,16 @@ namespace Endjin.Ip.Maturity.Matrix.Host
         [FunctionName(nameof(GitHubImmTotalScore))]
         public async Task<HttpResponseMessage> GitHubImmTotalScore([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "imm/github/{org}/{project}/total")]HttpRequestMessage request, string org, string project)
         {
-            long totalScore = 0;
-            var results = await this.GetImmRulesFromGitHubAsync(org, project).ConfigureAwait(false);
-            var evaluationEngine = new EvaluationEngine(results.RuleSet);
+            (IpMaturityMatrixRuleset ruleSet, IpMaturityMatrix ruleAssertions) = await this.GetImmRulesFromGitHubAsync(org, project).ConfigureAwait(false);
+            var evaluationEngine = new EvaluationEngine(ruleSet);
 
-            foreach (var result in evaluationEngine.Evaluate(results.Rules))
-            {
-                totalScore += result.Score;
-            }
+            ImmEvaluation evaluationResult = evaluationEngine.Evaluate(ruleAssertions);
 
-            return this.CreateUncacheResponse(request, new ByteArrayContent(Encoding.ASCII.GetBytes(BadgePainter.DrawSVG("IMM", $"{totalScore} / {evaluationEngine.MaximumScore()}", ColorScheme.Red, Style.Flat))), "image/svg+xml");
+            string svg = BadgePainter.DrawSVG("IMM", $"{evaluationResult.TotalScore} / {evaluationResult.MaximumPossibleTotalScore}", ColorScheme.Red, Style.Flat);
+            return this.CreateUncacheResponse(
+                request,
+                new ByteArrayContent(Encoding.ASCII.GetBytes(svg)),
+                "image/svg+xml");
         }
 
         [FunctionName(nameof(GitHubImmByRule))]
@@ -54,9 +54,9 @@ namespace Endjin.Ip.Maturity.Matrix.Host
             var ruleIdAsGuid = Guid.Parse(ruleId);
             var results = await this.GetImmRulesFromGitHubAsync(org, project).ConfigureAwait(false);
             var evaluationEngine = new EvaluationEngine(results.RuleSet);
-            var result = evaluationEngine.Evaluate(results.Rules).FirstOrDefault(x => x.Rule.Id == ruleIdAsGuid);
+            var result = evaluationEngine.Evaluate(results.Rules).RuleEvaluations.First(x => x.RuleAssertion.Id == ruleIdAsGuid);
 
-            return this.CreateUncacheResponse(request, new ByteArrayContent(Encoding.ASCII.GetBytes(BadgePainter.DrawSVG(WebUtility.HtmlEncode(result.Rule.Name!), $"{result.Percentage}%", GetColourSchemeForPercentage(result.Percentage), Style.Flat))), "image/svg+xml");
+            return this.CreateUncacheResponse(request, new ByteArrayContent(Encoding.ASCII.GetBytes(BadgePainter.DrawSVG(WebUtility.HtmlEncode(result.RuleAssertion.Name!), $"{result.Percentage}%", GetColourSchemeForPercentage(result.Percentage), Style.Flat))), "image/svg+xml");
         }
 
         private HttpResponseMessage CreateUncacheResponse(HttpRequestMessage req, HttpContent content, string mediaType)

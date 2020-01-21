@@ -35,9 +35,9 @@ namespace Endjin.Imm.Specs.Features
         public virtual void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "FrameworkNameRule", "\tIn order to detect when some aspect of IP is stale\r\n\tAs a developer looking at s" +
-                    "ome IP\r\n\tI want supported framework version measures to be accurate even if the " +
-                    "maturity matrix has not been updated in a long while", ProgrammingLanguage.CSharp, ((string[])(null)));
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "FrameworkNameRule", "    In order to detect when some aspect of IP is stale\r\n    As a developer lookin" +
+                    "g at some IP\r\n    I want supported framework version measures to be accurate eve" +
+                    "n if the maturity matrix has not been updated in a long while", ProgrammingLanguage.CSharp, ((string[])(null)));
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -123,6 +123,9 @@ namespace Endjin.Imm.Specs.Features
     testRunner.Given("I have a rule named \'Framework Version\' with id \'6c0402b3-f0e3-4bd7-83fe-04bb6dca" +
                     "7924\' and DataType \'Framework\'", ((string)(null)), table2, "Given ");
 #line hidden
+#line 19
+    testRunner.And("I load the rules", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
         }
         
         [NUnit.Framework.TestAttribute()]
@@ -134,7 +137,7 @@ namespace Endjin.Imm.Specs.Features
         {
             string[] tagsOfScenario = exampleTags;
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Most current version", null, exampleTags);
-#line 21
+#line 22
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -157,18 +160,24 @@ this.ScenarioInitialize(scenarioInfo);
 #line 7
 this.FeatureBackground();
 #line hidden
-#line 22
+#line 23
     testRunner.Given(string.Format("my IMM has an entry named \'Framework Version\' with id \'6c0402b3-f0e3-4bd7-83fe-04" +
                             "bb6dca7924\' with a Framework of \'{0}\'", framework), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 23
+#line 24
     testRunner.When("I evaluate the IMM", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 24
+#line 25
     testRunner.Then("the score for the \'6c0402b3-f0e3-4bd7-83fe-04bb6dca7924\' rule should be 3", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 25
-    testRunner.Then("the percentage for the \'6c0402b3-f0e3-4bd7-83fe-04bb6dca7924\' rule should be 100", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line 26
+    testRunner.And("the percentage for the \'6c0402b3-f0e3-4bd7-83fe-04bb6dca7924\' rule should be 100", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 27
+    testRunner.And("the evalution total score should be 3", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 28
+    testRunner.And("the evalution maximum possible score should be 3", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -184,7 +193,7 @@ this.FeatureBackground();
         {
             string[] tagsOfScenario = exampleTags;
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Supported LTS version", null, exampleTags);
-#line 45
+#line 48
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -207,18 +216,24 @@ this.ScenarioInitialize(scenarioInfo);
 #line 7
 this.FeatureBackground();
 #line hidden
-#line 46
+#line 49
     testRunner.Given(string.Format("my IMM has an entry named \'Framework Version\' with id \'6c0402b3-f0e3-4bd7-83fe-04" +
                             "bb6dca7924\' with a Framework of \'{0}\'", framework), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 47
+#line 50
     testRunner.When("I evaluate the IMM", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 48
+#line 51
     testRunner.Then("the score for the \'6c0402b3-f0e3-4bd7-83fe-04bb6dca7924\' rule should be 2", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 49
-    testRunner.Then("the percentage for the \'6c0402b3-f0e3-4bd7-83fe-04bb6dca7924\' rule should be 67", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line 52
+    testRunner.And("the percentage for the \'6c0402b3-f0e3-4bd7-83fe-04bb6dca7924\' rule should be 67", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 53
+    testRunner.And("the evalution total score should be 2", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 54
+    testRunner.And("the evalution maximum possible score should be 3", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -235,7 +250,7 @@ this.FeatureBackground();
         {
             string[] tagsOfScenario = exampleTags;
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Unsupported version", null, exampleTags);
-#line 58
+#line 63
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -258,18 +273,24 @@ this.ScenarioInitialize(scenarioInfo);
 #line 7
 this.FeatureBackground();
 #line hidden
-#line 59
+#line 64
     testRunner.Given(string.Format("my IMM has an entry named \'Framework Version\' with id \'6c0402b3-f0e3-4bd7-83fe-04" +
                             "bb6dca7924\' with a Framework of \'{0}\'", framework), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 60
+#line 65
     testRunner.When("I evaluate the IMM", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 61
+#line 66
     testRunner.Then("the score for the \'6c0402b3-f0e3-4bd7-83fe-04bb6dca7924\' rule should be 1", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 62
-    testRunner.Then("the percentage for the \'6c0402b3-f0e3-4bd7-83fe-04bb6dca7924\' rule should be 33", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line 67
+    testRunner.And("the percentage for the \'6c0402b3-f0e3-4bd7-83fe-04bb6dca7924\' rule should be 33", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 68
+    testRunner.And("the evalution total score should be 1", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 69
+    testRunner.And("the evalution maximum possible score should be 3", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -285,7 +306,7 @@ this.FeatureBackground();
         {
             string[] tagsOfScenario = exampleTags;
             TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Legacy format", null, exampleTags);
-#line 72
+#line 79
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -308,15 +329,21 @@ this.ScenarioInitialize(scenarioInfo);
 #line 7
 this.FeatureBackground();
 #line hidden
-#line 73
+#line 80
     testRunner.Given(string.Format("my IMM has an entry named \'Framework Version\' with id \'6c0402b3-f0e3-4bd7-83fe-04" +
                             "bb6dca7924\' with a Score of {0} and description of \'{1}\'", score, description), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Given ");
 #line hidden
-#line 74
+#line 81
     testRunner.When("I evaluate the IMM", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-#line 75
+#line 82
     testRunner.Then(string.Format("the score for the \'6c0402b3-f0e3-4bd7-83fe-04bb6dca7924\' rule should be {0}", score), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 83
+ testRunner.And(string.Format("the evalution total score should be {0}", score), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 84
+ testRunner.And("the evalution maximum possible score should be 3", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();

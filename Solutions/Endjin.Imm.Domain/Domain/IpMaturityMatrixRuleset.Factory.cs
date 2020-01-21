@@ -12,13 +12,19 @@
         /// </summary>
         public const string RuleSetDefinitionsUrl = "https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Matrix.RuleDefinitions/master/RuleSet.yaml";
 
+        private static readonly INodeDeserializer nodeDeserializer = new PropertySwitchedNodeDeserializer<MeasureDefinition>(
+            (nameof(FrameworkMeasureDefinition.Framework), typeof(FrameworkMeasureDefinition)),
+            (nameof(AgeMeasureDefinition.Age), typeof(AgeMeasureDefinition)));
+
         public static IpMaturityMatrixRuleset FromJson(string json) => JsonConvert.DeserializeObject<IpMaturityMatrixRuleset>(json, Converter.Settings) ?? new IpMaturityMatrixRuleset();
 
         public static IpMaturityMatrixRuleset FromYaml(string yaml)
         {
             using var input = new StringReader(yaml);
 
-            var deserializer = new DeserializerBuilder().Build();
+            var deserializer = new DeserializerBuilder()
+                .WithNodeDeserializer(nodeDeserializer)
+                .Build();
 
             var rules = deserializer.Deserialize<RuleDefinition[]>(input);
 
