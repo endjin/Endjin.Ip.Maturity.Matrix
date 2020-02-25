@@ -1,23 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <FileUpgradeFlags>40</FileUpgradeFlags>
-    <UpgradeBackupLocation>C:\_Projects\IP\Endjin.Ip.Maturity.Matrix\Backup\Endjin.Imm.Domain\</UpgradeBackupLocation>
-    <OldToolsVersion>2.0</OldToolsVersion>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
     
     <Nullable>enable</Nullable>
 
+    <RootNamespace></RootNamespace>
+
     <!-- CA1062 does nullability warnings which are not necessary when nullability analysis is on.
          CA1303 is the insistence that exception arguments be localized which isn't useful for us.
+         CA1812 is a complaint that we've got a task which is apparently not instantiated, which causes
+                lots of false positives when types are instantiated via DI.
     -->
-    <NoWarn>CA1062;CA1303</NoWarn>
+    <NoWarn>CA1062;CA1303;CA1812</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="2.1.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="NodaTime" Version="2.4.7" />
     <PackageReference Include="YamlDotNet.NetCore" Version="1.0.0" />

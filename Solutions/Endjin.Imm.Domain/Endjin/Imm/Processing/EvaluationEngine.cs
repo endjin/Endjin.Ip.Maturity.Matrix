@@ -2,7 +2,6 @@
 {
     using Endjin.Imm.Contracts;
     using Endjin.Imm.Domain;
-    using Endjin.Imm.Repository;
     using NodaTime;
     using System;
     using System.Collections.Generic;
@@ -10,14 +9,12 @@
 
     public class EvaluationEngine : IEvaluationEngine
     {
-        private readonly IpMaturityMatrixRuleset ruleSet;
         private readonly RuleCalculatorFactory ruleCalculatorFactory;
         private readonly IRuleDefinitionRepository ruleDefinitionRepository;
 
-        public EvaluationEngine(IpMaturityMatrixRuleset ruleSet)
+        public EvaluationEngine(IRuleDefinitionRepository ruleDefinitionRepository)
         {
-            this.ruleSet = ruleSet;
-            this.ruleDefinitionRepository = new RuleDefinitionRepository(this.ruleSet);
+            this.ruleDefinitionRepository = ruleDefinitionRepository;
             this.ruleCalculatorFactory = new RuleCalculatorFactory(this.ruleDefinitionRepository);
         }
 
