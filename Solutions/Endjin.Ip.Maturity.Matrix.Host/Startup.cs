@@ -11,6 +11,7 @@ namespace Endjin.Ip.Maturity.Matrix.Host
         {
             builder.Services.AddHttpClient();
             builder.Services.AddMemoryCache();
+            builder.Services.AddImmSources();
         }
     }
 }

@@ -10,6 +10,7 @@
     using Endjin.Badger;
     using Endjin.Imm.Domain;
     using Endjin.Imm.Processing;
+    using Endjin.Imm.Repository;
 
     public static class Program
     {
@@ -23,7 +24,7 @@
             var yamlRules = IpMaturityMatrixRuleset.FromYaml(yamlRuleText);
             var immProjectScore = IpMaturityMatrix.FromYaml(File.ReadAllText("imm-default.yaml"));
 
-            var evaluationEngine = new EvaluationEngine(yamlRules);
+            var evaluationEngine = new EvaluationEngine(new RuleDefinitionRepository(yamlRules));
 
             var col1 = new StringBuilder();
             var col2 = new StringBuilder();

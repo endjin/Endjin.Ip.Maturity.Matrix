@@ -1,18 +1,18 @@
-﻿using Endjin.Imm.Contracts;
-using Endjin.Imm.Domain;
-using Endjin.Imm.Processing;
-using NodaTime;
-using NodaTime.Text;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using TechTalk.SpecFlow;
-
-namespace Endjin.Imm.Specs.Steps
+﻿namespace Endjin.Imm.Specs.Steps
 {
+    using Endjin.Imm.Contracts;
+    using Endjin.Imm.Domain;
+    using Endjin.Imm.Processing;
+    using Endjin.Imm.Repository;
+    using NodaTime;
+    using NodaTime.Text;
+    using NUnit.Framework;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using TechTalk.SpecFlow;
+
     [Binding]
     public class ImmSteps
     {
@@ -88,7 +88,7 @@ namespace Endjin.Imm.Specs.Steps
         {
             this.imm = IpMaturityMatrix.FromYaml(this.immText.ToString());
 
-            var evaluationEngine = new EvaluationEngine(this.ruleSet!);
+            var evaluationEngine = new EvaluationEngine(new RuleDefinitionRepository(this.ruleSet!));
             this.evaluationResult = evaluationEngine.Evaluate(this.imm, this.evaluationContext);
             this.ruleEvaluations = this.evaluationResult.RuleEvaluations.ToDictionary(r => r.RuleAssertion.Id);
         }
