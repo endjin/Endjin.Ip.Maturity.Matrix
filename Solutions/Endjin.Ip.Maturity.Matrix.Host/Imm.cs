@@ -47,7 +47,11 @@ namespace Endjin.Ip.Maturity.Matrix.Host
 
             ImmEvaluation evaluationResult = evaluationEngine.Evaluate(ruleAssertions);
 
-            string svg = BadgePainter.DrawSVG("IMM", $"{evaluationResult.TotalScore} / {evaluationResult.MaximumPossibleTotalScore}", ColorScheme.Red, Style.Flat);
+            string svg = BadgePainter.DrawSVG(
+                "IMM",
+                $"{evaluationResult.TotalScore} / {evaluationResult.MaximumPossibleTotalScore}",
+                GetColourSchemeForPercentage(100M * evaluationResult.TotalScore / evaluationResult.MaximumPossibleTotalScore),
+                Style.Flat);
             return this.CreateUncacheResponse(
                 new ByteArrayContent(Encoding.ASCII.GetBytes(svg)),
                 "image/svg+xml");
