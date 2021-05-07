@@ -1,6 +1,6 @@
 # IP Maturity Matrix
 
-The aim of this framework is to measure maturity across the disciplines required to build, test, deploy, reuse, support & sell Intellectual Property. This flexible framework is based on a number of conventions to meansure "quality", many of these measures are subjective, rather than qualitative, and need to reviewed by people rather than automated by tools.
+The aim of this framework is to measure maturity across the disciplines required to build, test, deploy, reuse, support & sell Intellectual Property. This flexible framework is based on a number of conventions to measure "quality", many of these measures are subjective, rather than qualitative, and need to reviewed by people rather than automated by tools.
 
 Our IP exists at different levels of fidelity:
 
