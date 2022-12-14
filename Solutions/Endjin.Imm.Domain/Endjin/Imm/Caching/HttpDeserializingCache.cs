@@ -28,7 +28,7 @@
     internal class HttpDeserializingCache<T>
         where T : class
     {
-        private readonly object sync = new object();
+        private readonly object sync = new();
         private readonly IMemoryCache memoryCache;
         private readonly HttpClient httpClient;
         private readonly IHttpDeserializer<T> deserializer;

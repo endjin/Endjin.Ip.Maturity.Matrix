@@ -75,7 +75,7 @@ namespace Endjin.Imm.Processing
                 // There was a Framework, so we can do this properly.
                 foreach (MeasureDefinition measureDefinition in context.ApplicableMeasureDefinitions)
                 {
-                    if (!(measureDefinition is FrameworkMeasureDefinition fmd))
+                    if (measureDefinition is not FrameworkMeasureDefinition fmd)
                     {
 #pragma warning disable CA2208 // Instantiate argument exceptions correctly
                         // The "ruleAssertion" argument name here is defined in IRuleCalculator.Score
@@ -101,7 +101,7 @@ namespace Endjin.Imm.Processing
 
             // No Score or Framework, so see if the rule definition includes an entry saying what to do if
             // the Framework is unknown.
-            if (context.ApplicableMeasureDefinitions.SingleOrDefault(m => !(m is FrameworkMeasureDefinition)) is MeasureDefinition measureDefForWhenFrameworkNotPresent)
+            if (context.ApplicableMeasureDefinitions.SingleOrDefault(m => m is not FrameworkMeasureDefinition) is MeasureDefinition measureDefForWhenFrameworkNotPresent)
             {
                 return measureDefForWhenFrameworkNotPresent.Score;
             }
