@@ -34,10 +34,8 @@
             {
                 Console.WriteLine($"{result.RuleAssertion.Name} {result.Percentage}% Score: {result.Score}");
 
-#pragma warning disable RCS1197 // Optimize StringBuilder.Append/AppendLine call.
                 col1.AppendLine($"<tspan x='30' dy='1.5em'>{WebUtility.HtmlEncode(result.RuleAssertion.Name)}</tspan>");
                 col2.AppendLine($"<tspan x='310' dy='1.5em'>{result.Percentage}%</tspan>");
-#pragma warning restore RCS1197 // Optimize StringBuilder.Append/AppendLine call.
 
                 File.WriteAllText($"imm-{result.RuleAssertion.Id}.svg", BadgePainter.DrawSVG(WebUtility.HtmlEncode(result.RuleAssertion.Name!), $"{result.Percentage}%", ColorScheme.Red, Style.FlatSquare));
             }

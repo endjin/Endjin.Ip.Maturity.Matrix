@@ -16,7 +16,6 @@
             (nameof(FrameworkMeasureDefinition.Framework), typeof(FrameworkMeasureDefinition)),
             (nameof(AgeMeasureDefinition.Age), typeof(AgeMeasureDefinition)));
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1055:Uri return values should not be strings", Justification = "We don't have any particular use for representing URIs as anything other than a string in this project")]
         public static string DefinitionsUrlForName(string name) => $"https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Matrix.RuleDefinitions/{name}/RuleSet.yaml";
 
         public static IpMaturityMatrixRuleset FromJson(string json) => JsonConvert.DeserializeObject<IpMaturityMatrixRuleset>(json, Converter.Settings) ?? new IpMaturityMatrixRuleset();

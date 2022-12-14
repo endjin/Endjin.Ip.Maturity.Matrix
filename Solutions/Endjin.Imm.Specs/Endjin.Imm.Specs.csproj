@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
 
@@ -15,18 +15,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Corvus.SpecFlow.Extensions" Version="0.7.0-preview.3" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.16.0">
+    <PackageReference Include="NUnit3TestAdapter" Version="4.3.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
-    <PackageReference Include="SpecFlow.NUnit" Version="3.1.76" />
-    <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.1.76" />
-    <PackageReference Include="coverlet.msbuild" Version="2.8.0">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.0" />
+    <PackageReference Include="SpecFlow.NUnit" Version="3.9.74" />
+    <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.9.74" />
+    <PackageReference Include="coverlet.msbuild" Version="3.2.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

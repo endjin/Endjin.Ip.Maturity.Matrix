@@ -79,7 +79,7 @@
 
                 foreach (MeasureDefinition measureDefinition in context.ApplicableMeasureDefinitions)
                 {
-                    if (!(measureDefinition is AgeMeasureDefinition amd))
+                    if (measureDefinition is not AgeMeasureDefinition amd)
                     {
 #pragma warning disable CA2208 // Instantiate argument exceptions correctly
                         // The "ruleAssertion" argument name here is defined in IRuleCalculator.Score
@@ -106,7 +106,7 @@
 
             // No Score or Date, so see if the rule definition includes an entry saying what to do if
             // the Age is unknown.
-            if (context.ApplicableMeasureDefinitions.SingleOrDefault(m => !(m is AgeMeasureDefinition)) is MeasureDefinition measureDefForWhenAgeNotPresent)
+            if (context.ApplicableMeasureDefinitions.SingleOrDefault(m => m is not AgeMeasureDefinition) is MeasureDefinition measureDefForWhenAgeNotPresent)
             {
                 return measureDefForWhenAgeNotPresent.Score;
             }
@@ -127,7 +127,7 @@
 
             static bool DateWithinPeriod(LocalDate dateInImm, LocalDate referenceDate, string ageText)
             {
-                Period p = PeriodPattern.NormalizingIso.Parse(ageText.Substring(1)).Value;
+                Period p = PeriodPattern.NormalizingIso.Parse(ageText[1..]).Value;
 
                 LocalDate dateOnWhichNoLongerWithinPeriod = dateInImm.Plus(p);
                 return dateOnWhichNoLongerWithinPeriod > referenceDate;

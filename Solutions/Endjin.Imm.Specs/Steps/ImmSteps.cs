@@ -1,4 +1,6 @@
-﻿namespace Endjin.Imm.Specs.Steps
+﻿#pragma warning disable CA1822 // Make members static where possible - not appropriate for test steps, because they are invoked by reflection.
+
+namespace Endjin.Imm.Specs.Steps
 {
     using Endjin.Imm.Contracts;
     using Endjin.Imm.Domain;
@@ -16,10 +18,10 @@
     [Binding]
     public class ImmSteps
     {
-        private readonly TestEvaluationContext evaluationContext = new TestEvaluationContext();
-        private readonly StringBuilder ruleSetText = new StringBuilder();
-        private readonly StringBuilder immText = new StringBuilder();
-        private readonly Dictionary<string, Table> ruleDefinitionTables = new Dictionary<string, Table>();
+        private readonly TestEvaluationContext evaluationContext = new();
+        private readonly StringBuilder ruleSetText = new();
+        private readonly StringBuilder immText = new();
+        private readonly Dictionary<string, Table> ruleDefinitionTables = new();
         private IpMaturityMatrixRuleset? ruleSet;
         private IpMaturityMatrix? imm;
 
@@ -293,7 +295,7 @@
         /// will be emitted for that entry.
         /// </para>
         /// </remarks>
-        private static void AddMeasures(StringBuilder target, IEnumerable<IEnumerable<KeyValuePair<string, string>>> measures)
+        private static void AddMeasures(StringBuilder target, IEnumerable<IDictionary<string, string>> measures)
         {
             target.AppendLine($"    Measures:");
             foreach (IDictionary<string, string> row in measures)

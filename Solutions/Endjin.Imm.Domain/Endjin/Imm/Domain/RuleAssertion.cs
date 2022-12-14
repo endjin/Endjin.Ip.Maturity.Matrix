@@ -30,7 +30,6 @@
         public bool OptOut { get; set; }
 
         [JsonProperty("measures")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "YamlDotNet.Serialization doesn't know how to deserialize a collection into a pre-initialized read-only property")]
         public IList<MeasureAssertion> Measures { get; set; } = new List<MeasureAssertion>();
     }
 }
