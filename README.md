@@ -36,7 +36,7 @@ We have, collectively, defined the following categories as quality measures for 
     - [Source Code Availability](#source-code-availability)
     - [License](#license)
     - [Production Use](#production-use)
-    - [Insights](#insights)
+    - [Observability](#observability)
     - [Packaging](#packaging)
     - [Deployment](#deployment)
     - [Ops](#ops)
@@ -206,7 +206,7 @@ A good measure of the quality of our IP is how many times it is being used in a 
 | +1    | In production use by a customer         |
 | +1    | In production use by multiple customers |
 
-### Insights
+### Observability
 
 When things go wrong, we need the infrastructure in place to help us quickly resolve the situation.
 
