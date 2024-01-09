@@ -17,27 +17,36 @@ Each of these has different nuances when it comes to the categories in the IP Ma
 
 ## Categories
 
-We have, collectively, defined the following categories as quality measures for our IP. In many ways these measures can be thought of as a more traditional "definition of done". These quality measures cover different aspects of the lifecycle of IP, from maintainance to adoption, to operational support. It also includes commercial and legal concerns.
+We have, collectively, defined the following categories as quality measures for our IP. In many ways these measures can be thought of as a more traditional "definition of done". These quality measures cover different aspects of the lifecycle of IP, from maintenance to adoption, to operational support. It also includes commercial and legal concerns.
 
-  - [Shared Engineering Standards](#Shared-Engineering-Standards)
-  - [Coding Standards](#Coding-Standards)
-  - [Executable Specifications](#Executable-Specifications)
-  - [Coverage](#Coverage)
-  - [Benchmarks](#Benchmarks)
-  - [Reference Documentation](#Reference-Documentation)
-  - [Design & Implementation Documentation](#Design--Implementation-Documentation)
-  - [How-to Documentation](#How-to-Documentation)
-  - [Demos](#Demos)
-  - [Date of Last IP Review](#Date-of-Last-IP-Review)
-  - [Framework Version](#Framework-Version)
-  - [Associated Work Items](#Associated-Work-Items)
-  - [Source Code Availability](#Source-Code-Availability)
-  - [License](#License)
-  - [Production Use](#Production-Use)
-  - [Insights](#Insights)
-  - [Packaging](#Packaging)
-  - [Deployment](#Deployment)
-  - [Ops](#Ops)
+- [IP Maturity Matrix](#ip-maturity-matrix)
+  - [Categories](#categories)
+    - [Shared Engineering Standards](#shared-engineering-standards)
+    - [Coding Standards](#coding-standards)
+    - [Executable Specifications](#executable-specifications)
+    - [Coverage](#coverage)
+    - [Benchmarks](#benchmarks)
+    - [Reference Documentation](#reference-documentation)
+    - [Design \& Implementation Documentation](#design--implementation-documentation)
+    - [How-to Documentation](#how-to-documentation)
+    - [Demos](#demos)
+    - [Date of Last IP Review](#date-of-last-ip-review)
+    - [Platform \& Runtime Version](#platform--runtime-version)
+    - [Associated Work Items](#associated-work-items)
+    - [Source Code Availability](#source-code-availability)
+    - [License](#license)
+    - [Production Use](#production-use)
+    - [Insights](#insights)
+    - [Packaging](#packaging)
+    - [Deployment](#deployment)
+    - [Ops](#ops)
+  - [The IMM Schema](#the-imm-schema)
+  - [How to use the IP Maturity Matrix](#how-to-use-the-ip-maturity-matrix)
+    - [Total Score](#total-score)
+    - [IMM Measures](#imm-measures)
+  - [Licenses](#licenses)
+  - [Project Sponsor](#project-sponsor)
+  - [Code of conduct](#code-of-conduct)
 
 ### Shared Engineering Standards
 
@@ -91,7 +100,7 @@ We are commonly asked to write high performance / low latency code; understandin
 
 ### Reference Documentation
 
-Code should be self-documenting, but long term support of maintaince of code requires context and narrative as well as purpose.
+Code should be self-documenting, but long term support of maintenance of code requires context and narrative as well as purpose.
 
 | Score | Measure                  |
 |-------|--------------------------|
@@ -123,7 +132,7 @@ The use of IP can be nuanced. Effective documentation allows users to be self-st
 
 ### Demos
 
-Understanding how to get started with our IP, or how different elements of IP can be used together is fundamental for increased producivity.
+Understanding how to get started with our IP, or how different elements of IP can be used together is fundamental for increased productivity.
 
 | Score | Measure                                |
 |-------|----------------------------------------|
@@ -143,15 +152,15 @@ How recently IP was reviewed is a powerful code smell. We exist at the bleeding 
 | 2     | > 1 month  |
 | 3     | < 1 month  |
 
-### Framework Version
+### Platform & Runtime Version
 
-The majority of our IP is based on the .NET Framework. This is now a rapidly evolving ecosystem. Staying up to date is no small feat.
+All software suffers from bit-rot. The platforms & runtime we depend on are no different. How up to date are we with the currently supported versions?
 
-| Score | Measure                                     |
-|-------|---------------------------------------------|
-| 0     | Using an unsupported flavour of .NET        |
-| +1    | Using a LTS version of a flavour of .NET    |
-| +1    | Using the most current LTS flavour of .NET  |
+| Score | Measure                            |
+|-------|------------------------------------|
+| 0     | Using an unsupported version       |
+| +1    | Using a LTS version                |
+| +1    | Using the most current LTS version |
 
 ### Associated Work Items
 
@@ -166,7 +175,7 @@ The number of associated work items is another code smell; it can signal either 
 
 ### Source Code Availability
 
-One of the most overlooked aspects of our use of IP is supporting our contractual clauses, allowing customers to access the source code for the binaries we use. Historically, we have been approached 5 years after the actual engagement as part of acquisition / due dilligence processes.
+One of the most overlooked aspects of our use of IP is supporting our contractual clauses, allowing customers to access the source code for the binaries we use. Historically, we have been approached 5 years after the actual engagement as part of acquisition / due diligence processes.
 
 | Score | Measure                     |
 |-------|-----------------------------|
@@ -199,13 +208,13 @@ A good measure of the quality of our IP is how many times it is being used in a 
 
 ### Insights
 
-When things go wrong, we need the infrastucture in place to help us quickly resolve the situation.
+When things go wrong, we need the infrastructure in place to help us quickly resolve the situation.
 
 | Score | Measure                                                           |
 |-------|-------------------------------------------------------------------|
 | 0     | None                                                              |
 | +1    | Telemetry, Diagnostics & Debugging                                |
-| +1    | Perf Counters                                                     |
+| +1    | Performance Characteristics                                       |
 | +1    | Operational Insights (Custom Queries defining abnormal behaviour) |
 
 ### Packaging
@@ -232,7 +241,7 @@ The final hurdle is getting the IP into an environment where it can be used.
 
 ### Ops
 
-We need to consider other personas, whose funciton is to support the IP we create. How do we make their experience "delightful"?
+We need to consider other personas, whose function is to support the IP we create. How do we make their experience "delightful"?
 
 | Score | Measure |
 |-------|---------|
@@ -240,7 +249,7 @@ We need to consider other personas, whose funciton is to support the IP we creat
 
 ## The IMM Schema
 
-The IMM schema is designed to be very flexible as you may decide that you want to add or alter categories. The [current RuleSet](https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Matrix/master/Solutions/Endjin.Imm.App/RuleSet.yaml) is defined in the `Endjin.Imm.App` project in the solution.
+The IMM schema is designed to be very flexible as you may decide that you want to add or alter categories. The [current RuleSet](https://github.com/endjin/Endjin.Ip.Maturity.Matrix.RuleDefinitions/blob/main/RuleSet.yaml) is defined in the [Endjin.Ip.Maturity.Matrix.RuleDefinitions](https://github.com/endjin/Endjin.Ip.Maturity.Matrix.RuleDefinitions) repo.
 
 Each rule needs a unique, guid based Id, a name, and a data type which can either be `Discrete` (meaning it can only be scored by a single item listed in the schema), or `Continuous` (meaning that the score can be cumulative). These two data types are used to select and run the correct rules engine to calculate the values to be used to render the badges.
 
@@ -256,7 +265,7 @@ Call the the Function `api/imm/github/<Org_Name>/<Repo>/total?cache=false`
 
 And it will render a badge - the example below is for the [AIS.NET Project](https://github.com/ais-dotnet/Ais.Net) (you may need to refresh the page to wake the Function up!)
 
-[![IMM](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/total?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/total?cache=false)
+[![IMM](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/total?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/total?cache=false)
 
 ### IMM Measures
 
@@ -264,39 +273,39 @@ To display a badge for each measure you need to call `api/imm/github/<Org_Name>/
 
 Here are examples for the [AIS.NET Project](https://github.com/ais-dotnet/Ais.Net);
 
-[![Shared Engineering Standards](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/74e29f9b-6dca-4161-8fdd-b468a1eb185d?nocache=true)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/74e29f9b-6dca-4161-8fdd-b468a1eb185d?cache=false)
+[![Shared Engineering Standards](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/74e29f9b-6dca-4161-8fdd-b468a1eb185d?nocache=true)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/74e29f9b-6dca-4161-8fdd-b468a1eb185d?cache=false)
 
-[![Coding Standards](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/f6f6490f-9493-4dc3-a674-15584fa951d8?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/f6f6490f-9493-4dc3-a674-15584fa951d8?cache=false)
+[![Coding Standards](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/f6f6490f-9493-4dc3-a674-15584fa951d8?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/f6f6490f-9493-4dc3-a674-15584fa951d8?cache=false)
 
-[![Executable Specifications](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/bb49fb94-6ab5-40c3-a6da-dfd2e9bc4b00?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/bb49fb94-6ab5-40c3-a6da-dfd2e9bc4b00?cache=false)
+[![Executable Specifications](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/bb49fb94-6ab5-40c3-a6da-dfd2e9bc4b00?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/bb49fb94-6ab5-40c3-a6da-dfd2e9bc4b00?cache=false)
 
-[![Code Coverage](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/0449cadc-0078-4094-b019-520d75cc6cbb?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/0449cadc-0078-4094-b019-520d75cc6cbb?cache=false)
+[![Code Coverage](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/0449cadc-0078-4094-b019-520d75cc6cbb?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/0449cadc-0078-4094-b019-520d75cc6cbb?cache=false)
 
-[![Benchmarks](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/64ed80dc-d354-45a9-9a56-c32437306afa?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/64ed80dc-d354-45a9-9a56-c32437306afa?cache=false)
+[![Benchmarks](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/64ed80dc-d354-45a9-9a56-c32437306afa?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/64ed80dc-d354-45a9-9a56-c32437306afa?cache=false)
 
-[![Reference Documentation](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/2a7fc206-d578-41b0-85f6-a28b6b0fec5f?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/2a7fc206-d578-41b0-85f6-a28b6b0fec5f?cache=false)
+[![Reference Documentation](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/2a7fc206-d578-41b0-85f6-a28b6b0fec5f?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/2a7fc206-d578-41b0-85f6-a28b6b0fec5f?cache=false)
 
-[![Design & Implementation Documentation](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/f026d5a2-ce1a-4e04-af15-5a35792b164b?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/f026d5a2-ce1a-4e04-af15-5a35792b164b?cache=false)
+[![Design & Implementation Documentation](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/f026d5a2-ce1a-4e04-af15-5a35792b164b?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/f026d5a2-ce1a-4e04-af15-5a35792b164b?cache=false)
 
-[![How-to Documentation](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/145f2e3d-bb05-4ced-989b-7fb218fc6705?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/145f2e3d-bb05-4ced-989b-7fb218fc6705?cache=false)
+[![How-to Documentation](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/145f2e3d-bb05-4ced-989b-7fb218fc6705?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/145f2e3d-bb05-4ced-989b-7fb218fc6705?cache=false)
 
-[![Date of Last IP Review](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/da4ed776-0365-4d8a-a297-c4e91a14d646?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/da4ed776-0365-4d8a-a297-c4e91a14d646?cache=false)
+[![Date of Last IP Review](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/da4ed776-0365-4d8a-a297-c4e91a14d646?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/da4ed776-0365-4d8a-a297-c4e91a14d646?cache=false)
 
-[![Framework Version](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/6c0402b3-f0e3-4bd7-83fe-04bb6dca7924?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/6c0402b3-f0e3-4bd7-83fe-04bb6dca7924?cache=false)
+[![Runtime Version](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/6c0402b3-f0e3-4bd7-83fe-04bb6dca7924?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/6c0402b3-f0e3-4bd7-83fe-04bb6dca7924?cache=false)
 
-[![Associated Work Items](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/79b8ff50-7378-4f29-b07c-bcd80746bfd4?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/79b8ff50-7378-4f29-b07c-bcd80746bfd4?cache=false)
+[![Associated Work Items](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/79b8ff50-7378-4f29-b07c-bcd80746bfd4?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/79b8ff50-7378-4f29-b07c-bcd80746bfd4?cache=false)
 
-[![Source Code Availability](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/30e1b40b-b27d-4631-b38d-3172426593ca?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/30e1b40b-b27d-4631-b38d-3172426593ca?cache=false)
+[![Source Code Availability](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/30e1b40b-b27d-4631-b38d-3172426593ca?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/30e1b40b-b27d-4631-b38d-3172426593ca?cache=false)
 
-[![License](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/d96b5bdc-62c7-47b6-bcc4-de31127c08b7?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/d96b5bdc-62c7-47b6-bcc4-de31127c08b7?cache=false)
+[![License](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/d96b5bdc-62c7-47b6-bcc4-de31127c08b7?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/d96b5bdc-62c7-47b6-bcc4-de31127c08b7?cache=false)
 
-[![Production Use](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/87ee2c3e-b17a-4939-b969-2c9c034d05d7?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/87ee2c3e-b17a-4939-b969-2c9c034d05d7?cache=false)
+[![Production Use](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/87ee2c3e-b17a-4939-b969-2c9c034d05d7?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/87ee2c3e-b17a-4939-b969-2c9c034d05d7?cache=false)
 
-[![Insights](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/71a02488-2dc9-4d25-94fa-8c2346169f8b?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/71a02488-2dc9-4d25-94fa-8c2346169f8b?cache=false)
+[![Insights](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/71a02488-2dc9-4d25-94fa-8c2346169f8b?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/71a02488-2dc9-4d25-94fa-8c2346169f8b?cache=false)
 
-[![Packaging](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/547fd9f5-9caf-449f-82d9-4fba9e7ce13a?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/547fd9f5-9caf-449f-82d9-4fba9e7ce13a?cache=false)
+[![Packaging](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/547fd9f5-9caf-449f-82d9-4fba9e7ce13a?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/547fd9f5-9caf-449f-82d9-4fba9e7ce13a?cache=false)
 
-[![Deployment](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/edea4593-d2dd-485b-bc1b-aaaf18f098f9?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/edea4593-d2dd-485b-bc1b-aaaf18f098f9?cache=false)
+[![Deployment](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/edea4593-d2dd-485b-bc1b-aaaf18f098f9?cache=false)](https://imm.endjin.com/api/imm/github/ais-dotnet/Ais.Net/rule/edea4593-d2dd-485b-bc1b-aaaf18f098f9?cache=false)
 
 ## Licenses
 
@@ -308,16 +317,35 @@ For any licensing questions, please email [&#108;&#105;&#99;&#101;&#110;&#115;&#
 
 ## Project Sponsor
 
-This project is sponsored by [endjin](https://endjin.com), a UK based Microsoft Gold Partner for Cloud Platform, Data Platform, Data Analytics, DevOps, and a Power BI Partner.
+This project is sponsored by [endjin](https://endjin.com), a UK based Technology Consultancy which specializes in Data, AI, DevOps & Cloud, and is a [.NET Foundation Corporate Sponsor](https://dotnetfoundation.org/membership/corporate-sponsorship).
+
+> We help small teams achieve big things.
+
+We produce two free weekly newsletters: 
+
+ - [Azure Weekly](https://azureweekly.info) for all things about the Microsoft Azure Platform
+ - [Power BI Weekly](https://powerbiweekly.info) for all things Power BI, Microsoft Fabric, and Azure Synapse Analytics
+
+Keep up with everything that's going on at endjin via our [blog](https://endjin.com/blog), follow us on [Twitter](https://twitter.com/endjin), [YouTube](https://www.youtube.com/c/endjin) or [LinkedIn](https://www.linkedin.com/company/endjin).
+
+We have become the maintainers of a number of popular .NET Open Source Projects:
+
+- [Reactive Extensions for .NET](https://github.com/dotnet/reactive)
+- [Reaqtor](https://github.com/reaqtive)
+- [Argotic Syndication Framework](https://github.com/argotic-syndication-framework/)
+
+And we have over 50 Open Source projects of our own, spread across the following GitHub Orgs:
+
+- [endjin](https://github.com/endjin/)
+- [Corvus](https://github.com/corvus-dotnet)
+- [Menes](https://github.com/menes-dotnet)
+- [Marain](https://github.com/marain-dotnet)
+- [AIS.NET](https://github.com/ais-dotnet)
+
+And the DevOps tooling we have created for managing all these projects is available on the [PowerShell Gallery](https://www.powershellgallery.com/profiles/endjin).
 
 For more information about our products and services, or for commercial support of this project, please [contact us](https://endjin.com/contact-us). 
 
-We produce two free weekly newsletters; [Azure Weekly](https://azureweekly.info) for all things about the Microsoft Azure Platform, and [Power BI Weekly](https://powerbiweekly.info).
-
-Keep up with everything that's going on at endjin via our [blog](https://blogs.endjin.com/), follow us on [Twitter](https://twitter.com/endjin), or [LinkedIn](https://www.linkedin.com/company/1671851/).
-
-Our other Open Source projects can be found at https://endjin.com/open-source
-
 ## Code of conduct
 
-This project has adopted a code of conduct adapted from the [Contributor Covenant](http://contributor-covenant.org/) to clarify expected behavior in our community. This code of conduct has been [adopted by many other projects](http://contributor-covenant.org/adopters/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [&#104;&#101;&#108;&#108;&#111;&#064;&#101;&#110;&#100;&#106;&#105;&#110;&#046;&#099;&#111;&#109;](&#109;&#097;&#105;&#108;&#116;&#111;:&#104;&#101;&#108;&#108;&#111;&#064;&#101;&#110;&#100;&#106;&#105;&#110;&#046;&#099;&#111;&#109;) with any additional questions or comments.
+This project has adopted a code of conduct adapted from the [Contributor Covenant](http://contributor-covenant.org/) to clarify expected behaviour in our community. This code of conduct has been [adopted by many other projects](http://contributor-covenant.org/adopters/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [&#104;&#101;&#108;&#108;&#111;&#064;&#101;&#110;&#100;&#106;&#105;&#110;&#046;&#099;&#111;&#109;](&#109;&#097;&#105;&#108;&#116;&#111;:&#104;&#101;&#108;&#108;&#111;&#064;&#101;&#110;&#100;&#106;&#105;&#110;&#046;&#099;&#111;&#109;) with any additional questions or comments.
