@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <IsPackable>false</IsPackable>
 
     <!-- Not a test project: keep it out of `dotnet test` and Microsoft.Testing.Platform discovery. -->
     <IsTestProject>false</IsTestProject>

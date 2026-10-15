@@ -313,6 +313,14 @@ dotnet build Solutions/Endjin.Ip.Maturity.Matrix.slnx
 dotnet test --solution Solutions/Endjin.Ip.Maturity.Matrix.slnx
 ```
 
+The full build process, which is the same one CI runs, uses [ZeroFailed](https://github.com/zerofailed/ZeroFailed). It needs PowerShell 7, and it downloads the ZeroFailed and InvokeBuild modules on first run:
+
+```console
+./build.ps1
+```
+
+It versions the build with GitVersion, then builds, tests, writes a code coverage report to `_codeCoverage/`, and publishes the Functions app to `_packages/`. Its configuration is in `.zf/build-config.ps1`.
+
 The tests are in `Solutions/Endjin.Imm.Tests`. They are written with MSTest and [Shouldly](https://docs.shouldly.org/), and run on Microsoft.Testing.Platform. To collect code coverage and a TRX report as well:
 
 ```console

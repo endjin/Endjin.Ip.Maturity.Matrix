@@ -4,6 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Nothing in this solution is shipped as a NuGet package; the Functions app is deployed as a published artifact. -->
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
 </Project>
