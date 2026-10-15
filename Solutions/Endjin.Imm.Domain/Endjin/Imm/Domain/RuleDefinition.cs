@@ -3,8 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
 
     /// <summary>
     /// Defines a rule type that may be used in an IP Maturity Matrix.
@@ -24,13 +22,10 @@
     [DebuggerDisplay("RuleDefinition = {Name}, {Measures.Count} Measures")]
     public partial class RuleDefinition
     {
-        [JsonProperty("name")]
         public string? Name { get; set; }
 
-        [JsonProperty("id")]
         public Guid Id { get; set; }
 
-        [JsonProperty("dataType", ItemConverterType = typeof(StringEnumConverter))]
         public DataType DataType { get; set; }
 
         /// <summary>
@@ -46,10 +41,8 @@
         /// distorted. (E.g., a project could conceivably get a perfect IMM score without scoring
         /// any points on a rule that it has legitimately opted out of.)
         /// </remarks>
-        [JsonProperty("canOptOut")]
         public bool CanOptOut { get; set; }
 
-        [JsonProperty("measures")]
         public IList<MeasureDefinition> Measures { get; set; } = new List<MeasureDefinition>();
     }
 }

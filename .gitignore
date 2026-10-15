@@ -336,3 +336,4 @@ coverage.cobertura.xml
 /.vscode
 
 *.feature.cs
+.endjin/

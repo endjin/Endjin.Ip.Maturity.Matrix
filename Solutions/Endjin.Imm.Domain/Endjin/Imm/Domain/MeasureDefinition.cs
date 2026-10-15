@@ -1,6 +1,5 @@
 ﻿namespace Endjin.Imm.Domain
 {
-    using Newtonsoft.Json;
 
     /// <summary>
     /// Defines a measure type that may be used in an IP Maturity Matrix inside a particular rule type.
@@ -14,10 +13,8 @@
     /// </remarks>
     public class MeasureDefinition
     {
-        [JsonProperty("score")]
         public long Score { get; set; }
 
-        [JsonProperty("description")]
         public string Description { get; set; } = "";
 
         /// <summary>
@@ -39,7 +36,6 @@
         /// do not get their IMM score distorted. (E.g., a project could conceivably get a perfect
         /// IMM score without scoring any points on a measure that it has legitimately opted out of.)
         /// </remarks>
-        [JsonProperty("canOptOut")]
         public bool CanOptOut { get; set; }
     }
 }

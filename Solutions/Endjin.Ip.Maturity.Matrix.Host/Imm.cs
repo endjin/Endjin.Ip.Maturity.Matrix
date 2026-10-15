@@ -7,15 +7,14 @@ namespace Endjin.Ip.Maturity.Matrix.Host
     using Endjin.Imm.Domain;
     using Endjin.Imm.Processing;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.Azure.WebJobs;
-    using Microsoft.Azure.WebJobs.Extensions.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Azure.Functions.Worker;
+    using Microsoft.Extensions.Primitives;
 
     using System;
     using System.IO;
     using System.Linq;
     using System.Net;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Text;
     using System.Threading.Tasks;
 
@@ -34,8 +33,8 @@ namespace Endjin.Ip.Maturity.Matrix.Host
             this.immSource = immSource;
         }
 
-        [FunctionName(nameof(GitHubImmTotalScore))]
-        public async Task<HttpResponseMessage> GitHubImmTotalScore(
+        [Function(nameof(GitHubImmTotalScore))]
+        public async Task<IActionResult> GitHubImmTotalScore(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "imm/github/{org}/{project}/total")]HttpRequest request,
             string org,
             string project)
@@ -53,12 +52,13 @@ namespace Endjin.Ip.Maturity.Matrix.Host
                 GetColourSchemeForPercentage(100M * evaluationResult.TotalScore / evaluationResult.MaximumPossibleTotalScore),
                 Style.Flat);
             return CreateUncacheResponse(
-                new ByteArrayContent(Encoding.ASCII.GetBytes(svg)),
+                request,
+                svg,
                 "image/svg+xml");
         }
 
-        [FunctionName(nameof(GitHubImmByRule))]
-        public async Task<HttpResponseMessage> GitHubImmByRule(
+        [Function(nameof(GitHubImmByRule))]
+        public async Task<IActionResult> GitHubImmByRule(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "imm/github/{org}/{project}/rule/{ruleId}")]HttpRequest request,
             string org,
             string project,
@@ -71,11 +71,11 @@ namespace Endjin.Ip.Maturity.Matrix.Host
             var evaluationEngine = new EvaluationEngine(ruleDefinitions);
             RuleEvaluation result = evaluationEngine.Evaluate(imm).RuleEvaluations.First(x => x.RuleAssertion.Id == ruleIdAsGuid);
 
-            return CreateUncacheResponse(new ByteArrayContent(Encoding.ASCII.GetBytes(BadgePainter.DrawSVG(WebUtility.HtmlEncode(result.RuleAssertion.Name!), $"{result.Percentage}%", GetColourSchemeForPercentage(result.Percentage), Style.Flat))), "image/svg+xml");
+            return CreateUncacheResponse(request, BadgePainter.DrawSVG(WebUtility.HtmlEncode(result.RuleAssertion.Name!), $"{result.Percentage}%", GetColourSchemeForPercentage(result.Percentage), Style.Flat), "image/svg+xml");
         }
 
-        [FunctionName(nameof(GitHubImmAllBadges))]
-        public async Task<HttpResponseMessage> GitHubImmAllBadges(
+        [Function(nameof(GitHubImmAllBadges))]
+        public async Task<IActionResult> GitHubImmAllBadges(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "imm/github/{org}/{project}/showbadges")]HttpRequest request,
             string org,
             string project)
@@ -161,42 +161,37 @@ namespace Endjin.Ip.Maturity.Matrix.Host
 
             //string svg = BadgePainter.DrawSVG("IMM", $"{evaluationResult.TotalScore} / {evaluationResult.MaximumPossibleTotalScore}", ColorScheme.Red, Style.Flat);
             return CreateUncacheResponse(
-                new StringContent(sb.ToString(), Encoding.UTF8),
+                request,
+                sb.ToString(),
                 "text/html");
         }
 
-        private static HttpResponseMessage CreateUncacheResponse(HttpContent content, string mediaType)
+        private static ContentResult CreateUncacheResponse(HttpRequest request, string body, string mediaType)
         {
-            var response = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = content
-            };
-            response.Content.Headers.ContentType = new MediaTypeHeaderValue(mediaType);
-            response.Content.Headers.TryAddWithoutValidation("expires", "-1");
-            response.Headers.ETag = new EntityTagHeaderValue($"\"{Guid.NewGuid()}\"");
-            response.Headers.Pragma.Add(new NameValueHeaderValue("no-cache"));
-            response.Headers.CacheControl = new CacheControlHeaderValue()
-            {
-                NoCache = true,
-                NoStore = true,
-                Public = false,
-                MustRevalidate = true,
-            };
+            IHeaderDictionary headers = request.HttpContext.Response.Headers;
+            headers.CacheControl = "no-cache, no-store, must-revalidate";
+            headers.Pragma = "no-cache";
+            headers.Expires = "-1";
+            headers.ETag = $"\"{Guid.NewGuid()}\"";
 
-            return response;
+            return new ContentResult
+            {
+                Content = body,
+                ContentType = mediaType,
+                StatusCode = StatusCodes.Status200OK,
+            };
         }
 
         private static (string RuleDefinitionsObjectName, string ProjectObjectName) GetGitHubBranchOrObjectNames(
             HttpRequest request)
         {
-            var queryParams = request.GetQueryParameterDictionary();
             string definitionsObject = ObjectNameFromQuerystring("definitionsBranch");
             string projectObject = ObjectNameFromQuerystring("projectBranch");
             return (definitionsObject, projectObject);
 
             string ObjectNameFromQuerystring(string name) =>
-                queryParams.TryGetValue(name, out string? value)
-                    ? value
+                request.Query.TryGetValue(name, out StringValues value) && !StringValues.IsNullOrEmpty(value)
+                    ? value.ToString()
                     : "master";
         }
 

@@ -1,6 +1,5 @@
 ﻿namespace Endjin.Imm.Domain
 {
-    using Newtonsoft.Json;
     using System.Collections.Generic;
 
     public partial class IpMaturityMatrix
@@ -15,7 +14,6 @@
             this.Rules = rules;
         }
 
-        [JsonProperty("rules")]
         public IList<RuleAssertion> Rules { get; }
     }
 }

@@ -1,0 +1,28 @@
+<Project>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <!-- Runtime dependencies -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.1.1" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.1.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.13" />
+    <PackageVersion Include="NodaTime" Version="3.3.5" />
+    <!-- Pinned to 2.1.3: 2.2.0+ enforce a Six Labors licence key and fail Release builds without one. -->
+    <PackageVersion Include="SixLabors.Fonts" Version="2.1.3" />
+    <PackageVersion Include="YamlDotNet" Version="18.1.0" />
+  </ItemGroup>
+
+  <!--
+  Test dependencies. MSTest, Microsoft.Testing.Platform and its extensions are supplied by MSTest.Sdk,
+  whose version is pinned in global.json; the SDK adds its own PackageVersion items when CPM is enabled.
+  -->
+  <ItemGroup>
+    <PackageVersion Include="Shouldly" Version="4.3.0" />
+  </ItemGroup>
+
+</Project>

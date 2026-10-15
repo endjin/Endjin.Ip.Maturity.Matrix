@@ -1,11 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
-
-    <Nullable>enable</Nullable>
-
     <!-- CA1062 does nullability warnings which are not necessary when nullability analysis is on.
          CA1303 is the insistence that exception arguments be localized which isn't useful for us.
     -->
@@ -14,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SixLabors.Fonts" Version="1.0.0-beta0009" />
+    <PackageReference Include="SixLabors.Fonts" />
   </ItemGroup>
 
   <ItemGroup>

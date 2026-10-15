@@ -294,6 +294,25 @@ Here are examples for the [AIS.NET Project](https://github.com/ais-dotnet/Ais.Ne
 
 [![Packaging](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/547fd9f5-9caf-449f-82d9-4fba9e7ce13a?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/547fd9f5-9caf-449f-82d9-4fba9e7ce13a?cache=false)
 
+## Building
+
+You will need the .NET 10 SDK; the version is pinned by `global.json` in the root of the repo. The solution, `Solutions/Endjin.Ip.Maturity.Matrix.slnx`, uses Central Package Management (`Solutions/Directory.Packages.props`) and shared build settings (`Solutions/Directory.Build.props`).
+
+```console
+dotnet build Solutions/Endjin.Ip.Maturity.Matrix.slnx
+dotnet test --solution Solutions/Endjin.Ip.Maturity.Matrix.slnx
+```
+
+The tests are in `Solutions/Endjin.Imm.Tests`. They are written with MSTest and [Shouldly](https://docs.shouldly.org/), and run on Microsoft.Testing.Platform. To collect code coverage and a TRX report as well:
+
+```console
+dotnet test --solution Solutions/Endjin.Ip.Maturity.Matrix.slnx --coverage --report-trx
+```
+
+`Endjin.Imm.App` is a console app that renders badges for the `imm-default.yaml` file in its working directory, which is handy for checking changes to the badge rendering.
+
+`Endjin.Ip.Maturity.Matrix.Host` is an Azure Function using the isolated worker model with ASP.NET Core integration. To run it locally, copy `local.settings.json.template` to `local.settings.json` and start it with the [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) (`func start`, or `dotnet run`, which calls `func` for you). When deploying, the Function App must use the .NET 10 (isolated) stack and have the `FUNCTIONS_WORKER_RUNTIME` app setting set to `dotnet-isolated`.
+
 ## Licenses
 
 [![GitHub license](https://img.shields.io/badge/License-Apache%202-blue.svg)](https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Matrix/master/LICENSE)

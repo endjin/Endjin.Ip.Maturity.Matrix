@@ -51,7 +51,7 @@
             // which may make it OK but definitely makes it more weird.)
             lock (sync)
             {
-                if (this.memoryCache.TryGetValue(cacheKey, out object entry))
+                if (this.memoryCache.TryGetValue(cacheKey, out object? entry) && entry is not null)
                 {
                     var record = (Record)entry;
 
