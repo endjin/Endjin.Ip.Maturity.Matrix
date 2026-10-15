@@ -9,6 +9,10 @@ namespace Endjin.Badger.Tests.TestData;
 /// from the SVG so that tests can make assertions about layout without depending on the exact
 /// widths of the fonts installed on the machine.
 /// </summary>
+/// <remarks>
+/// Text positions and lengths are given in pixels: the badge draws its texts ten times larger inside a
+/// <c>scale(.1)</c> group, and the parser applies that scale.
+/// </remarks>
 internal sealed partial record RenderedBadge(
     XDocument Svg,
     double Width,
@@ -19,7 +23,11 @@ internal sealed partial record RenderedBadge(
     string StatusColour,
     double SubjectTextX,
     double StatusTextX,
-    IReadOnlyList<string> Texts)
+    IReadOnlyList<string> Texts,
+    IReadOnlyList<double> SubjectTextLengths,
+    IReadOnlyList<double> StatusTextLengths,
+    string? Title,
+    string? AriaLabel)
 {
     public static readonly XNamespace SvgNamespace = "http://www.w3.org/2000/svg";
 
@@ -47,6 +55,8 @@ internal sealed partial record RenderedBadge(
         }
 
         XElement[] texts = [.. root.Descendants(SvgNamespace + "text")];
+        XElement[] subjectTexts = [.. texts.Where(t => t.Value == subject)];
+        XElement[] statusTexts = [.. texts.Where(t => t.Value == status)];
 
         return new RenderedBadge(
             document,
@@ -56,9 +66,13 @@ internal sealed partial record RenderedBadge(
             statusStart,
             statusWidth,
             (string)segments[1].Attribute("fill")!,
-            ParseNumber((string)texts.First(t => t.Value == subject).Attribute("x")!),
-            ParseNumber((string)texts.First(t => t.Value == status).Attribute("x")!),
-            [.. texts.Select(t => t.Value)]);
+            ParseScaled(subjectTexts[0], "x"),
+            ParseScaled(statusTexts[0], "x"),
+            [.. texts.Select(t => t.Value)],
+            [.. subjectTexts.Select(t => ParseScaled(t, "textLength"))],
+            [.. statusTexts.Select(t => ParseScaled(t, "textLength"))],
+            root.Element(SvgNamespace + "title")?.Value,
+            (string?)root.Attribute("aria-label"));
     }
 
     /// <summary>
@@ -78,6 +92,29 @@ internal sealed partial record RenderedBadge(
         return (ParseNumber(match.Groups["start"].Value), ParseNumber(match.Groups["width"].Value));
     }
 
+    // A text's attribute in pixels: its value multiplied by the scale of the group it is drawn in.
+    private static double ParseScaled(XElement text, string attribute)
+    {
+        double scale = 1;
+        foreach (XElement element in text.AncestorsAndSelf())
+        {
+            string? transform = (string?)element.Attribute("transform");
+            if (transform is not null)
+            {
+                Match match = ScalePattern().Match(transform);
+                if (!match.Success)
+                {
+                    throw new FormatException($"Unexpected transform '{transform}'");
+                }
+
+                scale *= ParseNumber(match.Groups["scale"].Value.StartsWith('.') ? "0" + match.Groups["scale"].Value : match.Groups["scale"].Value);
+            }
+        }
+
+        string value = (string?)text.Attribute(attribute) ?? throw new FormatException($"Text '{text.Value}' has no {attribute}");
+        return ParseNumber(value) * scale;
+    }
+
     private static double ParseNumber(string value)
     {
         if (!InvariantNumberPattern().IsMatch(value))
@@ -94,6 +131,10 @@ internal sealed partial record RenderedBadge(
 
     [GeneratedRegex(@"^-?[0-9]+(\.[0-9]+)?(E[+-]?[0-9]+)?$")]
     private static partial Regex InvariantNumberPattern();
+
+    // e.g. scale(.1)
+    [GeneratedRegex(@"^scale\((?<scale>[0-9]*\.?[0-9]+)\)$")]
+    private static partial Regex ScalePattern();
 
     [GeneratedRegex(@"<svg [^>]*width=""(?<width>[^""]+)""")]
     private static partial Regex SvgWidthPattern();

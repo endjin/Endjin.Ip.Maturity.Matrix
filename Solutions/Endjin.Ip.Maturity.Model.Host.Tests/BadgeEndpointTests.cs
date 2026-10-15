@@ -143,6 +143,28 @@ public class BadgeEndpointTests
     }
 
     [TestMethod]
+    [DataRow("Shared Engineering Standards")]
+    [DataRow("R&D <Tooling>")]
+    [DataRow("Owner's \"Sign-off\"")]
+    public async Task GitHubImmByRule_RuleNameWithMarkupCharacters_GivesTheBadgeTheRuleNameAndScoreAsItsAccessibleName(string ruleName)
+    {
+        // Arrange
+        (string ruleSetYaml, string immYaml) = HostYaml.Scoring(67, ruleName.Replace("'", "''", StringComparison.Ordinal));
+        ImmFunctionFixture fixture = new(ruleSetYaml, immYaml);
+
+        // Act
+        IActionResult result = await fixture.Functions.GitHubImmByRule(
+            ImmFunctionFixture.CreateRequest(), ImmFunctionFixture.Org, ImmFunctionFixture.Project, HostYaml.ScoredRuleId);
+
+        // Assert
+        string svg = result.ShouldBeOfType<ContentResult>().Content!;
+        BadgeSvg badge = BadgeSvg.Parse(svg);
+        badge.Title.ShouldBe($"{ruleName}: 67%");
+        badge.AriaLabel.ShouldBe($"{ruleName}: 67%");
+        svg.ShouldNotContain("&amp;amp;");
+    }
+
+    [TestMethod]
     public async Task GitHubImmByRule_ImmRuleWithoutAName_ShowsTheRuleSetsNameForTheRule()
     {
         // Arrange

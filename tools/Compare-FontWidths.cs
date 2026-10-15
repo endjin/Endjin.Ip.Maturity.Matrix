@@ -4,8 +4,9 @@
 
 // Compares the badge text widths Endjin.Badger computes from its Verdana table with measurements of the
 // real fonts, to show how close the table is to Verdana, how much kerning matters, and how far off
-// DejaVu Sans (first in the badge templates' font-family list, and what many Linux browsers will use)
-// would be.
+// DejaVu Sans (in the badge templates' font-family list after Verdana and Geneva, and what many Linux
+// browsers will use) is. Badge texts have a textLength of their Verdana width, so a browser drawing them
+// in DejaVu Sans spaces them out to fill it; Endjin.Badger.Tests' FallbackFontWidthTests checks how far.
 //
 // Usage (Windows):
 //   dotnet run tools/Compare-FontWidths.cs -- --verdana C:\Windows\Fonts\verdana.ttf --dejavu <path to DejaVuSans.ttf>

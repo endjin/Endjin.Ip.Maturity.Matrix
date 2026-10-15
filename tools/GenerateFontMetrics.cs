@@ -1,19 +1,31 @@
 #:package SixLabors.Fonts@2.1.3
 #:property PublishAot=false
 
-// Generates Solutions/Endjin.Badger/VerdanaMetrics.g.cs: the advance widths and kerning of Verdana at
-// 11px, so that Endjin.Badger can size badge text without any fonts installed.
+// Generates a table of a font's advance widths and kerning at 11px (an IFontMetricsTable, which
+// Endjin.Badger's FontMetrics<TTable> measures text with), so that text can be sized without the font
+// installed.
 //
-// Usage (Windows, where Verdana is installed):
-//   dotnet run tools/GenerateVerdanaMetrics.cs -- --font C:\Windows\Fonts\verdana.ttf --out Solutions/Endjin.Badger/VerdanaMetrics.g.cs
+// Usage:
+//   dotnet run tools/GenerateFontMetrics.cs -- --font <font.ttf> --out <File.g.cs> --class <TypeName> --namespace <Namespace>
+//       [--licence <licence name>] [--source <where the font came from>]
 //
-// Only numbers derived from the font are written out. The Verdana licence does not allow the font file
-// itself to be redistributed, so never commit verdana.ttf or a copy of it.
+// The shipped table, which BadgePainter sizes badges with (Windows, where Verdana is installed):
+//   dotnet run tools/GenerateFontMetrics.cs -- --font C:\Windows\Fonts\verdana.ttf --out Solutions/Endjin.Badger/VerdanaMetrics.g.cs --class VerdanaMetrics --namespace Endjin.Badger --licence "Microsoft (not redistributable)" --source "C:\Windows\Fonts\verdana.ttf (Windows 11)"
 //
-// Every number is measured with SixLabors.Fonts exactly as BadgePainter measured text before this table
+// Test-only tables for the fonts a browser falls back to when Verdana is not installed, which
+// Endjin.Badger.Tests uses to check how far their widths are from Verdana's (download each release into
+// a new, empty directory outside the repository):
+//   dotnet run tools/GenerateFontMetrics.cs -- --font <path to DejaVuSans.ttf> --out Solutions/Endjin.Badger.Tests/DejaVuSansMetrics.g.cs --class DejaVuSansMetrics --namespace Endjin.Badger.Tests --licence "Bitstream Vera Fonts licence (DejaVu changes public domain)" --source https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-sans-ttf-2.37.zip
+//   dotnet run tools/GenerateFontMetrics.cs -- --font <path to LiberationSans-Regular.ttf> --out Solutions/Endjin.Badger.Tests/LiberationSansMetrics.g.cs --class LiberationSansMetrics --namespace Endjin.Badger.Tests --licence "SIL Open Font License 1.1" --source https://github.com/liberationfonts/liberation-fonts/files/7261482/liberation-fonts-ttf-2.1.5.tar.gz
+//
+// Only numbers derived from the font are written out. Never commit a font file: the Verdana licence
+// does not allow the font to be redistributed, and the others have no reason to be in the repository.
+//
+// Every number is measured with SixLabors.Fonts exactly as BadgePainter measured text before the tables
 // existed (8.25pt at 96 DPI, i.e. 11px, with the default kerning), from a private FontCollection so that
 // the result never depends on which fonts happen to be installed.
 using System.Globalization;
+using System.Numerics;
 using System.Text;
 using SixLabors.Fonts;
 using SixLabors.Fonts.Unicode;
@@ -21,23 +33,33 @@ using SixLabors.Fonts.WellKnownIds;
 
 string? fontPath = null;
 string? outPath = null;
+string? className = null;
+string? namespaceName = null;
+string? licence = null;
+string? source = null;
 for (int i = 0; i < args.Length - 1; i++)
 {
     switch (args[i])
     {
         case "--font": fontPath = args[++i]; break;
         case "--out": outPath = args[++i]; break;
+        case "--class": className = args[++i]; break;
+        case "--namespace": namespaceName = args[++i]; break;
+        case "--licence": licence = args[++i]; break;
+        case "--source": source = args[++i]; break;
     }
 }
 
-if (fontPath is null || outPath is null)
+if (fontPath is null || outPath is null || className is null || namespaceName is null)
 {
-    Console.Error.WriteLine("Usage: dotnet run tools/GenerateVerdanaMetrics.cs -- --font <verdana.ttf> --out <VerdanaMetrics.g.cs>");
+    Console.Error.WriteLine(
+        "Usage: dotnet run tools/GenerateFontMetrics.cs -- --font <font.ttf> --out <File.g.cs> --class <TypeName> --namespace <Namespace> [--licence <licence name>] [--source <where the font came from>]");
     return 1;
 }
 
-const int UnitsPerEm = 2048;
 const float PixelSize = 11f;
+
+// Must match FontMetrics.LatinFirst and FontMetrics.LatinLast in Endjin.Badger.
 const int LatinFirst = 0x20;
 const int LatinLast = 0x24F;
 
@@ -46,10 +68,12 @@ FontFamily family = collection.Add(fontPath, out FontDescription description);
 Font font = new(family, PixelSize * 0.75f, FontStyle.Regular);
 TextOptions options = new(font) { Dpi = 96 };
 
-if (font.FontMetrics.UnitsPerEm != UnitsPerEm)
+int unitsPerEm = font.FontMetrics.UnitsPerEm;
+if (!BitOperations.IsPow2(unitsPerEm))
 {
-    Console.Error.WriteLine($"Expected {UnitsPerEm} units per em but the font has {font.FontMetrics.UnitsPerEm}.");
-    return 1;
+    // Widths at 11px are exact multiples of 11/unitsPerEm px only when unitsPerEm is a power of two;
+    // otherwise rounding to the nearest unit below may be off by one unit.
+    Console.Error.WriteLine($"Warning: {unitsPerEm} units per em is not a power of two, so advances may be off by a unit.");
 }
 
 string version = description.GetNameById(CultureInfo.InvariantCulture, KnownNameIds.Version);
@@ -57,9 +81,9 @@ string fontName = description.FontNameInvariantCulture;
 HashSet<int> available = [.. font.FontMetrics.GetAvailableCodePoints().Select(cp => cp.Value)];
 
 // The advance of one character, in font units. Measured widths at 11px are exact multiples of
-// 11/2048px, so rounding only removes float noise.
+// 11/unitsPerEm px, so rounding only removes float noise.
 int MeasureUnits(string text) =>
-    (int)Math.Round(TextMeasurer.MeasureAdvance(text, options).Width * UnitsPerEm / PixelSize, MidpointRounding.AwayFromZero);
+    (int)Math.Round(TextMeasurer.MeasureAdvance(text, options).Width * unitsPerEm / PixelSize, MidpointRounding.AwayFromZero);
 
 static bool IsCombiningMark(int cp) => cp is >= 0x300 and <= 0x36F;
 
@@ -102,8 +126,8 @@ foreach (int cp in extraCandidates)
 int[] kernable = [.. latin.Where(cp => advances[cp - LatinFirst] != 0 && !IsCombiningMark(cp))];
 
 // SixLabors.Fonts leaves breaking whitespace at the end of a text out of its advance (it would hang
-// past the end of the line), so "a " measures the same as "a". VerdanaMetrics mirrors that with
-// VerdanaMetrics.IsTrailingSpaceIgnored; check that rule agrees with every character the table covers.
+// past the end of the line), so "a " measures the same as "a". FontMetrics mirrors that with
+// FontMetrics.IsTrailingSpaceIgnored; check that rule agrees with every character the table covers.
 int aUnits = advances['a' - LatinFirst];
 foreach (int cp in kernable.Concat(extras.Select(e => e.CodePoint)))
 {
@@ -148,17 +172,37 @@ int fallback = (int)Math.Round(Enumerable.Range('a', 26).Average(cp => advances[
 
 StringBuilder code = new();
 code.AppendLine("// <auto-generated>");
-code.AppendLine($"// Generated by tools/GenerateVerdanaMetrics.cs from {fontName} \"{version}\" on {DateTime.UtcNow:yyyy-MM-dd}; do not edit.");
+code.AppendLine($"// Generated by tools/GenerateFontMetrics.cs from {fontName} \"{version}\" on {DateTime.UtcNow:yyyy-MM-dd}; do not edit.");
+if (licence is not null)
+{
+    code.AppendLine($"// Font licence: {licence}");
+}
+
+if (source is not null)
+{
+    code.AppendLine($"// Font source: {source}");
+}
+
 code.AppendLine("// Regenerate with:");
-code.AppendLine("//   dotnet run tools/GenerateVerdanaMetrics.cs -- --font C:\\Windows\\Fonts\\verdana.ttf --out Solutions/Endjin.Badger/VerdanaMetrics.g.cs");
+code.AppendLine($"//   dotnet run tools/GenerateFontMetrics.cs -- {RegenerateArguments()}");
 code.AppendLine("// These are metrics derived from the font, not the font itself.");
 code.AppendLine("// </auto-generated>");
-code.AppendLine("namespace Endjin.Badger");
+code.AppendLine($"namespace {namespaceName}");
 code.AppendLine("{");
-code.AppendLine("    internal static partial class VerdanaMetrics");
+string table = "IFontMetricsTable";
+if (namespaceName != "Endjin.Badger")
+{
+    code.AppendLine("    using Endjin.Badger;");
+    code.AppendLine();
+}
+
+code.AppendLine($"    internal readonly partial struct {className} : {table}");
 code.AppendLine("    {");
-code.AppendLine("        /// <summary>The version string of the font the metrics were measured from.</summary>");
+code.AppendLine("        /// <summary>The name and version string of the font the metrics were measured from.</summary>");
 code.AppendLine($"        internal const string FontVersion = \"{fontName} {version}\";");
+code.AppendLine();
+code.AppendLine("        /// <summary>Font units per em.</summary>");
+code.AppendLine($"        internal const int UnitsPerEm = {unitsPerEm};");
 code.AppendLine();
 code.AppendLine("        /// <summary>");
 code.AppendLine("        /// The advance, in font units, of a character the tables do not cover: the mean advance of the");
@@ -166,11 +210,12 @@ code.AppendLine("        /// lower-case letters a to z, rounded to the nearest u
 code.AppendLine("        /// </summary>");
 code.AppendLine($"        internal const int FallbackAdvanceUnits = {fallback};");
 code.AppendLine();
-code.AppendLine($"        private const int LatinFirst = 0x{LatinFirst:X4};");
-code.AppendLine($"        private const int LatinLast = 0x{LatinLast:X4};");
+code.AppendLine($"        static int {table}.UnitsPerEm => UnitsPerEm;");
 code.AppendLine();
-code.AppendLine("        // Advances in font units for U+0020..U+024F, indexed by code point - LatinFirst (0 = not in the font).");
-code.AppendLine("        private static ReadOnlySpan<ushort> LatinAdvances =>");
+code.AppendLine($"        static int {table}.FallbackAdvanceUnits => FallbackAdvanceUnits;");
+code.AppendLine();
+code.AppendLine($"        // Advances in font units for U+{LatinFirst:X4}..U+{LatinLast:X4}, indexed by code point - FontMetrics.LatinFirst (0 = not in the font).");
+code.AppendLine($"        static ReadOnlySpan<ushort> {table}.LatinAdvances =>");
 code.AppendLine("        [");
 for (int row = 0; row < advances.Length; row += 16)
 {
@@ -181,7 +226,7 @@ for (int row = 0; row < advances.Length; row += 16)
 code.AppendLine("        ];");
 code.AppendLine();
 code.AppendLine("        // Code points outside the Latin range that the font covers, in ascending order, and their advances.");
-code.AppendLine("        private static ReadOnlySpan<int> ExtraCodePoints =>");
+code.AppendLine($"        static ReadOnlySpan<int> {table}.ExtraCodePoints =>");
 code.AppendLine("        [");
 foreach ((int cp, int _) in extras)
 {
@@ -190,7 +235,7 @@ foreach ((int cp, int _) in extras)
 
 code.AppendLine("        ];");
 code.AppendLine();
-code.AppendLine("        private static ReadOnlySpan<ushort> ExtraAdvances =>");
+code.AppendLine($"        static ReadOnlySpan<ushort> {table}.ExtraAdvances =>");
 code.AppendLine("        [");
 foreach ((int cp, int units) in extras)
 {
@@ -200,7 +245,7 @@ foreach ((int cp, int units) in extras)
 code.AppendLine("        ];");
 code.AppendLine();
 code.AppendLine("        // Kerning pairs between Latin characters, keyed by (left << 16) | right, in ascending order.");
-code.AppendLine("        private static ReadOnlySpan<int> KerningPairs =>");
+code.AppendLine($"        static ReadOnlySpan<int> {table}.KerningPairs =>");
 code.AppendLine("        [");
 foreach ((int key, short _) in kerning)
 {
@@ -210,7 +255,7 @@ foreach ((int key, short _) in kerning)
 code.AppendLine("        ];");
 code.AppendLine();
 code.AppendLine("        // The kerning of each pair in KerningPairs, in font units.");
-code.AppendLine("        private static ReadOnlySpan<short> KerningUnits =>");
+code.AppendLine($"        static ReadOnlySpan<short> {table}.KerningUnits =>");
 code.AppendLine("        [");
 for (int row = 0; row < kerning.Length; row += 16)
 {
@@ -223,7 +268,7 @@ code.AppendLine("}");
 
 File.WriteAllText(outPath, code.ToString().ReplaceLineEndings("\r\n"), new UTF8Encoding(true));
 
-Console.WriteLine($"Font: {fontName} {version}");
+Console.WriteLine($"Font: {fontName} {version}; {unitsPerEm} units per em");
 Console.WriteLine($"Latin advances: {advances.Count(a => a != 0)} of {advances.Length}; extras: {extras.Count}; kerning pairs: {kerning.Length}; fallback: {fallback} units");
 Console.WriteLine($"Spot check: a={advances['a' - LatinFirst]} M={advances['M' - LatinFirst]} space={advances[' ' - LatinFirst]}");
 if (zeroWidth.Count > 0)
@@ -233,7 +278,28 @@ if (zeroWidth.Count > 0)
 
 return 0;
 
-// Must match VerdanaMetrics.IsTrailingSpaceIgnored in Endjin.Badger.
+// The command line that regenerates the file, with the font's location left for the reader to fill
+// in unless it is a font installed with Windows.
+string RegenerateArguments()
+{
+    string font = fontPath.StartsWith(@"C:\Windows\Fonts\", StringComparison.OrdinalIgnoreCase)
+        ? fontPath
+        : $"<path to {Path.GetFileName(fontPath)}>";
+    List<string> parts = ["--font", font, "--out", outPath.Replace('\\', '/'), "--class", className, "--namespace", namespaceName];
+    if (licence is not null)
+    {
+        parts.AddRange(["--licence", licence]);
+    }
+
+    if (source is not null)
+    {
+        parts.AddRange(["--source", source]);
+    }
+
+    return string.Join(" ", parts.Select(p => p.Contains(' ', StringComparison.Ordinal) ? $"\"{p}\"" : p));
+}
+
+// Must match FontMetrics.IsTrailingSpaceIgnored in Endjin.Badger.
 static bool IsTrailingSpaceIgnored(int cp) =>
     Rune.IsWhiteSpace(new Rune(cp)) && cp != 0x00A0;
 

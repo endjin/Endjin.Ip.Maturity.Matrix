@@ -1,3 +1,4 @@
+using Endjin.Badger.Tests.TestData;
 using SixLabors.Fonts;
 using SixLabors.Fonts.WellKnownIds;
 using Shouldly;
@@ -22,17 +23,13 @@ public class VerdanaMetricsOracleTests
     private static readonly Lazy<(TextOptions Options, string Version)> Verdana = new(LoadVerdana);
 
     /// <summary>
-    /// Gets texts badges show: every rule name in the benchmark rule set
-    /// (Solutions/Endjin.Imm.Benchmarks/Data/RuleSet.yaml), totals and percentages, and texts that
-    /// exercise kerning, accented and HTML-significant characters, and whitespace.
+    /// Gets texts badges show (<see cref="BadgeTexts"/>: every rule name in the benchmark rule set,
+    /// totals and percentages, and the texts of error badges), and texts that exercise kerning,
+    /// accented and HTML-significant characters, and whitespace.
     /// </summary>
     public static IEnumerable<object[]> Corpus =>
     [
-        .. RuleNames.Select(name => new object[] { name }),
-        .. Enumerable.Range(0, 101).Select(percent => new object[] { $"{percent}%" }),
-        ["IMM"],
-        ["42 / 54"],
-        ["121 / 300"],
+        .. BadgeTexts.All.Select(text => new object[] { text }),
         ["<Ünïcødé> \"rule\""],
         ["R&D <Tools>"],
         ["AVAWAY To Ty"],
@@ -44,28 +41,6 @@ public class VerdanaMetricsOracleTests
         ["été"],
         ["   "],
         [string.Empty],
-    ];
-
-    private static string[] RuleNames =>
-    [
-        "Shared Engineering Standards",
-        "Coding Standards",
-        "Executable Specifications",
-        "Code Coverage",
-        "Benchmarks",
-        "Reference Documentation",
-        "Design & Implementation Documentation",
-        "How-to Documentation",
-        "Date of Last IP Review",
-        "Framework Version",
-        "Associated Work Items",
-        "Source Code Availability",
-        "License",
-        "Production Use",
-        "Insights",
-        "Packaging",
-        "Deployment",
-        "OpenChain",
     ];
 
     [TestMethod]

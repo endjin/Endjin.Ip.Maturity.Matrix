@@ -316,7 +316,8 @@ public class ErrorBadgeTests
         // Assert
         svg.ReplaceLineEndings("\n").TrimEnd('\n').ShouldBe(
             """
-            <svg xmlns="http://www.w3.org/2000/svg" width="151.2334" height="20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="151.2334" height="20" role="img" aria-label="IMM: imm.yaml not found">
+              <title>IMM: imm.yaml not found</title>
               <linearGradient id="b" x2="0" y2="100%">
                 <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
                 <stop offset="1" stop-opacity=".1"/>
@@ -329,11 +330,13 @@ public class ErrorBadgeTests
                 <path fill="#9f9f9f" d="M31.170898 0h120.0625v20H31.170898z"/>
                 <path fill="url(#b)" d="M0 0h151.2334v20H0z"/>
               </g>
-              <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11px">
-                <text x="15.585449" y="15" fill="#010101" fill-opacity=".3">IMM</text>
-                <text x="15.585449" y="14">IMM</text>
-                <text x="91.20215" y="15" fill="#010101" fill-opacity=".3">imm.yaml not found</text>
-                <text x="91.20215" y="14">imm.yaml not found</text>
+              <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110">
+                <g transform="scale(.1)">
+                  <text aria-hidden="true" x="156" y="150" fill="#010101" fill-opacity=".3" textLength="232">IMM</text>
+                  <text x="156" y="140" textLength="232">IMM</text>
+                  <text aria-hidden="true" x="912" y="150" fill="#010101" fill-opacity=".3" textLength="1121">imm.yaml not found</text>
+                  <text x="912" y="140" textLength="1121">imm.yaml not found</text>
+                </g>
               </g>
             </svg>
             """);
@@ -362,6 +365,7 @@ public class ErrorBadgeTests
         badge.Subject.ShouldBe(subject);
         badge.Status.ShouldBe(status);
         badge.StatusColour.ShouldBe(ColorScheme.LightGrey);
+        badge.AriaLabel.ShouldBe($"{subject}: {status}");
         request.HttpContext.Response.Headers["X-Imm-Error"].ToString().ShouldBe(errorCode);
     }
 }
