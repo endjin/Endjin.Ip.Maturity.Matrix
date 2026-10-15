@@ -24,7 +24,7 @@
             this.discrete = new DiscreteRuleCalculator(rdr);
             this.age = new AgeRuleCalculator(rdr);
             this.framework = new FrameworkRuleCalculator(rdr);
-            this.unknown = new NullRuleCalculator();
+            this.unknown = new NullRuleCalculator(rdr);
         }
 
         public IRuleCalculator Create(DataType dataType)

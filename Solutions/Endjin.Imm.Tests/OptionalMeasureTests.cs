@@ -53,6 +53,47 @@ public class OptionalMeasureTests
         evaluation.MaximumPossibleTotalScore.ShouldBe(4);
     }
 
+    // Templated cannot be opted out of, so the opt-out is ignored for the maximum: the rule's percentage and the
+    // total's maximum must agree that it still counts.
+    [TestMethod]
+    public void Evaluate_OptOutOfAMeasureThatCannotBeOptedOutOf_StillCountsTowardsTheRuleAndTotalMaximum()
+    {
+        // Arrange
+        const string immYaml = $"""
+            -
+                Name: 'Deployment'
+                Id: '{RuleSetYaml.DeploymentRuleId}'
+                Measures:
+                    -
+                        Score: 1
+                        Description: 'Scripted and Documented'
+                    -
+                        Description: Templated
+                        OptOut: true
+                    -
+                        Score: 1
+                        Description: 'Multi-tenanted - as a Service'
+            -
+                Name: 'Shared Engineering Standards'
+                Id: '{RuleSetYaml.SharedEngineeringStandardsRuleId}'
+                Measures:
+                    -
+                        Score: 1
+                        Description: Configured
+            """;
+
+        // Act
+        ImmEvaluation evaluation = ImmEvaluator.Evaluate(RuleSetYaml.DeploymentWithOptionalMeasure, immYaml);
+
+        // Assert
+        RuleEvaluation deployment = evaluation.ForRule(RuleSetYaml.DeploymentRuleId);
+        deployment.Score.ShouldBe(2);
+        deployment.MaximumScore.ShouldBe(3);
+        deployment.Percentage.ShouldBe(67);
+        evaluation.TotalScore.ShouldBe(3);
+        evaluation.MaximumPossibleTotalScore.ShouldBe(4);
+    }
+
     [TestMethod]
     public void Evaluate_OptionalMeasureNotScored_CountsAgainstThePercentageAndMaximum()
     {

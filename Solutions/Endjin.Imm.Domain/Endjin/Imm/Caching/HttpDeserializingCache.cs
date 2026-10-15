@@ -116,7 +116,7 @@
             {
                 request.Headers.IfNoneMatch.Add(eTag);
             }
-            HttpResponseMessage response = await this.httpClient.SendAsync(request).ConfigureAwait(false);
+            using HttpResponseMessage response = await this.httpClient.SendAsync(request).ConfigureAwait(false);
             bool contentNotChanged = response.StatusCode == HttpStatusCode.NotModified;
 
             // Apparently EnsureSuccessStatusCode considers 304 Not Modified not to be success, so

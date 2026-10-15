@@ -143,6 +143,32 @@ public class BadgeEndpointTests
     }
 
     [TestMethod]
+    public async Task GitHubImmByRule_ImmRuleWithoutAName_ShowsTheRuleSetsNameForTheRule()
+    {
+        // Arrange
+        const string immYaml = $"""
+            -
+                Id: '{HostYaml.SharedEngineeringStandardsRuleId}'
+                Measures:
+                    -
+                        Score: 1
+                        Description: Configured
+            """;
+        ImmFunctionFixture fixture = new(HostYaml.TwoRuleSet, immYaml);
+
+        // Act
+        IActionResult result = await fixture.Functions.GitHubImmByRule(
+            ImmFunctionFixture.CreateRequest(), ImmFunctionFixture.Org, ImmFunctionFixture.Project, HostYaml.SharedEngineeringStandardsRuleId);
+
+        // Assert
+        ContentResult content = result.ShouldBeOfType<ContentResult>();
+        content.StatusCode.ShouldBe(StatusCodes.Status200OK);
+        BadgeSvg badge = BadgeSvg.Parse(content.Content!);
+        badge.Subject.ShouldBe("Shared Engineering Standards");
+        badge.Status.ShouldBe("100%");
+    }
+
+    [TestMethod]
     public async Task GitHubImmTotalScore_AnyRequest_TellsClientsAndProxiesNotToCacheTheBadge()
     {
         // Arrange
@@ -202,6 +228,8 @@ public class BadgeEndpointTests
     [DataRow("?projectBranch=feature%2Fx", "master", "feature/x")]
     [DataRow("?definitionsBranch=v2", "v2", "master")]
     [DataRow("?definitionsBranch=v2&projectBranch=release/1.0", "v2", "release/1.0")]
+    [DataRow("?projectBranch=main&projectBranch=dev", "master", "main")]
+    [DataRow("?definitionsBranch=v2&definitionsBranch=v3&projectBranch=main", "v2", "main")]
     public async Task GitHubImmTotalScore_BranchQueryString_ReadsTheRuleSetAndImmFromThoseBranches(
         string queryString,
         string expectedDefinitionsBranch,

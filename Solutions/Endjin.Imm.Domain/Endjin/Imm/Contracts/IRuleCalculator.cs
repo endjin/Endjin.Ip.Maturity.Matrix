@@ -39,23 +39,17 @@
         long Score(RuleAssertion ruleAssertion, IEvaluationContext context);
 
         /// <summary>
-        /// Calculates both the score achieved by a rule assertion and the proportion of the total
-        /// possible score that represents, taking opt-outs into account.
+        /// Calculates the score achieved by a rule assertion, the maximum score it could achieve, and
+        /// the proportion of that maximum the score represents, taking opt-outs into account.
         /// </summary>
         /// <param name="ruleAssertion">The assertion to evaluate.</param>
         /// <param name="context">The <see cref="IEvaluationContext"/>.</param>
         /// <returns>
         /// A <see cref="RuleEvaluation"/> whose <see cref="RuleEvaluation.Percentage"/> and
         /// <see cref="RuleEvaluation.Score"/> are the values that <see cref="Percentage"/> and
-        /// <see cref="Score"/> would return.
+        /// <see cref="Score"/> would return, and whose <see cref="RuleEvaluation.MaximumScore"/> is
+        /// the maximum that percentage is calculated against.
         /// </returns>
-        /// <remarks>
-        /// <para>
-        /// Implementations should override this to do the work only once. The default
-        /// implementation simply calls <see cref="Percentage"/> and then <see cref="Score"/>.
-        /// </para>
-        /// </remarks>
-        RuleEvaluation Evaluate(RuleAssertion ruleAssertion, IEvaluationContext context)
-            => new(ruleAssertion, this.Percentage(ruleAssertion, context), this.Score(ruleAssertion, context));
+        RuleEvaluation Evaluate(RuleAssertion ruleAssertion, IEvaluationContext context);
     }
 }

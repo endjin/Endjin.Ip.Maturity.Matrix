@@ -130,11 +130,25 @@ public class RuleCalculatorEvaluateTests
     }
 
     [TestMethod]
-    public void Evaluate_UnknownDataType_ScoresZero()
+    public void Evaluate_UnknownDataType_ScoresZeroAgainstTheHighestMeasure()
     {
         // Arrange
-        IRuleCalculator calculator = new RuleCalculatorFactory(new RuleDefinitionRepository(new IpMaturityMatrixRuleset())).Create((DataType)99);
-        RuleAssertion assertion = new() { Id = Guid.Parse(RuleSetYaml.SharedEngineeringStandardsRuleId) };
+        const string ruleSetYaml = $"""
+            -
+                Name: 'Shared Engineering Standards'
+                Id: '{RuleSetYaml.SharedEngineeringStandardsRuleId}'
+                DataType: 99
+                Measures:
+                    -
+                        Score: 0
+                        Description: None
+                    -
+                        Score: 1
+                        Description: Configured
+            """;
+        RuleDefinitionRepository repository = new(IpMaturityMatrixRuleset.FromYaml(ruleSetYaml));
+        IRuleCalculator calculator = new RuleCalculatorFactory(repository).Create((DataType)99);
+        RuleAssertion assertion = IpMaturityMatrix.FromYaml(ImmYaml.SharedEngineeringStandardsConfigured).Rules.Single();
 
         // Act
         RuleEvaluation evaluation = calculator.Evaluate(assertion, Context);
@@ -143,6 +157,7 @@ public class RuleCalculatorEvaluateTests
         evaluation.RuleAssertion.ShouldBeSameAs(assertion);
         evaluation.Score.ShouldBe(0);
         evaluation.Percentage.ShouldBe(0m);
+        evaluation.MaximumScore.ShouldBe(1);
     }
 
     private static (IRuleCalculator Calculator, RuleAssertion Assertion) Arrange(string ruleSetYaml, string immYaml)

@@ -18,7 +18,11 @@ FunctionsApplicationBuilder builder = FunctionsApplication.CreateBuilder(args);
 
 builder.ConfigureFunctionsWebApplication();
 
-builder.Services.AddHttpClient();
+// The GitHub sources cache content in a singleton, which holds on to the HttpClient it is given for
+// the life of the process, so a client from IHttpClientFactory would never have its handler rotated.
+// Instead, use one long-lived client whose pooled connections are replaced periodically, so that
+// DNS changes for raw.githubusercontent.com are picked up.
+builder.Services.AddSingleton(new HttpClient(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(5) }));
 builder.Services.AddMemoryCache();
 builder.Services.AddImmSources();
 

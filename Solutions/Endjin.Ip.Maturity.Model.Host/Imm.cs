@@ -63,7 +63,8 @@ namespace Endjin.Ip.Maturity.Model.Host
             var evaluationEngine = new EvaluationEngine(ruleDefinitions);
             RuleEvaluation result = evaluationEngine.Evaluate(imm).RuleEvaluations.First(x => x.RuleAssertion.Id == ruleIdAsGuid);
 
-            return CreateUncacheResponse(request, ImmBadges.RenderRuleBadge(result), "image/svg+xml");
+            string? definitionName = ruleDefinitions.GetDefinitionFor(result.RuleAssertion).Name;
+            return CreateUncacheResponse(request, ImmBadges.RenderRuleBadge(result, definitionName), "image/svg+xml");
         }
 
         [Function(nameof(GitHubImmAllBadges))]
@@ -110,9 +111,11 @@ namespace Endjin.Ip.Maturity.Model.Host
             string projectObject = ObjectNameFromQuerystring("projectBranch");
             return (definitionsObject, projectObject);
 
+            // A repeated parameter uses its first value: StringValues.ToString() would join them all with
+            // commas, naming a branch that does not exist.
             string ObjectNameFromQuerystring(string name) =>
-                request.Query.TryGetValue(name, out StringValues value) && !StringValues.IsNullOrEmpty(value)
-                    ? value.ToString()
+                request.Query.TryGetValue(name, out StringValues value) && !string.IsNullOrEmpty(value[0])
+                    ? value[0]!
                     : "master";
         }
 

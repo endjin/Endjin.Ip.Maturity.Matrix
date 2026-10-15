@@ -68,11 +68,14 @@ namespace Endjin.Ip.Maturity.Model.Host
         /// Renders the badge for a single rule.
         /// </summary>
         /// <param name="result">The rule's evaluation.</param>
+        /// <param name="definitionName">
+        /// The rule's name in the rule set, shown when the IMM does not name the rule.
+        /// </param>
         /// <returns>The SVG.</returns>
-        public static string RenderRuleBadge(RuleEvaluation result)
+        public static string RenderRuleBadge(RuleEvaluation result, string? definitionName = null)
         {
             return BadgePainter.DrawSVG(
-                WebUtility.HtmlEncode(result.RuleAssertion.Name!),
+                WebUtility.HtmlEncode(result.RuleAssertion.Name ?? definitionName ?? string.Empty),
                 $"{result.Percentage}%",
                 ColourForPercentage(result.Percentage),
                 Style.Flat);

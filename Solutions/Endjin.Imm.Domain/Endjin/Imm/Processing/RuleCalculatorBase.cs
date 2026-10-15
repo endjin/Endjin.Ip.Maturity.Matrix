@@ -34,8 +34,8 @@
         /// <inheritdoc/>
         public RuleEvaluation Evaluate(RuleAssertion ruleAssertion, IEvaluationContext context)
         {
-            (decimal percentage, long score) = this.Calculate(ruleAssertion, context);
-            return new RuleEvaluation(ruleAssertion, percentage, score);
+            (decimal percentage, long score, long maximumScore) = this.Calculate(ruleAssertion, context);
+            return new RuleEvaluation(ruleAssertion, percentage, score, maximumScore);
         }
 
         /// <summary>
@@ -63,7 +63,7 @@
         /// </remarks>
         protected abstract long MaximumFromApplicableMeasures(CalculationContext context);
 
-        private (decimal Percentage, long Score) Calculate(RuleAssertion ruleAssertion, IEvaluationContext context)
+        private (decimal Percentage, long Score, long MaximumScore) Calculate(RuleAssertion ruleAssertion, IEvaluationContext context)
         {
             CalculationContext calculationContext = this.MakeContext(ruleAssertion, context);
 
@@ -72,7 +72,7 @@
             var higestScore = this.MaximumFromApplicableMeasures(calculationContext);
             var score = this.ScoreFromApplicableMeasures(calculationContext);
 
-            return (Math.Round(Convert.ToDecimal(score / Convert.ToDecimal(higestScore)) * 100), score);
+            return (Math.Round(Convert.ToDecimal(score / Convert.ToDecimal(higestScore)) * 100), score, higestScore);
         }
 
         private CalculationContext MakeContext(RuleAssertion ruleAssertion, IEvaluationContext context)
