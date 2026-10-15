@@ -82,6 +82,90 @@ namespace Endjin.Ip.Maturity.Model.Host
         }
 
         /// <summary>
+        /// Renders a badge that says why a score could not be shown, in place of the score.
+        /// </summary>
+        /// <param name="subject">
+        /// The text for the subject (left-hand) segment: "IMM" for the total, or the rule's name.
+        /// </param>
+        /// <param name="message">The text for the status (right-hand) segment, such as "imm.yaml not found".</param>
+        /// <returns>The SVG.</returns>
+        /// <remarks>
+        /// Error badges are always light grey, a colour no score uses (red means a low score).
+        /// </remarks>
+        public static string RenderErrorBadge(string subject, string message)
+        {
+            return BadgePainter.DrawSVG(
+                WebUtility.HtmlEncode(subject),
+                WebUtility.HtmlEncode(message),
+                ColorScheme.LightGrey,
+                Style.Flat);
+        }
+
+        /// <summary>
+        /// Renders the page shown by showbadges in place of the badges when they cannot be shown.
+        /// </summary>
+        /// <param name="org">The GitHub organisation.</param>
+        /// <param name="project">The GitHub repository.</param>
+        /// <param name="rulesObjectName">The branch or object name the rule definitions were requested from.</param>
+        /// <param name="projectObjectName">The branch or object name the project's IMM was requested from.</param>
+        /// <param name="message">What went wrong.</param>
+        /// <param name="url">The URL that was requested from GitHub, if the problem is with one.</param>
+        /// <param name="hint">What to try next, if there is a suggestion.</param>
+        /// <returns>The HTML.</returns>
+        public static string RenderShowBadgesErrorPage(
+            string org,
+            string project,
+            string rulesObjectName,
+            string projectObjectName,
+            string message,
+            string? url,
+            string? hint)
+        {
+            var sb = new StringBuilder(1024);
+
+            sb.AppendLine("<!DOCTYPE html>");
+            sb.AppendLine("<html>");
+            sb.AppendLine("<head>");
+            sb.AppendLine("    <meta charset=\"utf-8\" />");
+            sb.Append("    <title>IP Maturity Matrix for ");
+            sb.Append(WebUtility.HtmlEncode(org));
+            sb.Append('/');
+            sb.Append(WebUtility.HtmlEncode(project));
+            sb.Append(" (");
+            sb.Append(WebUtility.HtmlEncode(projectObjectName));
+            if (rulesObjectName != "master")
+            {
+                sb.Append(", rules: ");
+                sb.Append(WebUtility.HtmlEncode(rulesObjectName));
+            }
+
+            sb.AppendLine(")</title>");
+            sb.AppendLine("</head>");
+            sb.AppendLine("<body>");
+            sb.Append("  <p>");
+            sb.Append(WebUtility.HtmlEncode(message));
+            sb.AppendLine("</p>");
+            if (url is not null)
+            {
+                sb.Append("  <p>URL requested from GitHub: <code>");
+                sb.Append(WebUtility.HtmlEncode(url));
+                sb.AppendLine("</code></p>");
+            }
+
+            if (hint is not null)
+            {
+                sb.Append("  <p>");
+                sb.Append(WebUtility.HtmlEncode(hint));
+                sb.AppendLine("</p>");
+            }
+
+            sb.AppendLine("</body>");
+            sb.AppendLine("</html>");
+
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// Renders the showbadges page: the total score badge, then a badge for each evaluated rule,
         /// each requested from the same branches as the page.
         /// </summary>

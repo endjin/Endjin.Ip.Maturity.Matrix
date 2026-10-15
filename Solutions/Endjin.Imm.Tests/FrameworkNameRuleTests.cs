@@ -1,4 +1,5 @@
 using Endjin.Imm.Domain;
+using Endjin.Imm.Processing;
 using Endjin.Imm.Tests.TestData;
 using Shouldly;
 
@@ -175,18 +176,20 @@ public class FrameworkNameRuleTests
     // (the one without a Framework). That is a rule set authoring error: the fallback is only for IMMs without a
     // Framework, so a rule set must end its Framework measures with '*' before the fallback.
     [TestMethod]
-    public void Evaluate_FrameworkMatchesNothingBeforeTheFallbackMeasure_ThrowsArgumentException()
+    public void Evaluate_FrameworkMatchesNothingBeforeTheFallbackMeasure_ThrowsImmEvaluationExceptionNamingTheRule()
     {
         // Arrange
         string immYaml = ImmWithFramework("netcoreapp2.0");
 
         // Act
-        ArgumentException exception = Should.Throw<ArgumentException>(
+        ImmEvaluationException exception = Should.Throw<ImmEvaluationException>(
             () => ImmEvaluator.Evaluate(FrameworkWithUnknownFrameworkFallbackRuleSet, immYaml));
 
         // Assert
-        exception.ParamName.ShouldBe("ruleAssertion");
-        exception.Message.ShouldStartWith("Rule measure definition's Framework is not set, so it should not be used with FrameworkRuleCalculator");
+        exception.RuleId.ShouldBe(Guid.Parse(RuleSetYaml.FrameworkVersionRuleId));
+        ArgumentException cause = exception.InnerException.ShouldBeOfType<ArgumentException>();
+        cause.ParamName.ShouldBe("ruleAssertion");
+        cause.Message.ShouldStartWith("Rule measure definition's Framework is not set, so it should not be used with FrameworkRuleCalculator");
     }
 
     /// <summary>

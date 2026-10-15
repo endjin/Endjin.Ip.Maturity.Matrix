@@ -1,3 +1,4 @@
+using Endjin.Imm.Domain;
 using Endjin.Imm.Tests.TestData;
 using Shouldly;
 
@@ -11,7 +12,7 @@ namespace Endjin.Imm.Tests;
 public class UnknownRuleTests
 {
     [TestMethod]
-    public void Evaluate_ImmReferencesARuleIdNotInTheRuleSet_ThrowsArgumentExceptionNamingTheRuleId()
+    public void Evaluate_ImmReferencesARuleIdNotInTheRuleSet_ThrowsUnknownRuleExceptionNamingTheRuleId()
     {
         // Arrange
         const string unknownRuleId = "0b2c6a3e-58a4-4d2c-9a55-5c1f0f4f8f11";
@@ -32,10 +33,11 @@ public class UnknownRuleTests
             """;
 
         // Act
-        ArgumentException exception = Should.Throw<ArgumentException>(
+        UnknownRuleException exception = Should.Throw<UnknownRuleException>(
             () => ImmEvaluator.Evaluate(RuleSetYaml.DeploymentWithOptionalMeasure, immYaml));
 
         // Assert
+        exception.RuleId.ShouldBe(Guid.Parse(unknownRuleId));
         exception.Message.ShouldBe($"No definition found for rule id {unknownRuleId}");
     }
 }

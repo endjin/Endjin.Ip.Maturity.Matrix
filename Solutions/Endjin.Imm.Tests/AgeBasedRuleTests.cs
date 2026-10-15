@@ -1,4 +1,5 @@
 using Endjin.Imm.Domain;
+using Endjin.Imm.Processing;
 using Endjin.Imm.Tests.TestData;
 using Shouldly;
 
@@ -242,22 +243,41 @@ public class AgeBasedRuleTests
         evaluation.MaximumPossibleTotalScore.ShouldBe(3);
     }
 
+    [TestMethod]
+    [DataRow("'last tuesday'")]
+    [DataRow("2019-13-01")]
+    public void Evaluate_UnparsableDate_ThrowsImmEvaluationExceptionNamingTheRule(string date)
+    {
+        // Arrange
+        string immYaml = ImmWithDate(date);
+
+        // Act
+        ImmEvaluationException exception = Should.Throw<ImmEvaluationException>(
+            () => ImmEvaluator.Evaluate(RuleSetYaml.DateOfLastIpReview, immYaml));
+
+        // Assert
+        exception.RuleId.ShouldBe(Guid.Parse(RuleSetYaml.DateOfLastIpReviewRuleId));
+        exception.InnerException.ShouldBeOfType<NodaTime.Text.UnparsableValueException>();
+    }
+
     // Age measures are tried in order, and a date that matches none of them reaches the fallback measure (the one
     // without an Age). That is a rule set authoring error: the fallback is only for IMMs without a Date, so a rule
     // set must end its Age measures with '*' before the fallback.
     [TestMethod]
-    public void Evaluate_DateMatchesNoAgeBeforeTheFallbackMeasure_ThrowsArgumentException()
+    public void Evaluate_DateMatchesNoAgeBeforeTheFallbackMeasure_ThrowsImmEvaluationExceptionNamingTheRule()
     {
         // Arrange
         string immYaml = ImmWithDate("2019-01-01");
 
         // Act
-        ArgumentException exception = Should.Throw<ArgumentException>(
+        ImmEvaluationException exception = Should.Throw<ImmEvaluationException>(
             () => ImmEvaluator.Evaluate(ReviewWithNotYetReviewedFallbackRuleSet, immYaml));
 
         // Assert
-        exception.ParamName.ShouldBe("ruleAssertion");
-        exception.Message.ShouldStartWith("Rule definition's Age is not set, so it should not be used with AgeRuleCalculator");
+        exception.RuleId.ShouldBe(Guid.Parse(RuleSetYaml.DateOfLastIpReviewRuleId));
+        ArgumentException cause = exception.InnerException.ShouldBeOfType<ArgumentException>();
+        cause.ParamName.ShouldBe("ruleAssertion");
+        cause.Message.ShouldStartWith("Rule definition's Age is not set, so it should not be used with AgeRuleCalculator");
     }
 
     /// <summary>

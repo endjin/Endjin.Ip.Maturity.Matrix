@@ -72,7 +72,14 @@
             var higestScore = this.MaximumFromApplicableMeasures(calculationContext);
             var score = this.ScoreFromApplicableMeasures(calculationContext);
 
-            return (Math.Round(Convert.ToDecimal(score / Convert.ToDecimal(higestScore)) * 100), score, higestScore);
+            // When every applicable measure has been opted out of, or the rule defines none, there is
+            // no maximum to score against, so treat that as 0% (as the total does) rather than
+            // dividing by zero.
+            decimal percentage = higestScore == 0
+                ? 0m
+                : Math.Round(Convert.ToDecimal(score / Convert.ToDecimal(higestScore)) * 100);
+
+            return (percentage, score, higestScore);
         }
 
         private CalculationContext MakeContext(RuleAssertion ruleAssertion, IEvaluationContext context)

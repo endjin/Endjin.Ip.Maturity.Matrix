@@ -3,6 +3,7 @@
     using Endjin.Imm.Contracts;
     using Endjin.Imm.Domain;
     using NodaTime;
+    using NodaTime.Text;
     using System;
     using System.Collections.Generic;
 
@@ -38,7 +39,7 @@
                 {
                     var calculator = this.ruleCalculatorFactory.Create(ruleDefinition.DataType);
 
-                    var ruleEvaluation = calculator.Evaluate(rule, context);
+                    var ruleEvaluation = Evaluate(calculator, rule, context);
                     ruleEvaluations.Add(ruleEvaluation);
 
                     totalScore += ruleEvaluation.Score;
@@ -50,6 +51,35 @@
             }
 
             return new ImmEvaluation(ruleEvaluations, totalScore, maximumPossibleScore);
+        }
+
+        /// <summary>
+        /// Evaluates one rule, reporting the failures that mean the IMM's assertion for the rule does
+        /// not fit the rule's definition as an <see cref="ImmEvaluationException"/> naming the rule.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Only the exceptions the calculators throw for such data are wrapped: more or fewer
+        /// measures asserted than the rule allows (<see cref="InvalidOperationException"/> from
+        /// <c>Single</c>), a date or period that cannot be parsed (<see cref="UnparsableValueException"/>),
+        /// and an Age or Framework measure where the calculator needs the other kind
+        /// (<see cref="ArgumentException"/>). An <see cref="UnknownRuleException"/> is not wrapped,
+        /// and anything else is a bug, so it propagates as it is.
+        /// </para>
+        /// </remarks>
+        private static RuleEvaluation Evaluate(IRuleCalculator calculator, RuleAssertion rule, IEvaluationContext context)
+        {
+            try
+            {
+                return calculator.Evaluate(rule, context);
+            }
+            catch (Exception ex) when ((ex is InvalidOperationException or UnparsableValueException or ArgumentException) && ex is not UnknownRuleException)
+            {
+                throw new ImmEvaluationException(
+                    rule.Id,
+                    $"Rule {rule.Id}{(rule.Name is null ? string.Empty : $" ('{rule.Name}')")} could not be evaluated: {ex.Message}",
+                    ex);
+            }
         }
 
         private class Context : IEvaluationContext

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using Endjin.Imm.Caching;
 using Endjin.Imm.Contracts;
 using Endjin.Imm.Domain;
 using Endjin.Imm.Tests.TestData;
@@ -12,9 +13,11 @@ namespace Endjin.Imm.Tests;
 /// Content fetched from GitHub is cached according to the caching headers GitHub returns, so
 /// that a page showing many badges does not ask GitHub for the same file again and again, while
 /// changes to the file are still picked up once the cached copy is stale. Stale content is
-/// revalidated with a conditional request, failures are never cached, and an entry that nobody
-/// has asked for in 20 minutes is dropped. Content marked no-cache is revalidated every time it
-/// is used, and content marked no-store is not kept at all.
+/// revalidated with a conditional request, and an entry that nobody has asked for in 20 minutes
+/// is dropped. Content marked no-cache is revalidated every time it is used, and content marked
+/// no-store is not kept at all. Failures are reported by kind: content that does not exist, GitHub
+/// being unavailable, and content that is not valid YAML. Only "not found" is cached, for one
+/// minute; while GitHub is unavailable, content fetched earlier is served instead.
 /// </summary>
 [TestClass]
 public class GitHubContentCachingTests
@@ -22,6 +25,7 @@ public class GitHubContentCachingTests
     private const string Owner = "endjin";
     private const string Project = "Endjin.Ip.Maturity.Model";
     private const string Branch = "master";
+    private const string ImmUrl = $"https://raw.githubusercontent.com/{Owner}/{Project}/{Branch}/imm.yaml";
 
     private static readonly TimeSpan OneHour = TimeSpan.FromHours(1);
 
@@ -57,8 +61,8 @@ public class GitHubContentCachingTests
         second.ShouldBeSameAs(first);
     }
 
-    // Without a max-age, content is treated as fresh for a default of one minute. Only the start of that window can be
-    // tested without waiting, because freshness is measured with Environment.TickCount64.
+    // Without a max-age, content is treated as fresh for a default of one minute. This checks the start of that window
+    // with the real clock.
     [TestMethod]
     [DataRow(null)]
     [DataRow("public")]
@@ -317,9 +321,91 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    [DataRow(HttpStatusCode.InternalServerError)]
     [DataRow(HttpStatusCode.NotFound)]
-    public async Task GetIpMaturityMatrixAsync_GitHubReturnsAnError_ThrowsWithTheStatusCodeAndDoesNotCacheTheFailure(HttpStatusCode statusCode)
+    [DataRow(HttpStatusCode.Gone)]
+    public async Task GetIpMaturityMatrixAsync_GitHubReturnsNotFound_ThrowsContentNotFoundExceptionNamingTheUrl(HttpStatusCode statusCode)
+    {
+        // Arrange
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingWith(() => new HttpResponseMessage(statusCode));
+
+        // Act
+        GitHubContentNotFoundException exception = await Should.ThrowAsync<GitHubContentNotFoundException>(() => GetImmAsync(fixture));
+
+        // Assert
+        exception.Url.ShouldBe(new Uri(ImmUrl));
+        exception.StatusCode.ShouldBe(statusCode);
+        exception.Message.ShouldContain(ImmUrl);
+    }
+
+    [TestMethod]
+    public async Task GetRuleDefinitionRepositoryAsync_GitHubReturnsNotFound_ThrowsContentNotFoundException()
+    {
+        // Arrange
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingWith(() => new HttpResponseMessage(HttpStatusCode.NotFound));
+
+        // Act
+        GitHubContentNotFoundException exception = await Should.ThrowAsync<GitHubContentNotFoundException>(
+            () => fixture.RuleDefinitionSource.GetRuleDefinitionRepositoryAsync("does-not-exist"));
+
+        // Assert
+        exception.Url.ShouldBe(new Uri(IpMaturityMatrixRuleset.DefinitionsUrlForName("does-not-exist")));
+    }
+
+    [TestMethod]
+    [DataRow(HttpStatusCode.InternalServerError)]
+    [DataRow(HttpStatusCode.BadGateway)]
+    [DataRow(HttpStatusCode.ServiceUnavailable)]
+    [DataRow(HttpStatusCode.TooManyRequests)]
+    [DataRow(HttpStatusCode.Forbidden)]
+    public async Task GetIpMaturityMatrixAsync_GitHubReturnsServerError_ThrowsContentUnavailableExceptionWithTheStatusCode(HttpStatusCode statusCode)
+    {
+        // Arrange
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingWith(() => new HttpResponseMessage(statusCode));
+
+        // Act
+        GitHubContentUnavailableException exception = await Should.ThrowAsync<GitHubContentUnavailableException>(() => GetImmAsync(fixture));
+
+        // Assert
+        exception.Url.ShouldBe(new Uri(ImmUrl));
+        exception.StatusCode.ShouldBe(statusCode);
+    }
+
+    [TestMethod]
+    public async Task GetIpMaturityMatrixAsync_RequestTimesOut_ThrowsContentUnavailableException()
+    {
+        // Arrange
+        // This is what HttpClient throws when its Timeout elapses.
+        TaskCanceledException timeout = new("The request was canceled due to the configured HttpClient.Timeout.", new TimeoutException());
+        using ImmSourceFixture fixture = new((_, _) => Task.FromException<HttpResponseMessage>(timeout));
+
+        // Act
+        GitHubContentUnavailableException exception = await Should.ThrowAsync<GitHubContentUnavailableException>(() => GetImmAsync(fixture));
+
+        // Assert
+        exception.Url.ShouldBe(new Uri(ImmUrl));
+        exception.StatusCode.ShouldBeNull();
+        exception.InnerException.ShouldBeSameAs(timeout);
+    }
+
+    [TestMethod]
+    public async Task GetIpMaturityMatrixAsync_ConnectionFails_ThrowsContentUnavailableException()
+    {
+        // Arrange
+        HttpRequestException connectionFailure = new("No such host is known.");
+        using ImmSourceFixture fixture = new((_, _) => Task.FromException<HttpResponseMessage>(connectionFailure));
+
+        // Act
+        GitHubContentUnavailableException exception = await Should.ThrowAsync<GitHubContentUnavailableException>(() => GetImmAsync(fixture));
+
+        // Assert
+        exception.StatusCode.ShouldBeNull();
+        exception.InnerException.ShouldBeSameAs(connectionFailure);
+    }
+
+    [TestMethod]
+    [DataRow(HttpStatusCode.InternalServerError)]
+    [DataRow(HttpStatusCode.ServiceUnavailable)]
+    public async Task GetIpMaturityMatrixAsync_ServerError_IsNotCachedAndIsFetchedAgainOnTheNextRequest(HttpStatusCode statusCode)
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
@@ -327,18 +413,139 @@ public class GitHubContentCachingTests
             () => StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\"", OneHour));
 
         // Act
-        HttpRequestException exception = await Should.ThrowAsync<HttpRequestException>(() => GetImmAsync(fixture));
+        await Should.ThrowAsync<GitHubContentUnavailableException>(() => GetImmAsync(fixture));
         IpMaturityMatrix retried = await GetImmAsync(fixture);
 
         // Assert
-        exception.StatusCode.ShouldBe(statusCode);
         fixture.Handler.Requests.Count.ShouldBe(2);
         fixture.Handler.Requests[1].IfNoneMatch.ShouldBeEmpty();
         retried.Rules.Single().Measures.Single().Score.ShouldBe(1);
     }
 
+    // A README showing many badges for a project without an imm.yaml would otherwise ask GitHub for it once per badge.
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_GitHubReturnsMalformedYaml_ThrowsAndDoesNotCacheTheFailure()
+    public async Task GetIpMaturityMatrixAsync_NotFoundRequestedAgainWithinNegativeCacheWindow_IsNotFetchedAgain()
+    {
+        // Arrange
+        FakeSystemClock clock = new();
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
+            clock,
+            () => new HttpResponseMessage(HttpStatusCode.NotFound),
+            () => StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\"", OneHour));
+
+        // Act
+        await Should.ThrowAsync<GitHubContentNotFoundException>(() => GetImmAsync(fixture));
+        clock.Advance(TimeSpan.FromSeconds(59));
+        GitHubContentNotFoundException second = await Should.ThrowAsync<GitHubContentNotFoundException>(() => GetImmAsync(fixture));
+
+        // Assert
+        fixture.Handler.Requests.Count.ShouldBe(1);
+        second.Url.ShouldBe(new Uri(ImmUrl));
+    }
+
+    [TestMethod]
+    public async Task GetIpMaturityMatrixAsync_NotFoundRequestedAfterNegativeCacheWindow_IsFetchedAgain()
+    {
+        // Arrange
+        FakeSystemClock clock = new();
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
+            clock,
+            () => new HttpResponseMessage(HttpStatusCode.NotFound),
+            () => StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\"", OneHour));
+
+        // Act
+        await Should.ThrowAsync<GitHubContentNotFoundException>(() => GetImmAsync(fixture));
+        clock.Advance(TimeSpan.FromSeconds(61));
+        IpMaturityMatrix afterWindow = await GetImmAsync(fixture);
+
+        // Assert
+        fixture.Handler.Requests.Count.ShouldBe(2);
+        afterWindow.Rules.Single().Measures.Single().Score.ShouldBe(1);
+    }
+
+    [TestMethod]
+    public async Task GetIpMaturityMatrixAsync_NotFoundWithNoStore_IsFetchedAgainOnTheNextRequest()
+    {
+        // Arrange
+        FakeSystemClock clock = new();
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
+            clock,
+            () => StubHttpMessageHandler.WithCacheControl(new HttpResponseMessage(HttpStatusCode.NotFound), "no-store"),
+            () => StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\"", OneHour));
+
+        // Act
+        await Should.ThrowAsync<GitHubContentNotFoundException>(() => GetImmAsync(fixture));
+        IpMaturityMatrix retried = await GetImmAsync(fixture);
+
+        // Assert
+        fixture.Handler.Requests.Count.ShouldBe(2);
+        retried.Rules.Single().Measures.Single().Score.ShouldBe(1);
+    }
+
+    [TestMethod]
+    public async Task GetIpMaturityMatrixAsync_ConcurrentRequestsForAMissingImm_ShareASingleRequestToGitHub()
+    {
+        // Arrange
+        TaskCompletionSource<HttpResponseMessage> gitHubResponse = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        using ImmSourceFixture fixture = new((_, _) => gitHubResponse.Task);
+
+        // Act
+        Task<IpMaturityMatrix> first = GetImmAsync(fixture);
+        Task<IpMaturityMatrix> second = GetImmAsync(fixture);
+        Task<IpMaturityMatrix> third = GetImmAsync(fixture);
+        gitHubResponse.SetResult(new HttpResponseMessage(HttpStatusCode.NotFound));
+
+        // Assert
+        await Should.ThrowAsync<GitHubContentNotFoundException>(() => first);
+        await Should.ThrowAsync<GitHubContentNotFoundException>(() => second);
+        await Should.ThrowAsync<GitHubContentNotFoundException>(() => third);
+        fixture.Handler.Requests.Count.ShouldBe(1);
+    }
+
+    // Stale-if-error: while GitHub is unavailable, the content it last sent is better than no badge.
+    [TestMethod]
+    public async Task GetIpMaturityMatrixAsync_ServerErrorAfterSuccess_ServesTheStaleImmAndTriesGitHubAgainNextTime()
+    {
+        // Arrange
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
+            () => StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\"", TimeSpan.Zero),
+            () => new HttpResponseMessage(HttpStatusCode.ServiceUnavailable),
+            () => StubHttpMessageHandler.NotModified("\"v1\"", TimeSpan.Zero));
+
+        // Act
+        IpMaturityMatrix first = await GetImmAsync(fixture);
+        IpMaturityMatrix duringOutage = await GetImmAsync(fixture);
+        IpMaturityMatrix afterOutage = await GetImmAsync(fixture);
+
+        // Assert
+        fixture.Handler.Requests.Select(r => r.IfNoneMatch).ShouldBe(
+        [
+            [],
+            ["\"v1\""],
+            ["\"v1\""],
+        ]);
+        duringOutage.ShouldBeSameAs(first);
+        afterOutage.ShouldBeSameAs(first);
+    }
+
+    [TestMethod]
+    public async Task GetIpMaturityMatrixAsync_NotFoundAfterSuccess_ThrowsRatherThanServingTheStaleImm()
+    {
+        // Arrange
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
+            () => StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\"", TimeSpan.Zero),
+            () => new HttpResponseMessage(HttpStatusCode.NotFound));
+        await GetImmAsync(fixture);
+
+        // Act
+        Task<IpMaturityMatrix> afterRemoval = GetImmAsync(fixture);
+
+        // Assert
+        await Should.ThrowAsync<GitHubContentNotFoundException>(() => afterRemoval);
+    }
+
+    [TestMethod]
+    public async Task GetIpMaturityMatrixAsync_GitHubReturnsMalformedYaml_ThrowsInvalidImmContentExceptionAndDoesNotCacheTheFailure()
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
@@ -346,10 +553,15 @@ public class GitHubContentCachingTests
             () => StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"fixed\"", OneHour));
 
         // Act
-        await Should.ThrowAsync<YamlException>(() => GetImmAsync(fixture));
+        InvalidImmContentException exception = await Should.ThrowAsync<InvalidImmContentException>(() => GetImmAsync(fixture));
         IpMaturityMatrix retried = await GetImmAsync(fixture);
 
         // Assert
+        exception.Url.ShouldBe(new Uri(ImmUrl));
+        YamlException yamlError = exception.InnerException.ShouldBeAssignableTo<YamlException>()!;
+        exception.Line.ShouldBe(yamlError.Start.Line);
+        exception.Column.ShouldBe(yamlError.Start.Column);
+        exception.Message.ShouldContain($"(line {yamlError.Start.Line}, column {yamlError.Start.Column})");
         fixture.Handler.Requests.Count.ShouldBe(2);
         fixture.Handler.Requests[1].IfNoneMatch.ShouldBeEmpty();
         retried.Rules.Single().Measures.Single().Score.ShouldBe(1);

@@ -26,8 +26,13 @@ internal sealed class ImmFunctionFixture
             .GetIpMaturityMatrixAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
             .Returns(_ => IpMaturityMatrix.FromYaml(immYaml));
 
-        this.Functions = new Imm(this.RuleDefinitionSource, this.ImmSource);
+        this.Functions = new Imm(this.RuleDefinitionSource, this.ImmSource, this.Logger);
     }
+
+    /// <summary>
+    /// Gets the logger the functions write to.
+    /// </summary>
+    public CapturingLogger<Imm> Logger { get; } = new();
 
     /// <summary>
     /// Gets the substitute for the rule definitions published on GitHub.
@@ -43,6 +48,24 @@ internal sealed class ImmFunctionFixture
     /// Gets the functions under test.
     /// </summary>
     public Imm Functions { get; }
+
+    /// <summary>
+    /// Makes fetching the rule set fail, whichever branch is asked for.
+    /// </summary>
+    /// <param name="exception">The exception the fetch fails with.</param>
+    public void RuleSetFailsWith(Exception exception) =>
+        this.RuleDefinitionSource
+            .GetRuleDefinitionRepositoryAsync(Arg.Any<string>())
+            .Returns(_ => Task.FromException<IRuleDefinitionRepository>(exception));
+
+    /// <summary>
+    /// Makes fetching the IMM fail, whichever project and branch are asked for.
+    /// </summary>
+    /// <param name="exception">The exception the fetch fails with.</param>
+    public void ImmFailsWith(Exception exception) =>
+        this.ImmSource
+            .GetIpMaturityMatrixAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
+            .Returns(_ => Task.FromException<IpMaturityMatrix>(exception));
 
     /// <summary>
     /// Creates an HTTP request, as the Functions host would pass to a function.

@@ -1,4 +1,5 @@
 using Endjin.Imm.Domain;
+using Endjin.Imm.Processing;
 using Endjin.Imm.Tests.TestData;
 using Shouldly;
 
@@ -64,7 +65,7 @@ public class DiscreteRuleTests
     }
 
     [TestMethod]
-    public void Evaluate_MoreThanOneLevelAsserted_ThrowsInvalidOperationException()
+    public void Evaluate_DiscreteRuleWithTwoMeasureAssertions_ThrowsImmEvaluationExceptionNamingTheRule()
     {
         // Arrange
         const string immYaml = $"""
@@ -80,12 +81,18 @@ public class DiscreteRuleTests
                         Description: 'Tests for every feature'
             """;
 
-        // Act & Assert
-        Should.Throw<InvalidOperationException>(() => ImmEvaluator.Evaluate(TestingRuleSet, immYaml));
+        // Act
+        ImmEvaluationException exception = Should.Throw<ImmEvaluationException>(() => ImmEvaluator.Evaluate(TestingRuleSet, immYaml));
+
+        // Assert
+        exception.RuleId.ShouldBe(Guid.Parse(TestingRuleId));
+        exception.Message.ShouldContain(TestingRuleId);
+        exception.Message.ShouldContain("Automated Testing");
+        exception.InnerException.ShouldBeOfType<InvalidOperationException>();
     }
 
     [TestMethod]
-    public void Evaluate_NoLevelAsserted_ThrowsInvalidOperationException()
+    public void Evaluate_NoLevelAsserted_ThrowsImmEvaluationExceptionNamingTheRule()
     {
         // Arrange
         const string immYaml = $"""
@@ -95,8 +102,12 @@ public class DiscreteRuleTests
                 Measures: []
             """;
 
-        // Act & Assert
-        Should.Throw<InvalidOperationException>(() => ImmEvaluator.Evaluate(TestingRuleSet, immYaml));
+        // Act
+        ImmEvaluationException exception = Should.Throw<ImmEvaluationException>(() => ImmEvaluator.Evaluate(TestingRuleSet, immYaml));
+
+        // Assert
+        exception.RuleId.ShouldBe(Guid.Parse(TestingRuleId));
+        exception.InnerException.ShouldBeOfType<InvalidOperationException>();
     }
 
     [TestMethod]

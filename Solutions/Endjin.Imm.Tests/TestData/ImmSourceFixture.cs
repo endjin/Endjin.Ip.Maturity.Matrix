@@ -19,18 +19,24 @@ internal sealed class ImmSourceFixture : IDisposable
     /// </summary>
     /// <param name="respond">Produces GitHub's response to each request.</param>
     /// <param name="clock">
-    /// The clock that drives the memory cache's sliding expiration. Defaults to the system clock.
+    /// The clock that drives the memory cache's sliding expiration and the freshness of cached
+    /// content. Defaults to the system clock.
     /// </param>
     public ImmSourceFixture(
         Func<HttpRequestMessage, int, Task<HttpResponseMessage>> respond,
-        ISystemClock? clock = null)
+        FakeSystemClock? clock = null)
     {
         this.Handler = new StubHttpMessageHandler(respond);
 
         ServiceCollection services = new();
         services.AddSingleton(new HttpClient(this.Handler));
-        this.MemoryCache = new MemoryCache(new MemoryCacheOptions { Clock = clock ?? new SystemClock() });
+        this.MemoryCache = new MemoryCache(new MemoryCacheOptions { Clock = (ISystemClock?)clock ?? new SystemClock() });
         services.AddSingleton<IMemoryCache>(this.MemoryCache);
+        if (clock is not null)
+        {
+            services.AddSingleton<TimeProvider>(clock);
+        }
+
         services.AddImmSources();
 
         this.serviceProvider = services.BuildServiceProvider();
@@ -59,7 +65,7 @@ internal sealed class ImmSourceFixture : IDisposable
     /// <summary>
     /// Creates a fixture in which GitHub answers every request with the same response.
     /// </summary>
-    public static ImmSourceFixture RespondingWith(Func<HttpResponseMessage> response, ISystemClock? clock = null) =>
+    public static ImmSourceFixture RespondingWith(Func<HttpResponseMessage> response, FakeSystemClock? clock = null) =>
         new((_, _) => Task.FromResult(response()), clock);
 
     /// <summary>
@@ -67,6 +73,13 @@ internal sealed class ImmSourceFixture : IDisposable
     /// </summary>
     public static ImmSourceFixture RespondingInSequence(params Func<HttpResponseMessage>[] responses) =>
         new((_, callIndex) => Task.FromResult(responses[callIndex]()));
+
+    /// <summary>
+    /// Creates a fixture in which GitHub answers the requests in turn with the given responses,
+    /// and in which time moves only when the test advances <paramref name="clock"/>.
+    /// </summary>
+    public static ImmSourceFixture RespondingInSequence(FakeSystemClock clock, params Func<HttpResponseMessage>[] responses) =>
+        new((_, callIndex) => Task.FromResult(responses[callIndex]()), clock);
 
     /// <inheritdoc/>
     public void Dispose() => this.serviceProvider.Dispose();

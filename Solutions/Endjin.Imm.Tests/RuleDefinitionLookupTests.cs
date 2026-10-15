@@ -44,30 +44,33 @@ public class RuleDefinitionLookupTests
     }
 
     [TestMethod]
-    public void GetDefinitionFor_UnknownRuleId_ThrowsArgumentExceptionNamingTheRuleId()
+    public void GetDefinitionFor_UnknownRuleId_ThrowsUnknownRuleException()
     {
         // Arrange
         RuleDefinitionRepository repository = new(RuleSetOf(new RuleDefinition { Id = OtherRuleId }));
 
         // Act
-        ArgumentException exception = Should.Throw<ArgumentException>(
+        UnknownRuleException exception = Should.Throw<UnknownRuleException>(
             () => repository.GetDefinitionFor(new RuleAssertion { Id = RuleId }));
 
         // Assert
+        exception.RuleId.ShouldBe(RuleId);
         exception.Message.ShouldBe($"No definition found for rule id {RuleId}");
+        exception.ShouldBeAssignableTo<ArgumentException>();
     }
 
     [TestMethod]
-    public void GetDefinitionFor_RuleSetWithNoRules_ThrowsArgumentExceptionNamingTheRuleId()
+    public void GetDefinitionFor_RuleSetWithNoRules_ThrowsUnknownRuleExceptionNamingTheRuleId()
     {
         // Arrange
         RuleDefinitionRepository repository = new(RuleSetOf());
 
         // Act
-        ArgumentException exception = Should.Throw<ArgumentException>(
+        UnknownRuleException exception = Should.Throw<UnknownRuleException>(
             () => repository.GetDefinitionFor(new RuleAssertion { Id = RuleId }));
 
         // Assert
+        exception.RuleId.ShouldBe(RuleId);
         exception.Message.ShouldBe($"No definition found for rule id {RuleId}");
     }
 

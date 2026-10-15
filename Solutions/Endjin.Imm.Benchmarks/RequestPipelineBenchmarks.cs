@@ -6,6 +6,7 @@ using Endjin.Imm.Repository;
 using Endjin.Ip.Maturity.Model.Host;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 using ImmFunctions = Endjin.Ip.Maturity.Model.Host.Imm;
 
 namespace Endjin.Imm.Benchmarks;
@@ -58,7 +59,10 @@ public class RequestPipelineBenchmarks
         this.imm = IpMaturityMatrix.FromYaml(this.immYaml);
         this.context = new SampleData.FixedDateContext(SampleData.ReferenceDate);
 
-        this.functions = new ImmFunctions(new CachedRuleDefinitionSource(this.repository), new CachedImmSource(this.imm));
+        this.functions = new ImmFunctions(
+            new CachedRuleDefinitionSource(this.repository),
+            new CachedImmSource(this.imm),
+            NullLogger<ImmFunctions>.Instance);
 
         // One request is reused by every invocation: the functions only read its (empty) query
         // string and overwrite the same response headers each time.

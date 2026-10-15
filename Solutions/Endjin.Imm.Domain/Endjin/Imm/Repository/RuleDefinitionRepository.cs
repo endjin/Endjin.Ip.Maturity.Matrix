@@ -64,7 +64,7 @@
 
             if (result == null)
             {
-                throw new ArgumentException("No definition found for rule id " + ruleAssertion.Id);
+                throw new UnknownRuleException(ruleAssertion.Id);
             }
 
             return result;

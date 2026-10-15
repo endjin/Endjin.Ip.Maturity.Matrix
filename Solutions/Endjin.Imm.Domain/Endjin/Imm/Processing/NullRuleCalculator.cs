@@ -33,7 +33,9 @@
             var optedOut = ruleAssertion.Measures.Where(m => m.OptOut).Select(m => m.Description).ToHashSet();
             long maximumScore = this.ruleDefinitions.GetDefinitionFor(ruleAssertion).Measures
                 .Where(md => !md.CanOptOut || !optedOut.Contains(md.Description))
-                .Max(md => md.Score);
+                .Select(md => md.Score)
+                .DefaultIfEmpty(0)
+                .Max();
 
             return new RuleEvaluation(ruleAssertion, 0m, 0, maximumScore);
         }
