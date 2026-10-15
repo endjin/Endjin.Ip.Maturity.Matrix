@@ -25,7 +25,7 @@ namespace Endjin.Imm.Benchmarks;
 [BenchmarkCategory("Cache")]
 public class HttpDeserializingCacheBenchmarks
 {
-    private const string ImmUrl = "https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Matrix/master/imm.yaml";
+    private const string ImmUrl = "https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Model/master/imm.yaml";
 
     private static readonly string RuleSetUrl = IpMaturityMatrixRuleset.DefinitionsUrlForName("master");
 

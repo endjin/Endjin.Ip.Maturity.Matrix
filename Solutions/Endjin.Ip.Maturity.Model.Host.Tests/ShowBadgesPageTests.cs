@@ -1,12 +1,12 @@
 using System.Net;
 using System.Text.RegularExpressions;
-using Endjin.Ip.Maturity.Matrix.Host.Tests.TestData;
+using Endjin.Ip.Maturity.Model.Host.Tests.TestData;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using Shouldly;
 
-namespace Endjin.Ip.Maturity.Matrix.Host.Tests;
+namespace Endjin.Ip.Maturity.Model.Host.Tests;
 
 /// <summary>
 /// The showbadges page lets a project's maintainers preview all of its IMM badges at once: the
@@ -30,15 +30,15 @@ public partial class ShowBadgesPageTests
         ContentResult content = result.ShouldBeOfType<ContentResult>();
         content.StatusCode.ShouldBe(StatusCodes.Status200OK);
         content.ContentType.ShouldBe("text/html");
-        Title(content.Content!).ShouldBe("IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Matrix (master)");
+        Title(content.Content!).ShouldBe("IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Model (master)");
         request.HttpContext.Response.Headers.CacheControl.ToString().ShouldBe("no-cache, no-store, must-revalidate");
     }
 
     [TestMethod]
-    [DataRow("?projectBranch=feature/x", "IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Matrix (feature/x)")]
-    [DataRow("?definitionsBranch=master&projectBranch=feature/x", "IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Matrix (feature/x)")]
-    [DataRow("?definitionsBranch=v2", "IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Matrix (master, rules: v2)")]
-    [DataRow("?definitionsBranch=v2&projectBranch=feature/x", "IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Matrix (feature/x, rules: v2)")]
+    [DataRow("?projectBranch=feature/x", "IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Model (feature/x)")]
+    [DataRow("?definitionsBranch=master&projectBranch=feature/x", "IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Model (feature/x)")]
+    [DataRow("?definitionsBranch=v2", "IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Model (master, rules: v2)")]
+    [DataRow("?definitionsBranch=v2&projectBranch=feature/x", "IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Model (feature/x, rules: v2)")]
     public async Task GitHubImmAllBadges_BranchQueryString_TitleShowsTheProjectBranchAndAnyNonDefaultRuleSetBranch(
         string queryString,
         string expectedTitle)
@@ -93,9 +93,9 @@ public partial class ShowBadgesPageTests
         // Assert
         ImageSources(result.ShouldBeOfType<ContentResult>().Content!).ShouldBe(
         [
-            $"/api/imm/github/endjin/Endjin.Ip.Maturity.Matrix/total{branches}",
-            $"/api/imm/github/endjin/Endjin.Ip.Maturity.Matrix/rule/{HostYaml.DeploymentRuleId}{branches}",
-            $"/api/imm/github/endjin/Endjin.Ip.Maturity.Matrix/rule/{HostYaml.SharedEngineeringStandardsRuleId}{branches}",
+            $"/api/imm/github/endjin/Endjin.Ip.Maturity.Model/total{branches}",
+            $"/api/imm/github/endjin/Endjin.Ip.Maturity.Model/rule/{HostYaml.DeploymentRuleId}{branches}",
+            $"/api/imm/github/endjin/Endjin.Ip.Maturity.Model/rule/{HostYaml.SharedEngineeringStandardsRuleId}{branches}",
         ]);
     }
 
@@ -162,8 +162,8 @@ public partial class ShowBadgesPageTests
         // Assert
         ImageSources(result.ShouldBeOfType<ContentResult>().Content!).ShouldBe(
         [
-            "/api/imm/github/endjin/Endjin.Ip.Maturity.Matrix/total?cache=false&definitionsBranch=master&projectBranch=master",
-            $"/api/imm/github/endjin/Endjin.Ip.Maturity.Matrix/rule/{HostYaml.SharedEngineeringStandardsRuleId}?cache=false&definitionsBranch=master&projectBranch=master",
+            "/api/imm/github/endjin/Endjin.Ip.Maturity.Model/total?cache=false&definitionsBranch=master&projectBranch=master",
+            $"/api/imm/github/endjin/Endjin.Ip.Maturity.Model/rule/{HostYaml.SharedEngineeringStandardsRuleId}?cache=false&definitionsBranch=master&projectBranch=master",
         ]);
     }
 

@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Endjin.Ip.Maturity.Matrix.Host\Endjin.Ip.Maturity.Matrix.Host.csproj" />
+    <ProjectReference Include="..\Endjin.Ip.Maturity.Model.Host\Endjin.Ip.Maturity.Model.Host.csproj" />
   </ItemGroup>
 
 </Project>

@@ -250,13 +250,13 @@ We need to consider other personas, whose funciton is to support the IP we creat
 
 ## The IMM Schema
 
-The IMM schema is designed to be very flexible as you may decide that you want to add or alter categories. The [current RuleSet](https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Matrix/master/Solutions/Endjin.Imm.App/RuleSet.yaml) is defined in the `Endjin.Imm.App` project in the solution.
+The IMM schema is designed to be very flexible as you may decide that you want to add or alter categories. The [current RuleSet](https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Model/master/Solutions/Endjin.Imm.App/RuleSet.yaml) is defined in the `Endjin.Imm.App` project in the solution.
 
 Each rule needs a unique, guid based Id, a name, and a data type which can either be `Discrete` (meaning it can only be scored by a single item listed in the schema), or `Continuous` (meaning that the score can be cumulative). These two data types are used to select and run the correct rules engine to calculate the values to be used to render the badges.
 
 ## How to use the IP Maturity Matrix
 
-Each project that adopts the IMM simply adds a `imm.yaml` file into the root of the repo. `Endjin.Ip.Maturity.Matrix.Host` is an Azure Function, which when given the path to the GitHub repo, will render the IMM Measure as a badge, which can be displayed in the repo and provide an "at a glance" view of the quality of the project. 
+Each project that adopts the IMM simply adds a `imm.yaml` file into the root of the repo. `Endjin.Ip.Maturity.Model.Host` is an Azure Function, which when given the path to the GitHub repo, will render the IMM Measure as a badge, which can be displayed in the repo and provide an "at a glance" view of the quality of the project. 
 
 The Azure Function exposes a HTTP Trigger, which has two actions.
 
@@ -306,11 +306,11 @@ Here are examples for the [AIS.NET Project](https://github.com/ais-dotnet/Ais.Ne
 
 ## Building
 
-You will need the .NET 10 SDK; the version is pinned by `global.json` in the root of the repo. The solution, `Solutions/Endjin.Ip.Maturity.Matrix.slnx`, uses Central Package Management (`Solutions/Directory.Packages.props`) and shared build settings (`Solutions/Directory.Build.props`).
+You will need the .NET 10 SDK; the version is pinned by `global.json` in the root of the repo. The solution, `Solutions/Endjin.Ip.Maturity.Model.slnx`, uses Central Package Management (`Solutions/Directory.Packages.props`) and shared build settings (`Solutions/Directory.Build.props`).
 
 ```console
-dotnet build Solutions/Endjin.Ip.Maturity.Matrix.slnx
-dotnet test --solution Solutions/Endjin.Ip.Maturity.Matrix.slnx
+dotnet build Solutions/Endjin.Ip.Maturity.Model.slnx
+dotnet test --solution Solutions/Endjin.Ip.Maturity.Model.slnx
 ```
 
 The full build process, which is the same one CI runs, uses [ZeroFailed](https://github.com/zerofailed/ZeroFailed). It needs PowerShell 7, and it downloads the ZeroFailed and InvokeBuild modules on first run:
@@ -325,17 +325,17 @@ There are three test projects. They are written with MSTest and [Shouldly](https
 
 - `Solutions/Endjin.Imm.Tests` covers rule evaluation, YAML loading, and fetching and caching the rule set and IMMs from GitHub.
 - `Solutions/Endjin.Badger.Tests` covers SVG badge rendering.
-- `Solutions/Endjin.Ip.Maturity.Matrix.Host.Tests` covers the badge and `showbadges` functions.
+- `Solutions/Endjin.Ip.Maturity.Model.Host.Tests` covers the badge and `showbadges` functions.
 
 To collect code coverage and a TRX report as well:
 
 ```console
-dotnet test --solution Solutions/Endjin.Ip.Maturity.Matrix.slnx --coverage --report-trx
+dotnet test --solution Solutions/Endjin.Ip.Maturity.Model.slnx --coverage --report-trx
 ```
 
 `Endjin.Imm.App` is a console app that renders badges for the `imm-default.yaml` file in its working directory, which is handy for checking changes to the badge rendering.
 
-`Endjin.Ip.Maturity.Matrix.Host` is an Azure Function using the isolated worker model with ASP.NET Core integration. To run it locally, copy `local.settings.json.template` to `local.settings.json` and start it with the [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) (`func start`, or `dotnet run`, which calls `func` for you). When deploying, the Function App must use the .NET 10 (isolated) stack and have the `FUNCTIONS_WORKER_RUNTIME` app setting set to `dotnet-isolated`.
+`Endjin.Ip.Maturity.Model.Host` is an Azure Function using the isolated worker model with ASP.NET Core integration. To run it locally, copy `local.settings.json.template` to `local.settings.json` and start it with the [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) (`func start`, or `dotnet run`, which calls `func` for you). When deploying, the Function App must use the .NET 10 (isolated) stack and have the `FUNCTIONS_WORKER_RUNTIME` app setting set to `dotnet-isolated`.
 
 ### Benchmarks
 
@@ -378,7 +378,7 @@ The results go to `Solutions/Endjin.Imm.Benchmarks/BenchmarkDotNet.Artifacts/res
 
 ## Licenses
 
-[![GitHub license](https://img.shields.io/badge/License-Apache%202-blue.svg)](https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Matrix/master/LICENSE)
+[![GitHub license](https://img.shields.io/badge/License-Apache%202-blue.svg)](https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Model/master/LICENSE)
 
 The IP Maturity Matrix is available under the Apache 2.0 open source license.
 

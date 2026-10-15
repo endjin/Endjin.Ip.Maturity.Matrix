@@ -1,4 +1,4 @@
-namespace Endjin.Ip.Maturity.Matrix.Host.Tests.TestData;
+namespace Endjin.Ip.Maturity.Model.Host.Tests.TestData;
 
 /// <summary>
 /// Rule sets and IMMs, in the YAML form published on GitHub, for exercising the badge functions.

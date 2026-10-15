@@ -20,7 +20,7 @@ namespace Endjin.Imm.Tests;
 public class GitHubContentCachingTests
 {
     private const string Owner = "endjin";
-    private const string Project = "Endjin.Ip.Maturity.Matrix";
+    private const string Project = "Endjin.Ip.Maturity.Model";
     private const string Branch = "master";
 
     private static readonly TimeSpan OneHour = TimeSpan.FromHours(1);

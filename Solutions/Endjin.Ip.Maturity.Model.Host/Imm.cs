@@ -1,4 +1,4 @@
-namespace Endjin.Ip.Maturity.Matrix.Host
+namespace Endjin.Ip.Maturity.Model.Host
 {
     #region Using Directives
 

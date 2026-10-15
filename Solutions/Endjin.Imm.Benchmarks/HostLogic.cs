@@ -6,7 +6,7 @@ using Endjin.Imm.Domain;
 namespace Endjin.Imm.Benchmarks;
 
 // The helpers below are line-for-line copies of private logic in
-// Endjin.Ip.Maturity.Matrix.Host/Imm.cs (GetColourSchemeForPercentage, the total percentage in
+// Endjin.Ip.Maturity.Model.Host/Imm.cs (GetColourSchemeForPercentage, the total percentage in
 // GitHubImmTotalScore, and the body of GitHubImmAllBadges), so that the request pipeline can be
 // benchmarked without the Functions host. They are copies, and will drift if Imm.cs changes. The
 // next iteration should extract this logic into a testable, public (or InternalsVisibleTo) type in
@@ -14,7 +14,7 @@ namespace Endjin.Imm.Benchmarks;
 // They match Imm.cs after the colour band fix (exactly 66% and 99.x% are no longer red), the
 // showbadges title fix (org/project, HTML-encoded), the zero-maximum guard on the total percentage,
 // and the showbadges image URL fix (each path segment and query value URL-encoded, and the whole
-// URL HTML-encoded); the Host's behaviour is specified by Endjin.Ip.Maturity.Matrix.Host.Tests.
+// URL HTML-encoded); the Host's behaviour is specified by Endjin.Ip.Maturity.Model.Host.Tests.
 
 /// <summary>
 /// Copy of <c>Imm.GetColourSchemeForPercentage</c> from the Host.

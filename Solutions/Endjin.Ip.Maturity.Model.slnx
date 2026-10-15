@@ -5,6 +5,6 @@
   <Project Path="Endjin.Imm.Benchmarks/Endjin.Imm.Benchmarks.csproj" />
   <Project Path="Endjin.Imm.Domain/Endjin.Imm.csproj" />
   <Project Path="Endjin.Imm.Tests/Endjin.Imm.Tests.csproj" />
-  <Project Path="Endjin.Ip.Maturity.Matrix.Host.Tests/Endjin.Ip.Maturity.Matrix.Host.Tests.csproj" />
-  <Project Path="Endjin.Ip.Maturity.Matrix.Host/Endjin.Ip.Maturity.Matrix.Host.csproj" />
+  <Project Path="Endjin.Ip.Maturity.Model.Host.Tests/Endjin.Ip.Maturity.Model.Host.Tests.csproj" />
+  <Project Path="Endjin.Ip.Maturity.Model.Host/Endjin.Ip.Maturity.Model.Host.csproj" />
 </Solution>

@@ -61,7 +61,7 @@
         private CalculationContext MakeContext(RuleAssertion ruleAssertion, IEvaluationContext context)
         {
             // TODO: Validate any opt outs? Reject attempts to opt out of a non-optional rule.
-            // That would need to be done as part of https://github.com/endjin/Endjin.Ip.Maturity.Matrix/issues/9
+            // That would need to be done as part of https://github.com/endjin/Endjin.Ip.Maturity.Model/issues/9
             List<string> optedOutMeasures = ruleAssertion.Measures.Where(m => m.OptOut).Select(m => m.Description).ToList();
             var ruleDefinition = this.ruleDefinitions.GetDefinitionFor(ruleAssertion);
 

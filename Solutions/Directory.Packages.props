@@ -29,7 +29,7 @@
 
   <!--
   Used by Endjin.Imm.Tests and Endjin.Imm.Benchmarks, which both build a real MemoryCache for the
-  GitHub sources (HttpDeserializingCache). The Host, and Endjin.Ip.Maturity.Matrix.Host.Tests, must not
+  GitHub sources (HttpDeserializingCache). The Host, and Endjin.Ip.Maturity.Model.Host.Tests, must not
   reference it, because the ASP.NET Core shared framework already provides it (NU1510).
   -->
   <ItemGroup>

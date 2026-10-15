@@ -23,11 +23,11 @@ $SkipPackage = $false
 #
 # Build process configuration
 #
-$SolutionToBuild = (Resolve-Path (Join-Path $here ".\Solutions\Endjin.Ip.Maturity.Matrix.slnx")).Path
+$SolutionToBuild = (Resolve-Path (Join-Path $here ".\Solutions\Endjin.Ip.Maturity.Model.slnx")).Path
 
 # The Azure Functions app is published as a deployable artifact; nothing in this solution is shipped as a NuGet package.
 $ProjectsToPublish = @(
-    "Solutions/Endjin.Ip.Maturity.Matrix.Host/Endjin.Ip.Maturity.Matrix.Host.csproj"
+    "Solutions/Endjin.Ip.Maturity.Model.Host/Endjin.Ip.Maturity.Model.Host.csproj"
 )
 $SkipNuGetPackages = $true
 $NuSpecFilesToPackage = @(

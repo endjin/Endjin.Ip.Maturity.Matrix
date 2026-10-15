@@ -1,11 +1,11 @@
 using Endjin.Badger;
-using Endjin.Ip.Maturity.Matrix.Host.Tests.TestData;
+using Endjin.Ip.Maturity.Model.Host.Tests.TestData;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using Shouldly;
 
-namespace Endjin.Ip.Maturity.Matrix.Host.Tests;
+namespace Endjin.Ip.Maturity.Model.Host.Tests;
 
 /// <summary>
 /// A project's README can show badges for its overall IMM score and for each rule. The badges are

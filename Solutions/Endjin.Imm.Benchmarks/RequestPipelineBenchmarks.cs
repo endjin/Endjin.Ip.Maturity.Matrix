@@ -24,7 +24,7 @@ namespace Endjin.Imm.Benchmarks;
 public class RequestPipelineBenchmarks
 {
     private const string Org = "endjin";
-    private const string Project = "Endjin.Ip.Maturity.Matrix";
+    private const string Project = "Endjin.Ip.Maturity.Model";
     private const string RulesObjectName = "master";
     private const string ProjectObjectName = "master";
 

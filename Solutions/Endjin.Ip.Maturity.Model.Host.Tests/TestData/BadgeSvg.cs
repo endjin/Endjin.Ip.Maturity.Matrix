@@ -1,6 +1,6 @@
 using System.Xml.Linq;
 
-namespace Endjin.Ip.Maturity.Matrix.Host.Tests.TestData;
+namespace Endjin.Ip.Maturity.Model.Host.Tests.TestData;
 
 /// <summary>
 /// The text and status colour of a badge returned by a badge function, read back from its SVG.

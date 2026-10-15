@@ -276,5 +276,5 @@ public class OptionalMeasureTests
     }
 
     // TODO: Check can't opt out when opt out not acceptable!
-    // Implement as part of https://github.com/endjin/Endjin.Ip.Maturity.Matrix/issues/9
+    // Implement as part of https://github.com/endjin/Endjin.Ip.Maturity.Model/issues/9
 }

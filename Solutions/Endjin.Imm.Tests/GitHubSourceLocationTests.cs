@@ -17,10 +17,10 @@ public class GitHubSourceLocationTests
     private static readonly TimeSpan OneHour = TimeSpan.FromHours(1);
 
     [TestMethod]
-    [DataRow("endjin", "Endjin.Ip.Maturity.Matrix", "master")]
+    [DataRow("endjin", "Endjin.Ip.Maturity.Model", "master")]
     [DataRow("corvus-dotnet", "Corvus.Monitoring", "main")]
-    [DataRow("endjin", "Endjin.Ip.Maturity.Matrix", "feature/dotnet-10-modernisation")]
-    [DataRow("endjin", "Endjin.Ip.Maturity.Matrix", "v1.2.3")]
+    [DataRow("endjin", "Endjin.Ip.Maturity.Model", "feature/dotnet-10-modernisation")]
+    [DataRow("endjin", "Endjin.Ip.Maturity.Model", "v1.2.3")]
     public async Task GetIpMaturityMatrixAsync_ForProjectAndBranch_FetchesImmYamlFromTheRawGitHubContentOfThatBranch(
         string owner,
         string project,

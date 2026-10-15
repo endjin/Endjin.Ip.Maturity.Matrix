@@ -4,7 +4,7 @@ using Endjin.Imm.Repository;
 using Microsoft.AspNetCore.Http;
 using NSubstitute;
 
-namespace Endjin.Ip.Maturity.Matrix.Host.Tests.TestData;
+namespace Endjin.Ip.Maturity.Model.Host.Tests.TestData;
 
 /// <summary>
 /// The badge functions with GitHub replaced by substitute sources that return the given rule set
@@ -15,7 +15,7 @@ internal sealed class ImmFunctionFixture
 {
     public const string Org = "endjin";
 
-    public const string Project = "Endjin.Ip.Maturity.Matrix";
+    public const string Project = "Endjin.Ip.Maturity.Model";
 
     public ImmFunctionFixture(string ruleSetYaml, string immYaml)
     {
