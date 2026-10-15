@@ -55,7 +55,7 @@ internal sealed class ImmSourceFixture : IDisposable
     /// <summary>
     /// Gets the source of project IMMs.
     /// </summary>
-    public IIpMaturityMatrixSource ImmSource => this.serviceProvider.GetRequiredService<IIpMaturityMatrixSource>();
+    public IIpMaturityModelSource ImmSource => this.serviceProvider.GetRequiredService<IIpMaturityModelSource>();
 
     /// <summary>
     /// Gets the source of rule definitions.

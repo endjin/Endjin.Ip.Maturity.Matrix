@@ -73,7 +73,7 @@ public class YamlDeserializerSharingTests
                 if (index % 2 == 0)
                 {
                     int document = index / 2 % RuleSetDocuments.Length;
-                    string actual = YamlLoadProjection.Of(IpMaturityMatrixRuleset.FromYaml(RuleSetDocuments[document]).Rules);
+                    string actual = YamlLoadProjection.Of(IpMaturityModelRuleset.FromYaml(RuleSetDocuments[document]).Rules);
                     if (actual != expectedRuleSets[document])
                     {
                         mismatches.Add($"Rule set {document}, worker {worker}, load {load}:\n{actual}");
@@ -82,7 +82,7 @@ public class YamlDeserializerSharingTests
                 else
                 {
                     int document = index / 2 % ImmDocuments.Length;
-                    string actual = YamlLoadProjection.Of(IpMaturityMatrix.FromYaml(ImmDocuments[document]).Rules);
+                    string actual = YamlLoadProjection.Of(IpMaturityModel.FromYaml(ImmDocuments[document]).Rules);
                     if (actual != expectedImms[document])
                     {
                         mismatches.Add($"IMM {document}, worker {worker}, load {load}:\n{actual}");
@@ -105,8 +105,8 @@ public class YamlDeserializerSharingTests
         for (int load = 0; load < 200; load++)
         {
             // Act
-            IpMaturityMatrixRuleset ruleSet = IpMaturityMatrixRuleset.FromYaml(RuleSetYaml.FrameworkVersion);
-            IpMaturityMatrix imm = IpMaturityMatrix.FromYaml(DateAndFrameworkImm);
+            IpMaturityModelRuleset ruleSet = IpMaturityModelRuleset.FromYaml(RuleSetYaml.FrameworkVersion);
+            IpMaturityModel imm = IpMaturityModel.FromYaml(DateAndFrameworkImm);
 
             // Assert
             YamlLoadProjection.Of(ruleSet.Rules).ShouldBe(expectedRuleSet, $"rule set load {load}");
@@ -126,10 +126,10 @@ public class YamlDeserializerSharingTests
         string expectedImm = ReferenceImmProjection(DateAndFrameworkImm);
 
         // Act
-        Should.Throw<YamlException>(() => IpMaturityMatrix.FromYaml(invalidYaml));
-        Should.Throw<YamlException>(() => IpMaturityMatrixRuleset.FromYaml(invalidYaml));
-        IpMaturityMatrixRuleset ruleSet = IpMaturityMatrixRuleset.FromYaml(RuleSetYaml.FrameworkVersion);
-        IpMaturityMatrix imm = IpMaturityMatrix.FromYaml(DateAndFrameworkImm);
+        Should.Throw<YamlException>(() => IpMaturityModel.FromYaml(invalidYaml));
+        Should.Throw<YamlException>(() => IpMaturityModelRuleset.FromYaml(invalidYaml));
+        IpMaturityModelRuleset ruleSet = IpMaturityModelRuleset.FromYaml(RuleSetYaml.FrameworkVersion);
+        IpMaturityModel imm = IpMaturityModel.FromYaml(DateAndFrameworkImm);
 
         // Assert
         YamlLoadProjection.Of(ruleSet.Rules).ShouldBe(expectedRuleSet);

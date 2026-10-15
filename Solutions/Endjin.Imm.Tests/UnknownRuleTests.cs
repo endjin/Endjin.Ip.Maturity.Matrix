@@ -5,7 +5,7 @@ using Shouldly;
 namespace Endjin.Imm.Tests;
 
 /// <summary>
-/// An IP Maturity Matrix can only be evaluated against rules that the rule set defines, so a
+/// An IP Maturity Model can only be evaluated against rules that the rule set defines, so a
 /// rule id that the rule set does not know about is reported rather than silently scored.
 /// </summary>
 [TestClass]

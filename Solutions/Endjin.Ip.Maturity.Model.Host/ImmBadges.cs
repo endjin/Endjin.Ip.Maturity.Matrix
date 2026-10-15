@@ -130,7 +130,7 @@ namespace Endjin.Ip.Maturity.Model.Host
             sb.AppendLine("<html>");
             sb.AppendLine("<head>");
             sb.AppendLine("    <meta charset=\"utf-8\" />");
-            sb.Append("    <title>IP Maturity Matrix for ");
+            sb.Append("    <title>IP Maturity Model for ");
             sb.Append(WebUtility.HtmlEncode(org));
             sb.Append('/');
             sb.Append(WebUtility.HtmlEncode(project));
@@ -208,7 +208,7 @@ namespace Endjin.Ip.Maturity.Model.Host
             sb.AppendLine("<html>");
             sb.AppendLine("<head>");
             sb.AppendLine("    <meta charset=\"utf-8\" />");
-            sb.Append("    <title>IP Maturity Matrix for ");
+            sb.Append("    <title>IP Maturity Model for ");
             sb.Append(WebUtility.HtmlEncode(org));
             sb.Append('/');
             sb.Append(WebUtility.HtmlEncode(project));

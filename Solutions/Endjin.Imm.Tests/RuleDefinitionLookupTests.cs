@@ -5,7 +5,7 @@ using Shouldly;
 namespace Endjin.Imm.Tests;
 
 /// <summary>
-/// Each rule in an IP Maturity Matrix is matched to its definition in the rule set by its id.
+/// Each rule in an IP Maturity Model is matched to its definition in the rule set by its id.
 /// </summary>
 [TestClass]
 public class RuleDefinitionLookupTests
@@ -102,7 +102,7 @@ public class RuleDefinitionLookupTests
     public void GetAll_Always_ReturnsTheRuleSetsRules()
     {
         // Arrange
-        IpMaturityMatrixRuleset ruleSet = RuleSetOf(new RuleDefinition { Id = RuleId });
+        IpMaturityModelRuleset ruleSet = RuleSetOf(new RuleDefinition { Id = RuleId });
         RuleDefinitionRepository repository = new(ruleSet);
 
         // Act
@@ -112,9 +112,9 @@ public class RuleDefinitionLookupTests
         all.ShouldBeSameAs(ruleSet.Rules);
     }
 
-    private static IpMaturityMatrixRuleset RuleSetOf(params RuleDefinition[] definitions)
+    private static IpMaturityModelRuleset RuleSetOf(params RuleDefinition[] definitions)
     {
-        IpMaturityMatrixRuleset ruleSet = new();
+        IpMaturityModelRuleset ruleSet = new();
         foreach (RuleDefinition definition in definitions)
         {
             ruleSet.Rules.Add(definition);

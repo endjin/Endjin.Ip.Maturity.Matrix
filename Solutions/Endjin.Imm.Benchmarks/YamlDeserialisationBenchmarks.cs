@@ -23,14 +23,14 @@ public class YamlDeserialisationBenchmarks
         string snapshot = SampleData.LoadEmbedded(SampleData.RuleSetResourceName);
         this.rulesetYaml = SampleData.ScaleRuleSet(snapshot, this.RuleCount);
 
-        IpMaturityMatrixRuleset ruleset = IpMaturityMatrixRuleset.FromYaml(this.rulesetYaml);
+        IpMaturityModelRuleset ruleset = IpMaturityModelRuleset.FromYaml(this.rulesetYaml);
         if (ruleset.Rules.Count != this.RuleCount)
         {
             throw new InvalidOperationException($"Scaled rule set has {ruleset.Rules.Count} rules, expected {this.RuleCount}.");
         }
 
         this.immYaml = SampleData.BuildImmYaml(ruleset, SampleData.ReferenceDate);
-        IpMaturityMatrix imm = IpMaturityMatrix.FromYaml(this.immYaml);
+        IpMaturityModel imm = IpMaturityModel.FromYaml(this.immYaml);
         if (imm.Rules.Count != this.RuleCount)
         {
             throw new InvalidOperationException($"Generated IMM has {imm.Rules.Count} rules, expected {this.RuleCount}.");
@@ -38,8 +38,8 @@ public class YamlDeserialisationBenchmarks
     }
 
     [Benchmark(Baseline = true)]
-    public IpMaturityMatrixRuleset Ruleset_FromYaml() => IpMaturityMatrixRuleset.FromYaml(this.rulesetYaml);
+    public IpMaturityModelRuleset Ruleset_FromYaml() => IpMaturityModelRuleset.FromYaml(this.rulesetYaml);
 
     [Benchmark]
-    public IpMaturityMatrix Imm_FromYaml() => IpMaturityMatrix.FromYaml(this.immYaml);
+    public IpMaturityModel Imm_FromYaml() => IpMaturityModel.FromYaml(this.immYaml);
 }

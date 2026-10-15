@@ -121,8 +121,8 @@ namespace Endjin.Ip.Maturity.Model.Host
         {
             // Small documents, so that this costs little more than the JIT compilation and the
             // construction of the shared YAML deserializer, which is what it is here to pay for.
-            var ruleDefinitions = new RuleDefinitionRepository(IpMaturityMatrixRuleset.FromYaml(WarmupRuleSetYaml));
-            IpMaturityMatrix imm = IpMaturityMatrix.FromYaml(WarmupImmYaml);
+            var ruleDefinitions = new RuleDefinitionRepository(IpMaturityModelRuleset.FromYaml(WarmupRuleSetYaml));
+            IpMaturityModel imm = IpMaturityModel.FromYaml(WarmupImmYaml);
             ImmEvaluation evaluation = new EvaluationEngine(ruleDefinitions).Evaluate(imm);
 
             ImmBadges.RenderTotalBadge(evaluation);

@@ -6,7 +6,7 @@ using Shouldly;
 namespace Endjin.Imm.Tests;
 
 /// <summary>
-/// Age-related measures stay accurate even when the IP Maturity Matrix has not been updated in a
+/// Age-related measures stay accurate even when the IP Maturity Model has not been updated in a
 /// long while, so that stale aspects of the IP are detected. All evaluations use a reference date
 /// of 2019-12-03.
 /// </summary>

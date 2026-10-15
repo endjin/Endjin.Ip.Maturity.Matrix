@@ -15,7 +15,7 @@ public class EvaluationBenchmarks
 {
     private RuleDefinitionRepository repository = null!;
     private EvaluationEngine engine = null!;
-    private IpMaturityMatrix imm = null!;
+    private IpMaturityModel imm = null!;
     private IEvaluationContext context = null!;
     private RuleAssertion lastAssertion = null!;
 
@@ -26,11 +26,11 @@ public class EvaluationBenchmarks
     public void Setup()
     {
         string snapshot = SampleData.LoadEmbedded(SampleData.RuleSetResourceName);
-        IpMaturityMatrixRuleset ruleset = IpMaturityMatrixRuleset.FromYaml(SampleData.ScaleRuleSet(snapshot, this.RuleCount));
+        IpMaturityModelRuleset ruleset = IpMaturityModelRuleset.FromYaml(SampleData.ScaleRuleSet(snapshot, this.RuleCount));
 
         this.repository = new RuleDefinitionRepository(ruleset);
         this.engine = new EvaluationEngine(this.repository);
-        this.imm = IpMaturityMatrix.FromYaml(SampleData.BuildImmYaml(ruleset, SampleData.ReferenceDate));
+        this.imm = IpMaturityModel.FromYaml(SampleData.BuildImmYaml(ruleset, SampleData.ReferenceDate));
         this.context = new SampleData.FixedDateContext(SampleData.ReferenceDate);
         this.lastAssertion = this.imm.Rules[^1];
 

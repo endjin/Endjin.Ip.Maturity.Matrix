@@ -2,7 +2,7 @@ namespace Endjin.Imm.Tests.TestData;
 
 /// <summary>
 /// Rule set definitions shared by the evaluation tests, in the same YAML form as the published
-/// rule set that <see cref="Endjin.Imm.Domain.IpMaturityMatrixRuleset.FromYaml(string)"/> loads.
+/// rule set that <see cref="Endjin.Imm.Domain.IpMaturityModelRuleset.FromYaml(string)"/> loads.
 /// </summary>
 internal static class RuleSetYaml
 {

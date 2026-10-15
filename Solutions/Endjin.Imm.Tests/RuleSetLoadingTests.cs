@@ -5,7 +5,7 @@ using Shouldly;
 namespace Endjin.Imm.Tests;
 
 /// <summary>
-/// Rule definitions can be loaded from YAML, so that an IP Maturity Matrix can be processed.
+/// Rule definitions can be loaded from YAML, so that an IP Maturity Model can be processed.
 /// </summary>
 [TestClass]
 public class RuleSetLoadingTests
@@ -14,7 +14,7 @@ public class RuleSetLoadingTests
     public void FromYaml_FrameworkRule_LoadsFrameworkMeasureDefinitions()
     {
         // Act
-        IpMaturityMatrixRuleset ruleSet = IpMaturityMatrixRuleset.FromYaml(RuleSetYaml.FrameworkVersion);
+        IpMaturityModelRuleset ruleSet = IpMaturityModelRuleset.FromYaml(RuleSetYaml.FrameworkVersion);
 
         // Assert
         RuleDefinition rule = ruleSet.Rules.ShouldHaveSingleItem();
@@ -55,7 +55,7 @@ public class RuleSetLoadingTests
     public void FromYaml_AgeRule_LoadsAgeMeasureDefinitions()
     {
         // Act
-        IpMaturityMatrixRuleset ruleSet = IpMaturityMatrixRuleset.FromYaml(RuleSetYaml.DateOfLastIpReview);
+        IpMaturityModelRuleset ruleSet = IpMaturityModelRuleset.FromYaml(RuleSetYaml.DateOfLastIpReview);
 
         // Assert
         RuleDefinition rule = ruleSet.Rules.ShouldHaveSingleItem();
@@ -92,7 +92,7 @@ public class RuleSetLoadingTests
             """;
 
         // Act
-        IpMaturityMatrixRuleset ruleSet = IpMaturityMatrixRuleset.FromYaml(ruleSetYaml);
+        IpMaturityModelRuleset ruleSet = IpMaturityModelRuleset.FromYaml(ruleSetYaml);
 
         // Assert
         RuleDefinition rule = ruleSet.Rules.ShouldHaveSingleItem();
@@ -122,7 +122,7 @@ public class RuleSetLoadingTests
             """;
 
         // Act
-        IpMaturityMatrixRuleset ruleSet = IpMaturityMatrixRuleset.FromYaml(ruleSetYaml);
+        IpMaturityModelRuleset ruleSet = IpMaturityModelRuleset.FromYaml(ruleSetYaml);
 
         // Assert
         RuleDefinition rule = ruleSet.Rules.ShouldHaveSingleItem();

@@ -34,10 +34,10 @@ public class DefaultEvaluationDateTests
                     -
                         Date: {date}
             """;
-        EvaluationEngine engine = new(new RuleDefinitionRepository(IpMaturityMatrixRuleset.FromYaml(RuleSetYaml.DateOfLastIpReview)));
+        EvaluationEngine engine = new(new RuleDefinitionRepository(IpMaturityModelRuleset.FromYaml(RuleSetYaml.DateOfLastIpReview)));
 
         // Act
-        ImmEvaluation evaluation = engine.Evaluate(IpMaturityMatrix.FromYaml(immYaml));
+        ImmEvaluation evaluation = engine.Evaluate(IpMaturityModel.FromYaml(immYaml));
 
         // Assert
         evaluation.ForRule(RuleSetYaml.DateOfLastIpReviewRuleId).Score.ShouldBe(expectedScore);

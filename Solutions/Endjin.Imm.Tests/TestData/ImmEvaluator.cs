@@ -19,8 +19,8 @@ internal static class ImmEvaluator
 
     public static ImmEvaluation Evaluate(string ruleSetYaml, string immYaml, LocalDate? referenceDate = null)
     {
-        IpMaturityMatrixRuleset ruleSet = IpMaturityMatrixRuleset.FromYaml(ruleSetYaml);
-        IpMaturityMatrix imm = IpMaturityMatrix.FromYaml(immYaml);
+        IpMaturityModelRuleset ruleSet = IpMaturityModelRuleset.FromYaml(ruleSetYaml);
+        IpMaturityModel imm = IpMaturityModel.FromYaml(immYaml);
         EvaluationEngine engine = new(new RuleDefinitionRepository(ruleSet));
 
         return engine.Evaluate(imm, new FixedDateEvaluationContext(referenceDate ?? DefaultReferenceDate));

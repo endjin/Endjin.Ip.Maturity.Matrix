@@ -44,12 +44,12 @@ namespace Endjin.Ip.Maturity.Model.Host
         private const string UnnamedRuleSubject = "IMM rule";
 
         private readonly IRuleDefinitionRepositorySource ruleDefinitionRepositorySource;
-        private readonly IIpMaturityMatrixSource immSource;
+        private readonly IIpMaturityModelSource immSource;
         private readonly ILogger<Imm> logger;
 
         public Imm(
             IRuleDefinitionRepositorySource ruleDefinitionRepositorySource,
-            IIpMaturityMatrixSource immSource,
+            IIpMaturityModelSource immSource,
             ILogger<Imm> logger)
         {
             this.ruleDefinitionRepositorySource = ruleDefinitionRepositorySource;
@@ -64,7 +64,7 @@ namespace Endjin.Ip.Maturity.Model.Host
             string project)
         {
             (string rulesObjectName, string projectObjectName) = GetGitHubBranchOrObjectNames(request);
-            (Task<IRuleDefinitionRepository> rulesetTask, Task<IpMaturityMatrix> immTask) =
+            (Task<IRuleDefinitionRepository> rulesetTask, Task<IpMaturityModel> immTask) =
                 this.FetchFromGitHub(org, project, rulesObjectName, projectObjectName);
             try
             {
@@ -99,13 +99,13 @@ namespace Endjin.Ip.Maturity.Model.Host
             }
 
             (string rulesObjectName, string projectObjectName) = GetGitHubBranchOrObjectNames(request);
-            (Task<IRuleDefinitionRepository> rulesetTask, Task<IpMaturityMatrix> immTask) =
+            (Task<IRuleDefinitionRepository> rulesetTask, Task<IpMaturityModel> immTask) =
                 this.FetchFromGitHub(org, project, rulesObjectName, projectObjectName);
             try
             {
                 await Task.WhenAll(rulesetTask, immTask).ConfigureAwait(false);
                 IRuleDefinitionRepository ruleDefinitions = rulesetTask.Result;
-                IpMaturityMatrix imm = immTask.Result;
+                IpMaturityModel imm = immTask.Result;
                 var evaluationEngine = new EvaluationEngine(ruleDefinitions);
                 RuleEvaluation? result = evaluationEngine.Evaluate(imm).RuleEvaluations.FirstOrDefault(x => x.RuleAssertion.Id == ruleIdAsGuid);
 
@@ -136,7 +136,7 @@ namespace Endjin.Ip.Maturity.Model.Host
             string project)
         {
             (string rulesObjectName, string projectObjectName) = GetGitHubBranchOrObjectNames(request);
-            (Task<IRuleDefinitionRepository> rulesetTask, Task<IpMaturityMatrix> immTask) =
+            (Task<IRuleDefinitionRepository> rulesetTask, Task<IpMaturityModel> immTask) =
                 this.FetchFromGitHub(org, project, rulesObjectName, projectObjectName);
             try
             {
@@ -231,7 +231,7 @@ namespace Endjin.Ip.Maturity.Model.Host
         /// Gets the subject for a rule's badge: the rule's name in the IMM, or failing that in the
         /// rule set, if whichever of those was fetched names it.
         /// </summary>
-        private static string RuleSubject(Task<IRuleDefinitionRepository> rulesetTask, Task<IpMaturityMatrix> immTask, Guid ruleId)
+        private static string RuleSubject(Task<IRuleDefinitionRepository> rulesetTask, Task<IpMaturityModel> immTask, Guid ruleId)
         {
             string? name = null;
             if (immTask.IsCompletedSuccessfully)
@@ -247,14 +247,14 @@ namespace Endjin.Ip.Maturity.Model.Host
             return string.IsNullOrEmpty(name) ? UnnamedRuleSubject : name;
         }
 
-        private (Task<IRuleDefinitionRepository> RuleSet, Task<IpMaturityMatrix> Imm) FetchFromGitHub(
+        private (Task<IRuleDefinitionRepository> RuleSet, Task<IpMaturityModel> Imm) FetchFromGitHub(
             string org,
             string project,
             string ruleDefinitionsObjectName,
             string projectObjectName)
         {
             Task<IRuleDefinitionRepository> rulesetTask = this.ruleDefinitionRepositorySource.GetRuleDefinitionRepositoryAsync(ruleDefinitionsObjectName);
-            Task<IpMaturityMatrix> immTask = this.immSource.GetIpMaturityMatrixAsync(org, project, projectObjectName);
+            Task<IpMaturityModel> immTask = this.immSource.GetIpMaturityModelAsync(org, project, projectObjectName);
             return (rulesetTask, immTask);
         }
 

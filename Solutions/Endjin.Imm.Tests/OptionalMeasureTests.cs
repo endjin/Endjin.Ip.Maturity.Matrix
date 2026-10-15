@@ -5,7 +5,7 @@ using Shouldly;
 namespace Endjin.Imm.Tests;
 
 /// <summary>
-/// Measures that do not apply to a project can be excluded from its IP Maturity Matrix without
+/// Measures that do not apply to a project can be excluded from its IP Maturity Model without
 /// distorting its scores. The 'Multi-tenanted - as a Service' measure of the Deployment rule can
 /// be opted out of.
 /// </summary>

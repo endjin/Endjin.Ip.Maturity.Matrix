@@ -5,15 +5,15 @@
     using System.Diagnostics;
 
     /// <summary>
-    /// Defines a rule type that may be used in an IP Maturity Matrix.
+    /// Defines a rule type that may be used in an IP Maturity Model.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// We use this when loading the rule set definition from <see cref="IpMaturityMatrixRuleset.RuleSetDefinitionsUrl"/>.
+    /// We use this when loading the rule set definition from <see cref="IpMaturityModelRuleset.RuleSetDefinitionsUrl"/>.
     /// Each entry in that file deserializes to one of these.
     /// </para>
     /// <para>
-    /// Each individual project with an IP Maturity Matrix will have an <c>imm.yaml</c> file, and that does
+    /// Each individual project with an IP Maturity Model will have an <c>imm.yaml</c> file, and that does
     /// <em>not</em> correspond to this type. Each entry in a project's matrix gets loaded into a <see cref="RuleAssertion"/>.
     /// Every <see cref="RuleAssertion"/> should be associated with a <see cref="RuleDefinition"/>, based on the
     /// <see cref="Id"/> property.

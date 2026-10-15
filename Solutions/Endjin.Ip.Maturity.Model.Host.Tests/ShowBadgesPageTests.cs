@@ -30,15 +30,15 @@ public partial class ShowBadgesPageTests
         ContentResult content = result.ShouldBeOfType<ContentResult>();
         content.StatusCode.ShouldBe(StatusCodes.Status200OK);
         content.ContentType.ShouldBe("text/html");
-        Title(content.Content!).ShouldBe("IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Model (master)");
+        Title(content.Content!).ShouldBe("IP Maturity Model for endjin/Endjin.Ip.Maturity.Model (master)");
         request.HttpContext.Response.Headers.CacheControl.ToString().ShouldBe("no-cache, no-store, must-revalidate");
     }
 
     [TestMethod]
-    [DataRow("?projectBranch=feature/x", "IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Model (feature/x)")]
-    [DataRow("?definitionsBranch=master&projectBranch=feature/x", "IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Model (feature/x)")]
-    [DataRow("?definitionsBranch=v2", "IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Model (master, rules: v2)")]
-    [DataRow("?definitionsBranch=v2&projectBranch=feature/x", "IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Model (feature/x, rules: v2)")]
+    [DataRow("?projectBranch=feature/x", "IP Maturity Model for endjin/Endjin.Ip.Maturity.Model (feature/x)")]
+    [DataRow("?definitionsBranch=master&projectBranch=feature/x", "IP Maturity Model for endjin/Endjin.Ip.Maturity.Model (feature/x)")]
+    [DataRow("?definitionsBranch=v2", "IP Maturity Model for endjin/Endjin.Ip.Maturity.Model (master, rules: v2)")]
+    [DataRow("?definitionsBranch=v2&projectBranch=feature/x", "IP Maturity Model for endjin/Endjin.Ip.Maturity.Model (feature/x, rules: v2)")]
     public async Task GitHubImmAllBadges_BranchQueryString_TitleShowsTheProjectBranchAndAnyNonDefaultRuleSetBranch(
         string queryString,
         string expectedTitle)
@@ -181,7 +181,7 @@ public partial class ShowBadgesPageTests
 
         // Assert
         await fixture.RuleDefinitionSource.Received(1).GetRuleDefinitionRepositoryAsync("v2");
-        await fixture.ImmSource.Received(1).GetIpMaturityMatrixAsync(ImmFunctionFixture.Org, ImmFunctionFixture.Project, "feature/x");
+        await fixture.ImmSource.Received(1).GetIpMaturityModelAsync(ImmFunctionFixture.Org, ImmFunctionFixture.Project, "feature/x");
     }
 
     private static string Title(string html) => TitlePattern().Match(html).Groups["title"].Value;

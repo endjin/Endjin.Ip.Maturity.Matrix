@@ -5,7 +5,7 @@ using Shouldly;
 namespace Endjin.Imm.Tests;
 
 /// <summary>
-/// A project's IP Maturity Matrix can be loaded from its <c>imm.yaml</c>, including the shorthand
+/// A project's IP Maturity Model can be loaded from its <c>imm.yaml</c>, including the shorthand
 /// forms people write by hand: a measure entry with no content, and a file with no rules yet.
 /// </summary>
 [TestClass]
@@ -34,7 +34,7 @@ public class ImmLoadingTests
             """;
 
         // Act
-        IpMaturityMatrix imm = IpMaturityMatrix.FromYaml(immYaml);
+        IpMaturityModel imm = IpMaturityModel.FromYaml(immYaml);
 
         // Assert
         RuleAssertion rule = imm.Rules.ShouldHaveSingleItem();
@@ -59,7 +59,7 @@ public class ImmLoadingTests
             """;
 
         // Act & Assert
-        Should.Throw<YamlDotNet.Core.YamlException>(() => IpMaturityMatrix.FromYaml(immYaml));
+        Should.Throw<YamlDotNet.Core.YamlException>(() => IpMaturityModel.FromYaml(immYaml));
     }
 
     [TestMethod]
@@ -68,7 +68,7 @@ public class ImmLoadingTests
     public void FromYaml_DocumentWithNoRules_LoadsAnImmWithNoRules(string immYaml)
     {
         // Act
-        IpMaturityMatrix imm = IpMaturityMatrix.FromYaml(immYaml);
+        IpMaturityModel imm = IpMaturityModel.FromYaml(immYaml);
 
         // Assert
         imm.Rules.ShouldNotBeNull();
@@ -81,7 +81,7 @@ public class ImmLoadingTests
     public void FromYaml_RuleSetWithNoRules_LoadsARuleSetWithNoRules(string ruleSetYaml)
     {
         // Act
-        IpMaturityMatrixRuleset ruleSet = IpMaturityMatrixRuleset.FromYaml(ruleSetYaml);
+        IpMaturityModelRuleset ruleSet = IpMaturityModelRuleset.FromYaml(ruleSetYaml);
 
         // Assert
         ruleSet.Rules.ShouldNotBeNull();

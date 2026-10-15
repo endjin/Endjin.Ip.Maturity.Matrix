@@ -3,16 +3,16 @@
     using System.IO;
     using Endjin.Imm.Serialisation;
 
-    public partial class IpMaturityMatrix
+    public partial class IpMaturityModel
     {
-        public static IpMaturityMatrix FromYaml(string yaml)
+        public static IpMaturityModel FromYaml(string yaml)
         {
             using var input = new StringReader(yaml);
 
             var rules = ImmYamlDeserializer.Shared.Deserialize<RuleAssertion[]>(input);
 
             // An empty document (or one containing only comments) deserializes to null: that is an IMM with no rules.
-            return new IpMaturityMatrix(rules ?? []);
+            return new IpMaturityModel(rules ?? []);
         }
     }
 }

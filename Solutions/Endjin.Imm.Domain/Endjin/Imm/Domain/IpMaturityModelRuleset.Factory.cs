@@ -3,7 +3,7 @@
     using System.IO;
     using Endjin.Imm.Serialisation;
 
-    public partial class IpMaturityMatrixRuleset
+    public partial class IpMaturityModelRuleset
     {
         /// <summary>
         /// The URL for the canonical rule set definitions.
@@ -12,14 +12,14 @@
 
         public static string DefinitionsUrlForName(string name) => $"https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Matrix.RuleDefinitions/{name}/RuleSet.yaml";
 
-        public static IpMaturityMatrixRuleset FromYaml(string yaml)
+        public static IpMaturityModelRuleset FromYaml(string yaml)
         {
             using var input = new StringReader(yaml);
 
             var rules = ImmYamlDeserializer.Shared.Deserialize<RuleDefinition[]>(input);
 
             // An empty document (or one containing only comments) deserializes to null: that is a rule set with no rules.
-            return new IpMaturityMatrixRuleset(rules ?? []);
+            return new IpMaturityModelRuleset(rules ?? []);
         }
     }
 }

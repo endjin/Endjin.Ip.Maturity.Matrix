@@ -49,7 +49,7 @@ public class ShowBadgesErrorPageTests
     {
         // Arrange
         ImmFunctionFixture fixture = new(HostYaml.TwoRuleSet, HostYaml.BothRulesScored);
-        string ruleSetUrl = IpMaturityMatrixRuleset.DefinitionsUrlForName("does-not-exist");
+        string ruleSetUrl = IpMaturityModelRuleset.DefinitionsUrlForName("does-not-exist");
         fixture.RuleSetFailsWith(new GitHubContentNotFoundException(new Uri(ruleSetUrl), HttpStatusCode.NotFound));
         HttpRequest request = ImmFunctionFixture.CreateRequest("?definitionsBranch=does-not-exist");
 
@@ -89,7 +89,7 @@ public class ShowBadgesErrorPageTests
     {
         // Arrange
         ImmFunctionFixture fixture = new(HostYaml.TwoRuleSet, HostYaml.BothRulesScored);
-        YamlException yamlError = Should.Throw<YamlException>(() => IpMaturityMatrix.FromYaml("-\n    Name: 'unterminated"));
+        YamlException yamlError = Should.Throw<YamlException>(() => IpMaturityModel.FromYaml("-\n    Name: 'unterminated"));
         fixture.ImmFailsWith(new InvalidImmContentException(new Uri(ImmUrl), yamlError));
         HttpRequest request = ImmFunctionFixture.CreateRequest();
 

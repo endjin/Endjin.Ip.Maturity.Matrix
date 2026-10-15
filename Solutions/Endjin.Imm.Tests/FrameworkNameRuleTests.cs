@@ -6,7 +6,7 @@ using Shouldly;
 namespace Endjin.Imm.Tests;
 
 /// <summary>
-/// Supported framework version measures stay accurate even when the IP Maturity Matrix has not
+/// Supported framework version measures stay accurate even when the IP Maturity Model has not
 /// been updated in a long while, so that stale aspects of the IP are detected.
 /// </summary>
 [TestClass]

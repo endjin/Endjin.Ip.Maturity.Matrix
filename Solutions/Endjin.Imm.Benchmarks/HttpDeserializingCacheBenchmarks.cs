@@ -27,12 +27,12 @@ public class HttpDeserializingCacheBenchmarks
 {
     private const string ImmUrl = "https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Model/master/imm.yaml";
 
-    private static readonly string RuleSetUrl = IpMaturityMatrixRuleset.DefinitionsUrlForName("master");
+    private static readonly string RuleSetUrl = IpMaturityModelRuleset.DefinitionsUrlForName("master");
 
     private MemoryCache memoryCache = null!;
     private HttpClient httpClient = null!;
     private StubHandler handler = null!;
-    private HttpDeserializingCache<IpMaturityMatrix> immCache = null!;
+    private HttpDeserializingCache<IpMaturityModel> immCache = null!;
     private HttpDeserializingCache<IRuleDefinitionRepository> ruleSetCache = null!;
 
     [GlobalSetup]
@@ -46,11 +46,11 @@ public class HttpDeserializingCacheBenchmarks
         this.httpClient = new HttpClient(this.handler);
         this.memoryCache = new MemoryCache(new MemoryCacheOptions());
 
-        this.immCache = new HttpDeserializingCache<IpMaturityMatrix>(this.httpClient, this.memoryCache, new IpMaturityMatrixHttpDeserializer());
+        this.immCache = new HttpDeserializingCache<IpMaturityModel>(this.httpClient, this.memoryCache, new IpMaturityModelHttpDeserializer());
         this.ruleSetCache = new HttpDeserializingCache<IRuleDefinitionRepository>(this.httpClient, this.memoryCache, new RuleDefinitionRepositoryHttpDeserializer());
 
         // Prime both entries.
-        IpMaturityMatrix imm = await this.immCache.GetAsync(ImmUrl).ConfigureAwait(false);
+        IpMaturityModel imm = await this.immCache.GetAsync(ImmUrl).ConfigureAwait(false);
         IRuleDefinitionRepository rules = await this.ruleSetCache.GetAsync(RuleSetUrl).ConfigureAwait(false);
         if (imm.Rules.Count == 0 || rules.GetAll().Count == 0)
         {
@@ -62,7 +62,7 @@ public class HttpDeserializingCacheBenchmarks
         // Confirm that subsequent calls are hits that complete synchronously without touching HTTP.
         for (int i = 0; i < 100; i++)
         {
-            Task<IpMaturityMatrix> immTask = this.immCache.GetAsync(ImmUrl);
+            Task<IpMaturityModel> immTask = this.immCache.GetAsync(ImmUrl);
             Task<IRuleDefinitionRepository> rulesTask = this.ruleSetCache.GetAsync(RuleSetUrl);
             if (!immTask.IsCompletedSuccessfully || !rulesTask.IsCompletedSuccessfully)
             {
@@ -85,7 +85,7 @@ public class HttpDeserializingCacheBenchmarks
     }
 
     [Benchmark(Baseline = true)]
-    public Task<IpMaturityMatrix> GetAsync_CacheHit_Imm() => this.immCache.GetAsync(ImmUrl);
+    public Task<IpMaturityModel> GetAsync_CacheHit_Imm() => this.immCache.GetAsync(ImmUrl);
 
     [Benchmark]
     public Task<IRuleDefinitionRepository> GetAsync_CacheHit_RuleSet() => this.ruleSetCache.GetAsync(RuleSetUrl);

@@ -43,7 +43,7 @@ public class RequestPipelineBenchmarks
     private string rulesetYaml = string.Empty;
     private string immYaml = string.Empty;
     private IRuleDefinitionRepository repository = null!;
-    private IpMaturityMatrix imm = null!;
+    private IpMaturityModel imm = null!;
     private IEvaluationContext context = null!;
     private ImmFunctions functions = null!;
     private HttpRequest request = null!;
@@ -52,11 +52,11 @@ public class RequestPipelineBenchmarks
     public void Setup()
     {
         this.rulesetYaml = SampleData.LoadEmbedded(SampleData.RuleSetResourceName);
-        IpMaturityMatrixRuleset ruleset = IpMaturityMatrixRuleset.FromYaml(this.rulesetYaml);
+        IpMaturityModelRuleset ruleset = IpMaturityModelRuleset.FromYaml(this.rulesetYaml);
         this.immYaml = SampleData.BuildImmYaml(ruleset, SampleData.ReferenceDate);
 
         this.repository = new RuleDefinitionRepository(ruleset);
-        this.imm = IpMaturityMatrix.FromYaml(this.immYaml);
+        this.imm = IpMaturityModel.FromYaml(this.immYaml);
         this.context = new SampleData.FixedDateContext(SampleData.ReferenceDate);
 
         this.functions = new ImmFunctions(
@@ -80,8 +80,8 @@ public class RequestPipelineBenchmarks
     [Benchmark]
     public string TotalBadge_CacheMiss()
     {
-        IpMaturityMatrixRuleset ruleset = IpMaturityMatrixRuleset.FromYaml(this.rulesetYaml);
-        IpMaturityMatrix freshImm = IpMaturityMatrix.FromYaml(this.immYaml);
+        IpMaturityModelRuleset ruleset = IpMaturityModelRuleset.FromYaml(this.rulesetYaml);
+        IpMaturityModel freshImm = IpMaturityModel.FromYaml(this.immYaml);
         return this.TotalBadge(new RuleDefinitionRepository(ruleset), freshImm);
     }
 
@@ -119,7 +119,7 @@ public class RequestPipelineBenchmarks
     public Task<IActionResult> HostEndpoint_ShowBadges() =>
         this.functions.GitHubImmAllBadges(this.request, Org, Project);
 
-    private string TotalBadge(IRuleDefinitionRepository ruleSet, IpMaturityMatrix ruleAssertions)
+    private string TotalBadge(IRuleDefinitionRepository ruleSet, IpMaturityModel ruleAssertions)
     {
         var evaluationEngine = new EvaluationEngine(ruleSet);
 
@@ -136,10 +136,10 @@ public class RequestPipelineBenchmarks
         public Task<IRuleDefinitionRepository> GetRuleDefinitionRepositoryAsync(string name) => this.result;
     }
 
-    private sealed class CachedImmSource(IpMaturityMatrix imm) : IIpMaturityMatrixSource
+    private sealed class CachedImmSource(IpMaturityModel imm) : IIpMaturityModelSource
     {
-        private readonly Task<IpMaturityMatrix> result = Task.FromResult(imm);
+        private readonly Task<IpMaturityModel> result = Task.FromResult(imm);
 
-        public Task<IpMaturityMatrix> GetIpMaturityMatrixAsync(string gitHubOwner, string gitHubProject, string objectName) => this.result;
+        public Task<IpMaturityModel> GetIpMaturityModelAsync(string gitHubOwner, string gitHubProject, string objectName) => this.result;
     }
 }

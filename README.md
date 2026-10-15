@@ -1,4 +1,4 @@
-# IP Maturity Matrix
+# IP Maturity Model
 
 The aim of this framework is to measure maturity across the disciplines required to build, test, deploy, reuse, support & sell Intellectual Property. This flexible framework is based on a number of conventions to measure "quality", many of these measures are subjective, rather than qualitative, and need to reviewed by people rather than automated by tools.
 
@@ -13,13 +13,13 @@ Our IP exists at different levels of fidelity:
 | 4     | Solution                      |
 | 5     | Product                       |
 
-Each of these has different nuances when it comes to the categories in the IP Maturity Matrix outlined below. 
+Each of these has different nuances when it comes to the categories in the IP Maturity Model outlined below. 
 
 ## Categories
 
 We have, collectively, defined the following categories as quality measures for our IP. In many ways these measures can be thought of as a more traditional "definition of done". These quality measures cover different aspects of the lifecycle of IP, from maintainance to adoption, to operational support. It also includes commercial and legal concerns.
 
-- [IP Maturity Matrix](#ip-maturity-matrix)
+- [IP Maturity Model](#ip-maturity-model)
   - [Categories](#categories)
     - [Shared Engineering Standards](#shared-engineering-standards)
     - [Coding Standards](#coding-standards)
@@ -41,7 +41,7 @@ We have, collectively, defined the following categories as quality measures for 
     - [Deployment](#deployment)
     - [Ops](#ops)
   - [The IMM Schema](#the-imm-schema)
-  - [How to use the IP Maturity Matrix](#how-to-use-the-ip-maturity-matrix)
+  - [How to use the IP Maturity Model](#how-to-use-the-ip-maturity-model)
     - [Total Score](#total-score)
     - [IMM Measures](#imm-measures)
   - [Building](#building)
@@ -254,7 +254,7 @@ The IMM schema is designed to be very flexible as you may decide that you want t
 
 Each rule needs a unique, guid based Id, a name, and a data type which can either be `Discrete` (meaning it can only be scored by a single item listed in the schema), or `Continuous` (meaning that the score can be cumulative). These two data types are used to select and run the correct rules engine to calculate the values to be used to render the badges.
 
-## How to use the IP Maturity Matrix
+## How to use the IP Maturity Model
 
 Each project that adopts the IMM simply adds a `imm.yaml` file into the root of the repo. `Endjin.Ip.Maturity.Model.Host` is an Azure Function, which when given the path to the GitHub repo, will render the IMM Measure as a badge, which can be displayed in the repo and provide an "at a glance" view of the quality of the project. 
 
@@ -451,7 +451,7 @@ The results go to `Solutions/Endjin.Imm.Benchmarks/BenchmarkDotNet.Artifacts/res
 
 [![GitHub license](https://img.shields.io/badge/License-Apache%202-blue.svg)](https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Model/master/LICENSE)
 
-The IP Maturity Matrix is available under the Apache 2.0 open source license.
+The IP Maturity Model is available under the Apache 2.0 open source license.
 
 For any licensing questions, please email [&#108;&#105;&#99;&#101;&#110;&#115;&#105;&#110;&#103;&#64;&#101;&#110;&#100;&#106;&#105;&#110;&#46;&#99;&#111;&#109;](&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#108;&#105;&#99;&#101;&#110;&#115;&#105;&#110;&#103;&#64;&#101;&#110;&#100;&#106;&#105;&#110;&#46;&#99;&#111;&#109;)
 

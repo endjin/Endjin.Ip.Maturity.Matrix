@@ -21,7 +21,7 @@ public class GitHubSourceLocationTests
     [DataRow("corvus-dotnet", "Corvus.Monitoring", "main")]
     [DataRow("endjin", "Endjin.Ip.Maturity.Model", "feature/dotnet-10-modernisation")]
     [DataRow("endjin", "Endjin.Ip.Maturity.Model", "v1.2.3")]
-    public async Task GetIpMaturityMatrixAsync_ForProjectAndBranch_FetchesImmYamlFromTheRawGitHubContentOfThatBranch(
+    public async Task GetIpMaturityModelAsync_ForProjectAndBranch_FetchesImmYamlFromTheRawGitHubContentOfThatBranch(
         string owner,
         string project,
         string branch)
@@ -31,7 +31,7 @@ public class GitHubSourceLocationTests
             () => StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured));
 
         // Act
-        IpMaturityMatrix imm = await fixture.ImmSource.GetIpMaturityMatrixAsync(owner, project, branch);
+        IpMaturityModel imm = await fixture.ImmSource.GetIpMaturityModelAsync(owner, project, branch);
 
         // Assert
         CapturedRequest request = fixture.Handler.Requests.ShouldHaveSingleItem();
@@ -66,7 +66,7 @@ public class GitHubSourceLocationTests
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingWith(
             () => StubHttpMessageHandler.Ok(RuleSetYaml.DeploymentWithOptionalMeasure));
-        RuleAssertion assertion = IpMaturityMatrix.FromYaml(ImmYaml.SharedEngineeringStandardsConfigured).Rules.Single();
+        RuleAssertion assertion = IpMaturityModel.FromYaml(ImmYaml.SharedEngineeringStandardsConfigured).Rules.Single();
 
         // Act
         IRuleDefinitionRepository repository = await fixture.RuleDefinitionSource.GetRuleDefinitionRepositoryAsync("master");
@@ -79,7 +79,7 @@ public class GitHubSourceLocationTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_DifferentBranches_AreFetchedAndCachedIndependently()
+    public async Task GetIpMaturityModelAsync_DifferentBranches_AreFetchedAndCachedIndependently()
     {
         // Arrange
         using ImmSourceFixture fixture = new((request, _) => Task.FromResult(
@@ -88,10 +88,10 @@ public class GitHubSourceLocationTests
                 : StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, maxAge: OneHour)));
 
         // Act
-        IpMaturityMatrix master = await fixture.ImmSource.GetIpMaturityMatrixAsync("endjin", "Project", "master");
-        IpMaturityMatrix release = await fixture.ImmSource.GetIpMaturityMatrixAsync("endjin", "Project", "release");
-        IpMaturityMatrix masterAgain = await fixture.ImmSource.GetIpMaturityMatrixAsync("endjin", "Project", "master");
-        IpMaturityMatrix releaseAgain = await fixture.ImmSource.GetIpMaturityMatrixAsync("endjin", "Project", "release");
+        IpMaturityModel master = await fixture.ImmSource.GetIpMaturityModelAsync("endjin", "Project", "master");
+        IpMaturityModel release = await fixture.ImmSource.GetIpMaturityModelAsync("endjin", "Project", "release");
+        IpMaturityModel masterAgain = await fixture.ImmSource.GetIpMaturityModelAsync("endjin", "Project", "master");
+        IpMaturityModel releaseAgain = await fixture.ImmSource.GetIpMaturityModelAsync("endjin", "Project", "release");
 
         // Assert
         fixture.Handler.Requests.Select(r => r.Uri.AbsolutePath).ShouldBe(
@@ -116,7 +116,7 @@ public class GitHubSourceLocationTests
         services.AddImmSources();
 
         // Assert
-        services.Count(s => s.ServiceType == typeof(IIpMaturityMatrixSource)).ShouldBe(1);
+        services.Count(s => s.ServiceType == typeof(IIpMaturityModelSource)).ShouldBe(1);
         services.Count(s => s.ServiceType == typeof(IRuleDefinitionRepositorySource)).ShouldBe(1);
     }
 }

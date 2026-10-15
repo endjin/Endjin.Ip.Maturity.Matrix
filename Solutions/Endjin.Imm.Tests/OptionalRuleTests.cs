@@ -5,7 +5,7 @@ using Shouldly;
 namespace Endjin.Imm.Tests;
 
 /// <summary>
-/// Rules that do not apply to a project can be excluded from its IP Maturity Matrix without
+/// Rules that do not apply to a project can be excluded from its IP Maturity Model without
 /// distorting its scores. The Deployment rule can be opted out of.
 /// </summary>
 [TestClass]

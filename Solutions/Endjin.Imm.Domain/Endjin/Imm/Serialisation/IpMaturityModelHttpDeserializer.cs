@@ -6,15 +6,15 @@
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Used by <see cref="HttpDeserializingCache{T}"/> to build <see cref="IpMaturityMatrix"/>
+    /// Used by <see cref="HttpDeserializingCache{T}"/> to build <see cref="IpMaturityModel"/>
     /// instances from HTTP responses.
     /// </summary>
-    internal class IpMaturityMatrixHttpDeserializer : IHttpDeserializer<IpMaturityMatrix>
+    internal class IpMaturityModelHttpDeserializer : IHttpDeserializer<IpMaturityModel>
     {
-        public async Task<IpMaturityMatrix> DeserializeAsync(HttpResponseMessage response)
+        public async Task<IpMaturityModel> DeserializeAsync(HttpResponseMessage response)
         {
             string immYaml = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            return IpMaturityMatrix.FromYaml(immYaml);
+            return IpMaturityModel.FromYaml(immYaml);
         }
     }
 }

@@ -18,7 +18,7 @@
             this.ruleCalculatorFactory = new RuleCalculatorFactory(this.ruleDefinitionRepository);
         }
 
-        public ImmEvaluation Evaluate(IpMaturityMatrix imm, IEvaluationContext? context = null)
+        public ImmEvaluation Evaluate(IpMaturityModel imm, IEvaluationContext? context = null)
         {
             context ??= new Context();
 

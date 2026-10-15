@@ -16,7 +16,7 @@
         public async Task<IRuleDefinitionRepository> DeserializeAsync(HttpResponseMessage response)
         {
             string yaml = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var ruleset = IpMaturityMatrixRuleset.FromYaml(yaml);
+            var ruleset = IpMaturityModelRuleset.FromYaml(yaml);
             return new RuleDefinitionRepository(ruleset);
         }
     }

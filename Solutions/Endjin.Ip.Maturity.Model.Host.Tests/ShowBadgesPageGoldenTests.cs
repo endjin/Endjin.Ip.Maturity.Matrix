@@ -22,7 +22,7 @@ public class ShowBadgesPageGoldenTests
             <html>
             <head>
                 <meta charset="utf-8" />
-                <title>IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Model (master)</title>
+                <title>IP Maturity Model for endjin/Endjin.Ip.Maturity.Model (master)</title>
             <body>
               <div>
               <p>Total score</p>
@@ -68,7 +68,7 @@ public class ShowBadgesPageGoldenTests
             <html>
             <head>
                 <meta charset="utf-8" />
-                <title>IP Maturity Matrix for endjin/Endjin.Ip.Maturity.Model (x&lt;y, rules: a&amp;b)</title>
+                <title>IP Maturity Model for endjin/Endjin.Ip.Maturity.Model (x&lt;y, rules: a&amp;b)</title>
             <body>
               <div>
               <p>Total score</p>

@@ -16,17 +16,17 @@
     /// The rule set is indexed once, on construction, so each lookup is a hash lookup rather than
     /// a linear scan. (The evaluation engine looks up every rule in an IMM, so the scan made
     /// evaluation quadratic in the number of rules.) The index takes a snapshot of the rule set's
-    /// <see cref="IpMaturityMatrixRuleset.Rules"/>; changes made to that list afterwards are not
+    /// <see cref="IpMaturityModelRuleset.Rules"/>; changes made to that list afterwards are not
     /// seen by lookups.
     /// </para>
     /// </remarks>
     public class RuleDefinitionRepository : IRuleDefinitionRepository
     {
-        private readonly IpMaturityMatrixRuleset ruleSet;
+        private readonly IpMaturityModelRuleset ruleSet;
         private readonly FrozenDictionary<Guid, RuleDefinition> definitionsById;
         private readonly bool ruleSetContainsNullEntries;
 
-        public RuleDefinitionRepository(IpMaturityMatrixRuleset ruleSet)
+        public RuleDefinitionRepository(IpMaturityModelRuleset ruleSet)
         {
             this.ruleSet = ruleSet;
 

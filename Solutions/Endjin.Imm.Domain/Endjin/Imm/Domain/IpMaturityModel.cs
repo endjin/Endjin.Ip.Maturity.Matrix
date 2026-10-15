@@ -2,14 +2,14 @@
 {
     using System.Collections.Generic;
 
-    public partial class IpMaturityMatrix
+    public partial class IpMaturityModel
     {
-        public IpMaturityMatrix()
+        public IpMaturityModel()
             : this(new List<RuleAssertion>())
         {
         }
 
-        private IpMaturityMatrix(IList<RuleAssertion> rules)
+        private IpMaturityModel(IList<RuleAssertion> rules)
         {
             this.Rules = rules;
         }

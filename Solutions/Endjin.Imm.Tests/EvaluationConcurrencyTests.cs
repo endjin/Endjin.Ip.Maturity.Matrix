@@ -35,9 +35,9 @@ public class EvaluationConcurrencyTests
     {
         // Arrange
         const int iterations = 2000;
-        EvaluationEngine engine = new(new RuleDefinitionRepository(IpMaturityMatrixRuleset.FromYaml(RuleSet)));
+        EvaluationEngine engine = new(new RuleDefinitionRepository(IpMaturityModelRuleset.FromYaml(RuleSet)));
         IEvaluationContext context = new FixedDateContext(new LocalDate(2019, 12, 3));
-        IpMaturityMatrix[] imms = [.. Imms.Select(IpMaturityMatrix.FromYaml)];
+        IpMaturityModel[] imms = [.. Imms.Select(IpMaturityModel.FromYaml)];
         string[] expected = [.. imms.Select(imm => Describe(engine.Evaluate(imm, context)))];
         ConcurrentBag<string> mismatches = [];
 

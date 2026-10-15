@@ -4,13 +4,13 @@
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Provides the ability to retrieve the maturity matrix from a GitHub repository. It caches
+    /// Provides the ability to retrieve the maturity model from a GitHub repository. It caches
     /// the results.
     /// </summary>
-    public interface IIpMaturityMatrixSource
+    public interface IIpMaturityModelSource
     {
         /// <summary>
-        /// Gets the <see cref="IpMaturityMatrix"/> from a GitHub repo, on the specifed branch.
+        /// Gets the <see cref="IpMaturityModel"/> from a GitHub repo, on the specifed branch.
         /// </summary>
         /// <param name="gitHubOwner">
         /// The organization or account that owns the repository from which to fetch the IMM.
@@ -23,7 +23,7 @@
         /// from which to fetch the IMM.
         /// </param>
         /// <returns></returns>
-        Task<IpMaturityMatrix> GetIpMaturityMatrixAsync(
+        Task<IpMaturityModel> GetIpMaturityModelAsync(
             string gitHubOwner,
             string gitHubProject,
             string objectName);

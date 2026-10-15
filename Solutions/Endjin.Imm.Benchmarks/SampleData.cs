@@ -159,7 +159,7 @@ internal static partial class SampleData
     /// <c>DiscreteRuleCalculator</c> uses <c>Single()</c>.</description></item>
     /// </list>
     /// </summary>
-    public static string BuildImmYaml(IpMaturityMatrixRuleset ruleset, LocalDate referenceDate)
+    public static string BuildImmYaml(IpMaturityModelRuleset ruleset, LocalDate referenceDate)
     {
         StringBuilder sb = new();
 

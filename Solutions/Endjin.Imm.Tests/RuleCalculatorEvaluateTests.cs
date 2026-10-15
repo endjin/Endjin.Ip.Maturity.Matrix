@@ -115,8 +115,8 @@ public class RuleCalculatorEvaluateTests
     public void Evaluate_AgeChangedAfterEvaluation_UsesTheNewAge()
     {
         // Arrange
-        RuleDefinitionRepository repository = new(IpMaturityMatrixRuleset.FromYaml(RuleSet));
-        RuleAssertion assertion = IpMaturityMatrix.FromYaml(ImmFor("AgeWithDate")).Rules.Single();
+        RuleDefinitionRepository repository = new(IpMaturityModelRuleset.FromYaml(RuleSet));
+        RuleAssertion assertion = IpMaturityModel.FromYaml(ImmFor("AgeWithDate")).Rules.Single();
         IRuleCalculator calculator = new RuleCalculatorFactory(repository).Create(DataType.Age);
         calculator.Evaluate(assertion, Context).Score.ShouldBe(2);
         AgeMeasureDefinition topMeasure = (AgeMeasureDefinition)repository.GetDefinitionFor(assertion).Measures[0];
@@ -146,9 +146,9 @@ public class RuleCalculatorEvaluateTests
                         Score: 1
                         Description: Configured
             """;
-        RuleDefinitionRepository repository = new(IpMaturityMatrixRuleset.FromYaml(ruleSetYaml));
+        RuleDefinitionRepository repository = new(IpMaturityModelRuleset.FromYaml(ruleSetYaml));
         IRuleCalculator calculator = new RuleCalculatorFactory(repository).Create((DataType)99);
-        RuleAssertion assertion = IpMaturityMatrix.FromYaml(ImmYaml.SharedEngineeringStandardsConfigured).Rules.Single();
+        RuleAssertion assertion = IpMaturityModel.FromYaml(ImmYaml.SharedEngineeringStandardsConfigured).Rules.Single();
 
         // Act
         RuleEvaluation evaluation = calculator.Evaluate(assertion, Context);
@@ -162,8 +162,8 @@ public class RuleCalculatorEvaluateTests
 
     private static (IRuleCalculator Calculator, RuleAssertion Assertion) Arrange(string ruleSetYaml, string immYaml)
     {
-        RuleDefinitionRepository repository = new(IpMaturityMatrixRuleset.FromYaml(ruleSetYaml));
-        RuleAssertion assertion = IpMaturityMatrix.FromYaml(immYaml).Rules.Single();
+        RuleDefinitionRepository repository = new(IpMaturityModelRuleset.FromYaml(ruleSetYaml));
+        RuleAssertion assertion = IpMaturityModel.FromYaml(immYaml).Rules.Single();
         IRuleCalculator calculator = new RuleCalculatorFactory(repository).Create(repository.GetDefinitionFor(assertion).DataType);
         return (calculator, assertion);
     }

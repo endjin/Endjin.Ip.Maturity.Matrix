@@ -41,7 +41,7 @@ public class StartupWarmupTests
         warmup.Completion.IsCompleted.ShouldBeFalse();
         logger.Entries.ShouldBeEmpty();
 
-        fetch.SetResult(new RuleDefinitionRepository(IpMaturityMatrixRuleset.FromYaml(HostYaml.TwoRuleSet)));
+        fetch.SetResult(new RuleDefinitionRepository(IpMaturityModelRuleset.FromYaml(HostYaml.TwoRuleSet)));
         await warmup.Completion.WaitAsync(WaitLimit);
         await source.Received(1).GetRuleDefinitionRepositoryAsync("master");
         source.ReceivedCalls().Count().ShouldBe(1);
@@ -90,7 +90,7 @@ public class StartupWarmupTests
         // Arrange
         IRuleDefinitionRepositorySource source = Substitute.For<IRuleDefinitionRepositorySource>();
         source.GetRuleDefinitionRepositoryAsync(Arg.Any<string>())
-            .Returns(_ => new RuleDefinitionRepository(IpMaturityMatrixRuleset.FromYaml(HostYaml.TwoRuleSet)));
+            .Returns(_ => new RuleDefinitionRepository(IpMaturityModelRuleset.FromYaml(HostYaml.TwoRuleSet)));
         CapturingLogger logger = new();
         StartupWarmup warmup = new(source, logger);
 

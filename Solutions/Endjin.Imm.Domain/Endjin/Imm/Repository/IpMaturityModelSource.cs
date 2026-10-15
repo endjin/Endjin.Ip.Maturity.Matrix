@@ -6,25 +6,25 @@
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Provides cached access to <see cref="IpMaturityMatrix"/> objects.
+    /// Provides cached access to <see cref="IpMaturityModel"/> objects.
     /// </summary>
-    internal class IpMaturityMatrixSource : IIpMaturityMatrixSource
+    internal class IpMaturityModelSource : IIpMaturityModelSource
     {
-        private readonly HttpDeserializingCache<IpMaturityMatrix> cache;
+        private readonly HttpDeserializingCache<IpMaturityModel> cache;
 
-        public IpMaturityMatrixSource(HttpDeserializingCache<IpMaturityMatrix> cache)
+        public IpMaturityModelSource(HttpDeserializingCache<IpMaturityModel> cache)
         {
             this.cache = cache;
         }
 
         /// <inheritdoc />
-        public async Task<IpMaturityMatrix> GetIpMaturityMatrixAsync(
+        public async Task<IpMaturityModel> GetIpMaturityModelAsync(
             string gitHubOwner,
             string gitHubProject,
             string objectName)
         {
             string url = $"https://raw.githubusercontent.com/{gitHubOwner}/{gitHubProject}/{objectName}/imm.yaml";
-            IpMaturityMatrix imm = await cache.GetAsync(url).ConfigureAwait(false);
+            IpMaturityModel imm = await cache.GetAsync(url).ConfigureAwait(false);
             return imm;
         }
     }

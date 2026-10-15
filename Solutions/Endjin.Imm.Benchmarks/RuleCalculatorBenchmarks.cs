@@ -115,7 +115,7 @@ public class RuleCalculatorBenchmarks
 
     private static Case CreateCase(string snapshot, string ruleId, DataType expectedType, string? immYaml)
     {
-        IpMaturityMatrixRuleset ruleset = IpMaturityMatrixRuleset.FromYaml(SampleData.ExtractRule(snapshot, ruleId));
+        IpMaturityModelRuleset ruleset = IpMaturityModelRuleset.FromYaml(SampleData.ExtractRule(snapshot, ruleId));
         RuleDefinition definition = ruleset.Rules.Single();
         if (definition.DataType != expectedType)
         {
@@ -124,7 +124,7 @@ public class RuleCalculatorBenchmarks
 
         RuleDefinitionRepository repository = new(ruleset);
         IRuleCalculator calculator = new RuleCalculatorFactory(repository).Create(definition.DataType);
-        RuleAssertion assertion = IpMaturityMatrix
+        RuleAssertion assertion = IpMaturityModel
             .FromYaml(immYaml ?? SampleData.BuildImmYaml(ruleset, SampleData.ReferenceDate))
             .Rules
             .Single();

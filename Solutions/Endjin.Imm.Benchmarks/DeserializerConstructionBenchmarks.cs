@@ -27,7 +27,7 @@ public class DeserializerConstructionBenchmarks
 
     /// <summary>What the Host does: parse with the shared deserializer.</summary>
     [Benchmark(Baseline = true)]
-    public IpMaturityMatrixRuleset Ruleset_FromYaml() => IpMaturityMatrixRuleset.FromYaml(this.snapshot);
+    public IpMaturityModelRuleset Ruleset_FromYaml() => IpMaturityModelRuleset.FromYaml(this.snapshot);
 
     /// <summary>The construction cost alone, which the shared deserializer avoids on every call.</summary>
     [Benchmark]
@@ -35,7 +35,7 @@ public class DeserializerConstructionBenchmarks
 
     /// <summary>A trivial parse: approximately the fixed per-call overhead.</summary>
     [Benchmark]
-    public IpMaturityMatrixRuleset FromYaml_EmptyDocument() => IpMaturityMatrixRuleset.FromYaml("[]");
+    public IpMaturityModelRuleset FromYaml_EmptyDocument() => IpMaturityModelRuleset.FromYaml("[]");
 
     /// <summary>
     /// The parse cost alone, reusing one deserializer created for this benchmark.

@@ -30,15 +30,15 @@ public class GitHubContentCachingTests
     private static readonly TimeSpan OneHour = TimeSpan.FromHours(1);
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_SecondRequestWithinMaxAge_IsServedFromTheCacheWithoutContactingGitHub()
+    public async Task GetIpMaturityModelAsync_SecondRequestWithinMaxAge_IsServedFromTheCacheWithoutContactingGitHub()
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingWith(
             () => StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\"", OneHour));
 
         // Act
-        IpMaturityMatrix first = await GetImmAsync(fixture);
-        IpMaturityMatrix second = await GetImmAsync(fixture);
+        IpMaturityModel first = await GetImmAsync(fixture);
+        IpMaturityModel second = await GetImmAsync(fixture);
 
         // Assert
         fixture.Handler.Requests.Count.ShouldBe(1);
@@ -66,7 +66,7 @@ public class GitHubContentCachingTests
     [TestMethod]
     [DataRow(null)]
     [DataRow("public")]
-    public async Task GetIpMaturityMatrixAsync_ResponseWithoutMaxAge_IsCachedForTheDefaultWindow(string? cacheControl)
+    public async Task GetIpMaturityModelAsync_ResponseWithoutMaxAge_IsCachedForTheDefaultWindow(string? cacheControl)
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingWith(() =>
@@ -81,8 +81,8 @@ public class GitHubContentCachingTests
         });
 
         // Act
-        IpMaturityMatrix first = await GetImmAsync(fixture);
-        IpMaturityMatrix second = await GetImmAsync(fixture);
+        IpMaturityModel first = await GetImmAsync(fixture);
+        IpMaturityModel second = await GetImmAsync(fixture);
 
         // Assert
         fixture.Handler.Requests.Count.ShouldBe(1);
@@ -93,7 +93,7 @@ public class GitHubContentCachingTests
     [DataRow("no-cache")]
     [DataRow("public, no-cache")]
     [DataRow("no-cache, max-age=3600")]
-    public async Task GetIpMaturityMatrixAsync_ResponseWithNoCache_IsRevalidatedWithETagOnEveryRequest(string cacheControl)
+    public async Task GetIpMaturityModelAsync_ResponseWithNoCache_IsRevalidatedWithETagOnEveryRequest(string cacheControl)
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
@@ -103,9 +103,9 @@ public class GitHubContentCachingTests
             () => StubHttpMessageHandler.WithCacheControl(StubHttpMessageHandler.NotModified("\"v1\""), cacheControl));
 
         // Act
-        IpMaturityMatrix first = await GetImmAsync(fixture);
-        IpMaturityMatrix second = await GetImmAsync(fixture);
-        IpMaturityMatrix third = await GetImmAsync(fixture);
+        IpMaturityModel first = await GetImmAsync(fixture);
+        IpMaturityModel second = await GetImmAsync(fixture);
+        IpMaturityModel third = await GetImmAsync(fixture);
 
         // Assert
         fixture.Handler.Requests.Select(r => r.IfNoneMatch).ShouldBe(
@@ -123,7 +123,7 @@ public class GitHubContentCachingTests
     [DataRow("no-store")]
     [DataRow("no-store, max-age=3600")]
     [DataRow("no-cache, no-store")]
-    public async Task GetIpMaturityMatrixAsync_ResponseWithNoStore_IsFetchedAgainUnconditionallyOnEveryRequest(string cacheControl)
+    public async Task GetIpMaturityModelAsync_ResponseWithNoStore_IsFetchedAgainUnconditionallyOnEveryRequest(string cacheControl)
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingWith(
@@ -131,8 +131,8 @@ public class GitHubContentCachingTests
                 StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\""), cacheControl));
 
         // Act
-        IpMaturityMatrix first = await GetImmAsync(fixture);
-        IpMaturityMatrix second = await GetImmAsync(fixture);
+        IpMaturityModel first = await GetImmAsync(fixture);
+        IpMaturityModel second = await GetImmAsync(fixture);
 
         // Assert
         fixture.Handler.Requests.Select(r => r.IfNoneMatch).ShouldBe(
@@ -145,7 +145,7 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_ResponseWithNoStoreReceivedSynchronously_IsNotLeftInTheMemoryCache()
+    public async Task GetIpMaturityModelAsync_ResponseWithNoStoreReceivedSynchronously_IsNotLeftInTheMemoryCache()
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingWith(
@@ -153,7 +153,7 @@ public class GitHubContentCachingTests
                 StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\""), "no-store"));
 
         // Act
-        IpMaturityMatrix imm = await GetImmAsync(fixture);
+        IpMaturityModel imm = await GetImmAsync(fixture);
 
         // Assert
         imm.Rules.Single().Measures.Single().Score.ShouldBe(1);
@@ -161,19 +161,19 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_ResponseWithNoStoreReceivedAsynchronously_IsRemovedFromTheMemoryCacheAndStillReachesEveryWaitingCaller()
+    public async Task GetIpMaturityModelAsync_ResponseWithNoStoreReceivedAsynchronously_IsRemovedFromTheMemoryCacheAndStillReachesEveryWaitingCaller()
     {
         // Arrange
         TaskCompletionSource<HttpResponseMessage> gitHubResponse = new(TaskCreationOptions.RunContinuationsAsynchronously);
         using ImmSourceFixture fixture = new((_, _) => gitHubResponse.Task);
 
         // Act
-        Task<IpMaturityMatrix> first = GetImmAsync(fixture);
-        Task<IpMaturityMatrix> second = GetImmAsync(fixture);
+        Task<IpMaturityModel> first = GetImmAsync(fixture);
+        Task<IpMaturityModel> second = GetImmAsync(fixture);
         int entriesWhileInFlight = fixture.MemoryCache.Count;
         gitHubResponse.SetResult(StubHttpMessageHandler.WithCacheControl(
             StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\""), "no-store"));
-        IpMaturityMatrix[] results = await Task.WhenAll(first, second);
+        IpMaturityModel[] results = await Task.WhenAll(first, second);
 
         // Assert
         entriesWhileInFlight.ShouldBe(1);
@@ -185,7 +185,7 @@ public class GitHubContentCachingTests
     // A 304 updates only the headers it carries (RFC 9111, section 4.3.4), so one without Cache-Control must not replace a
     // stored no-cache policy with the one-minute default.
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_NotModifiedResponseWithoutCacheControl_KeepsTheNoCachePolicyOfTheOriginalResponse()
+    public async Task GetIpMaturityModelAsync_NotModifiedResponseWithoutCacheControl_KeepsTheNoCachePolicyOfTheOriginalResponse()
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
@@ -195,9 +195,9 @@ public class GitHubContentCachingTests
             () => StubHttpMessageHandler.NotModified("\"v1\""));
 
         // Act
-        IpMaturityMatrix first = await GetImmAsync(fixture);
-        IpMaturityMatrix second = await GetImmAsync(fixture);
-        IpMaturityMatrix third = await GetImmAsync(fixture);
+        IpMaturityModel first = await GetImmAsync(fixture);
+        IpMaturityModel second = await GetImmAsync(fixture);
+        IpMaturityModel third = await GetImmAsync(fixture);
 
         // Assert
         fixture.Handler.Requests.Select(r => r.IfNoneMatch).ShouldBe(
@@ -211,7 +211,7 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_NotModifiedResponseWithItsOwnCacheControl_ReplacesTheStoredPolicy()
+    public async Task GetIpMaturityModelAsync_NotModifiedResponseWithItsOwnCacheControl_ReplacesTheStoredPolicy()
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
@@ -220,9 +220,9 @@ public class GitHubContentCachingTests
             () => StubHttpMessageHandler.NotModified("\"v1\"", OneHour));
 
         // Act
-        IpMaturityMatrix first = await GetImmAsync(fixture);
-        IpMaturityMatrix revalidated = await GetImmAsync(fixture);
-        IpMaturityMatrix third = await GetImmAsync(fixture);
+        IpMaturityModel first = await GetImmAsync(fixture);
+        IpMaturityModel revalidated = await GetImmAsync(fixture);
+        IpMaturityModel third = await GetImmAsync(fixture);
 
         // Assert
         fixture.Handler.Requests.Count.ShouldBe(2);
@@ -231,7 +231,7 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_NotModifiedResponseWithoutAnETag_KeepsRevalidatingWithThePreviousETag()
+    public async Task GetIpMaturityModelAsync_NotModifiedResponseWithoutAnETag_KeepsRevalidatingWithThePreviousETag()
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
@@ -240,9 +240,9 @@ public class GitHubContentCachingTests
             () => StubHttpMessageHandler.NotModified("\"v1\"", TimeSpan.Zero));
 
         // Act
-        IpMaturityMatrix first = await GetImmAsync(fixture);
-        IpMaturityMatrix second = await GetImmAsync(fixture);
-        IpMaturityMatrix third = await GetImmAsync(fixture);
+        IpMaturityModel first = await GetImmAsync(fixture);
+        IpMaturityModel second = await GetImmAsync(fixture);
+        IpMaturityModel third = await GetImmAsync(fixture);
 
         // Assert
         fixture.Handler.Requests.Select(r => r.IfNoneMatch).ShouldBe(
@@ -256,7 +256,7 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_AfterMaxAgeWhenContentUnchanged_RevalidatesWithETagAndReusesTheCachedImm()
+    public async Task GetIpMaturityModelAsync_AfterMaxAgeWhenContentUnchanged_RevalidatesWithETagAndReusesTheCachedImm()
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
@@ -264,8 +264,8 @@ public class GitHubContentCachingTests
             () => StubHttpMessageHandler.NotModified("\"v1\"", TimeSpan.Zero));
 
         // Act
-        IpMaturityMatrix first = await GetImmAsync(fixture);
-        IpMaturityMatrix second = await GetImmAsync(fixture);
+        IpMaturityModel first = await GetImmAsync(fixture);
+        IpMaturityModel second = await GetImmAsync(fixture);
 
         // Assert
         fixture.Handler.Requests.Count.ShouldBe(2);
@@ -275,7 +275,7 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_NotModifiedResponse_StartsANewFreshnessWindow()
+    public async Task GetIpMaturityModelAsync_NotModifiedResponse_StartsANewFreshnessWindow()
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
@@ -283,9 +283,9 @@ public class GitHubContentCachingTests
             () => StubHttpMessageHandler.NotModified("\"v1\"", OneHour));
 
         // Act
-        IpMaturityMatrix first = await GetImmAsync(fixture);
-        IpMaturityMatrix revalidated = await GetImmAsync(fixture);
-        IpMaturityMatrix third = await GetImmAsync(fixture);
+        IpMaturityModel first = await GetImmAsync(fixture);
+        IpMaturityModel revalidated = await GetImmAsync(fixture);
+        IpMaturityModel third = await GetImmAsync(fixture);
 
         // Assert
         fixture.Handler.Requests.Count.ShouldBe(2);
@@ -294,7 +294,7 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_AfterMaxAgeWhenContentChanged_ReplacesTheCachedImmAndRevalidatesWithTheNewETag()
+    public async Task GetIpMaturityModelAsync_AfterMaxAgeWhenContentChanged_ReplacesTheCachedImmAndRevalidatesWithTheNewETag()
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
@@ -303,9 +303,9 @@ public class GitHubContentCachingTests
             () => StubHttpMessageHandler.NotModified("\"v2\"", TimeSpan.Zero));
 
         // Act
-        IpMaturityMatrix original = await GetImmAsync(fixture);
-        IpMaturityMatrix changed = await GetImmAsync(fixture);
-        IpMaturityMatrix revalidated = await GetImmAsync(fixture);
+        IpMaturityModel original = await GetImmAsync(fixture);
+        IpMaturityModel changed = await GetImmAsync(fixture);
+        IpMaturityModel revalidated = await GetImmAsync(fixture);
 
         // Assert
         fixture.Handler.Requests.Select(r => r.IfNoneMatch).ShouldBe(
@@ -323,7 +323,7 @@ public class GitHubContentCachingTests
     [TestMethod]
     [DataRow(HttpStatusCode.NotFound)]
     [DataRow(HttpStatusCode.Gone)]
-    public async Task GetIpMaturityMatrixAsync_GitHubReturnsNotFound_ThrowsContentNotFoundExceptionNamingTheUrl(HttpStatusCode statusCode)
+    public async Task GetIpMaturityModelAsync_GitHubReturnsNotFound_ThrowsContentNotFoundExceptionNamingTheUrl(HttpStatusCode statusCode)
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingWith(() => new HttpResponseMessage(statusCode));
@@ -348,7 +348,7 @@ public class GitHubContentCachingTests
             () => fixture.RuleDefinitionSource.GetRuleDefinitionRepositoryAsync("does-not-exist"));
 
         // Assert
-        exception.Url.ShouldBe(new Uri(IpMaturityMatrixRuleset.DefinitionsUrlForName("does-not-exist")));
+        exception.Url.ShouldBe(new Uri(IpMaturityModelRuleset.DefinitionsUrlForName("does-not-exist")));
     }
 
     [TestMethod]
@@ -357,7 +357,7 @@ public class GitHubContentCachingTests
     [DataRow(HttpStatusCode.ServiceUnavailable)]
     [DataRow(HttpStatusCode.TooManyRequests)]
     [DataRow(HttpStatusCode.Forbidden)]
-    public async Task GetIpMaturityMatrixAsync_GitHubReturnsServerError_ThrowsContentUnavailableExceptionWithTheStatusCode(HttpStatusCode statusCode)
+    public async Task GetIpMaturityModelAsync_GitHubReturnsServerError_ThrowsContentUnavailableExceptionWithTheStatusCode(HttpStatusCode statusCode)
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingWith(() => new HttpResponseMessage(statusCode));
@@ -371,7 +371,7 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_RequestTimesOut_ThrowsContentUnavailableException()
+    public async Task GetIpMaturityModelAsync_RequestTimesOut_ThrowsContentUnavailableException()
     {
         // Arrange
         // This is what HttpClient throws when its Timeout elapses.
@@ -388,7 +388,7 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_ConnectionFails_ThrowsContentUnavailableException()
+    public async Task GetIpMaturityModelAsync_ConnectionFails_ThrowsContentUnavailableException()
     {
         // Arrange
         HttpRequestException connectionFailure = new("No such host is known.");
@@ -405,7 +405,7 @@ public class GitHubContentCachingTests
     [TestMethod]
     [DataRow(HttpStatusCode.InternalServerError)]
     [DataRow(HttpStatusCode.ServiceUnavailable)]
-    public async Task GetIpMaturityMatrixAsync_ServerError_IsNotCachedAndIsFetchedAgainOnTheNextRequest(HttpStatusCode statusCode)
+    public async Task GetIpMaturityModelAsync_ServerError_IsNotCachedAndIsFetchedAgainOnTheNextRequest(HttpStatusCode statusCode)
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
@@ -414,7 +414,7 @@ public class GitHubContentCachingTests
 
         // Act
         await Should.ThrowAsync<GitHubContentUnavailableException>(() => GetImmAsync(fixture));
-        IpMaturityMatrix retried = await GetImmAsync(fixture);
+        IpMaturityModel retried = await GetImmAsync(fixture);
 
         // Assert
         fixture.Handler.Requests.Count.ShouldBe(2);
@@ -424,7 +424,7 @@ public class GitHubContentCachingTests
 
     // A README showing many badges for a project without an imm.yaml would otherwise ask GitHub for it once per badge.
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_NotFoundRequestedAgainWithinNegativeCacheWindow_IsNotFetchedAgain()
+    public async Task GetIpMaturityModelAsync_NotFoundRequestedAgainWithinNegativeCacheWindow_IsNotFetchedAgain()
     {
         // Arrange
         FakeSystemClock clock = new();
@@ -444,7 +444,7 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_NotFoundRequestedAfterNegativeCacheWindow_IsFetchedAgain()
+    public async Task GetIpMaturityModelAsync_NotFoundRequestedAfterNegativeCacheWindow_IsFetchedAgain()
     {
         // Arrange
         FakeSystemClock clock = new();
@@ -456,7 +456,7 @@ public class GitHubContentCachingTests
         // Act
         await Should.ThrowAsync<GitHubContentNotFoundException>(() => GetImmAsync(fixture));
         clock.Advance(TimeSpan.FromSeconds(61));
-        IpMaturityMatrix afterWindow = await GetImmAsync(fixture);
+        IpMaturityModel afterWindow = await GetImmAsync(fixture);
 
         // Assert
         fixture.Handler.Requests.Count.ShouldBe(2);
@@ -464,7 +464,7 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_NotFoundWithNoStore_IsFetchedAgainOnTheNextRequest()
+    public async Task GetIpMaturityModelAsync_NotFoundWithNoStore_IsFetchedAgainOnTheNextRequest()
     {
         // Arrange
         FakeSystemClock clock = new();
@@ -475,7 +475,7 @@ public class GitHubContentCachingTests
 
         // Act
         await Should.ThrowAsync<GitHubContentNotFoundException>(() => GetImmAsync(fixture));
-        IpMaturityMatrix retried = await GetImmAsync(fixture);
+        IpMaturityModel retried = await GetImmAsync(fixture);
 
         // Assert
         fixture.Handler.Requests.Count.ShouldBe(2);
@@ -483,16 +483,16 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_ConcurrentRequestsForAMissingImm_ShareASingleRequestToGitHub()
+    public async Task GetIpMaturityModelAsync_ConcurrentRequestsForAMissingImm_ShareASingleRequestToGitHub()
     {
         // Arrange
         TaskCompletionSource<HttpResponseMessage> gitHubResponse = new(TaskCreationOptions.RunContinuationsAsynchronously);
         using ImmSourceFixture fixture = new((_, _) => gitHubResponse.Task);
 
         // Act
-        Task<IpMaturityMatrix> first = GetImmAsync(fixture);
-        Task<IpMaturityMatrix> second = GetImmAsync(fixture);
-        Task<IpMaturityMatrix> third = GetImmAsync(fixture);
+        Task<IpMaturityModel> first = GetImmAsync(fixture);
+        Task<IpMaturityModel> second = GetImmAsync(fixture);
+        Task<IpMaturityModel> third = GetImmAsync(fixture);
         gitHubResponse.SetResult(new HttpResponseMessage(HttpStatusCode.NotFound));
 
         // Assert
@@ -504,7 +504,7 @@ public class GitHubContentCachingTests
 
     // Stale-if-error: while GitHub is unavailable, the content it last sent is better than no badge.
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_ServerErrorAfterSuccess_ServesTheStaleImmAndTriesGitHubAgainNextTime()
+    public async Task GetIpMaturityModelAsync_ServerErrorAfterSuccess_ServesTheStaleImmAndTriesGitHubAgainNextTime()
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
@@ -513,9 +513,9 @@ public class GitHubContentCachingTests
             () => StubHttpMessageHandler.NotModified("\"v1\"", TimeSpan.Zero));
 
         // Act
-        IpMaturityMatrix first = await GetImmAsync(fixture);
-        IpMaturityMatrix duringOutage = await GetImmAsync(fixture);
-        IpMaturityMatrix afterOutage = await GetImmAsync(fixture);
+        IpMaturityModel first = await GetImmAsync(fixture);
+        IpMaturityModel duringOutage = await GetImmAsync(fixture);
+        IpMaturityModel afterOutage = await GetImmAsync(fixture);
 
         // Assert
         fixture.Handler.Requests.Select(r => r.IfNoneMatch).ShouldBe(
@@ -529,7 +529,7 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_NotFoundAfterSuccess_ThrowsRatherThanServingTheStaleImm()
+    public async Task GetIpMaturityModelAsync_NotFoundAfterSuccess_ThrowsRatherThanServingTheStaleImm()
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
@@ -538,14 +538,14 @@ public class GitHubContentCachingTests
         await GetImmAsync(fixture);
 
         // Act
-        Task<IpMaturityMatrix> afterRemoval = GetImmAsync(fixture);
+        Task<IpMaturityModel> afterRemoval = GetImmAsync(fixture);
 
         // Assert
         await Should.ThrowAsync<GitHubContentNotFoundException>(() => afterRemoval);
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_GitHubReturnsMalformedYaml_ThrowsInvalidImmContentExceptionAndDoesNotCacheTheFailure()
+    public async Task GetIpMaturityModelAsync_GitHubReturnsMalformedYaml_ThrowsInvalidImmContentExceptionAndDoesNotCacheTheFailure()
     {
         // Arrange
         using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
@@ -554,7 +554,7 @@ public class GitHubContentCachingTests
 
         // Act
         InvalidImmContentException exception = await Should.ThrowAsync<InvalidImmContentException>(() => GetImmAsync(fixture));
-        IpMaturityMatrix retried = await GetImmAsync(fixture);
+        IpMaturityModel retried = await GetImmAsync(fixture);
 
         // Assert
         exception.Url.ShouldBe(new Uri(ImmUrl));
@@ -568,19 +568,19 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_ConcurrentRequestsForTheSameImm_ShareASingleRequestToGitHub()
+    public async Task GetIpMaturityModelAsync_ConcurrentRequestsForTheSameImm_ShareASingleRequestToGitHub()
     {
         // Arrange
         TaskCompletionSource<HttpResponseMessage> gitHubResponse = new(TaskCreationOptions.RunContinuationsAsynchronously);
         using ImmSourceFixture fixture = new((_, _) => gitHubResponse.Task);
 
         // Act
-        Task<IpMaturityMatrix> first = GetImmAsync(fixture);
-        Task<IpMaturityMatrix> second = GetImmAsync(fixture);
-        Task<IpMaturityMatrix> third = GetImmAsync(fixture);
+        Task<IpMaturityModel> first = GetImmAsync(fixture);
+        Task<IpMaturityModel> second = GetImmAsync(fixture);
+        Task<IpMaturityModel> third = GetImmAsync(fixture);
         int requestsInFlight = fixture.Handler.Requests.Count;
         gitHubResponse.SetResult(StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\"", OneHour));
-        IpMaturityMatrix[] results = await Task.WhenAll(first, second, third);
+        IpMaturityModel[] results = await Task.WhenAll(first, second, third);
 
         // Assert
         requestsInFlight.ShouldBe(1);
@@ -590,7 +590,7 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_RequestedAgainWithinTwentyMinutes_StaysInTheCache()
+    public async Task GetIpMaturityModelAsync_RequestedAgainWithinTwentyMinutes_StaysInTheCache()
     {
         // Arrange
         FakeSystemClock clock = new();
@@ -599,11 +599,11 @@ public class GitHubContentCachingTests
             clock);
 
         // Act
-        IpMaturityMatrix first = await GetImmAsync(fixture);
+        IpMaturityModel first = await GetImmAsync(fixture);
         clock.Advance(TimeSpan.FromMinutes(19));
-        IpMaturityMatrix second = await GetImmAsync(fixture);
+        IpMaturityModel second = await GetImmAsync(fixture);
         clock.Advance(TimeSpan.FromMinutes(19));
-        IpMaturityMatrix third = await GetImmAsync(fixture);
+        IpMaturityModel third = await GetImmAsync(fixture);
 
         // Assert
         fixture.Handler.Requests.Count.ShouldBe(1);
@@ -612,7 +612,7 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
-    public async Task GetIpMaturityMatrixAsync_NotRequestedForMoreThanTwentyMinutes_IsEvictedAndFetchedAgainUnconditionally()
+    public async Task GetIpMaturityModelAsync_NotRequestedForMoreThanTwentyMinutes_IsEvictedAndFetchedAgainUnconditionally()
     {
         // Arrange
         FakeSystemClock clock = new();
@@ -621,9 +621,9 @@ public class GitHubContentCachingTests
             clock);
 
         // Act
-        IpMaturityMatrix first = await GetImmAsync(fixture);
+        IpMaturityModel first = await GetImmAsync(fixture);
         clock.Advance(TimeSpan.FromMinutes(21));
-        IpMaturityMatrix afterEviction = await GetImmAsync(fixture);
+        IpMaturityModel afterEviction = await GetImmAsync(fixture);
 
         // Assert
         fixture.Handler.Requests.Count.ShouldBe(2);
@@ -631,6 +631,6 @@ public class GitHubContentCachingTests
         afterEviction.ShouldNotBeSameAs(first);
     }
 
-    private static Task<IpMaturityMatrix> GetImmAsync(ImmSourceFixture fixture) =>
-        fixture.ImmSource.GetIpMaturityMatrixAsync(Owner, Project, Branch);
+    private static Task<IpMaturityModel> GetImmAsync(ImmSourceFixture fixture) =>
+        fixture.ImmSource.GetIpMaturityModelAsync(Owner, Project, Branch);
 }

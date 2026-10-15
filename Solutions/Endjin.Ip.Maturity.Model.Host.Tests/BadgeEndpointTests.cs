@@ -266,7 +266,7 @@ public class BadgeEndpointTests
 
         // Assert
         await fixture.RuleDefinitionSource.Received(1).GetRuleDefinitionRepositoryAsync(expectedDefinitionsBranch);
-        await fixture.ImmSource.Received(1).GetIpMaturityMatrixAsync(ImmFunctionFixture.Org, ImmFunctionFixture.Project, expectedProjectBranch);
+        await fixture.ImmSource.Received(1).GetIpMaturityModelAsync(ImmFunctionFixture.Org, ImmFunctionFixture.Project, expectedProjectBranch);
     }
 
     [TestMethod]
@@ -286,6 +286,6 @@ public class BadgeEndpointTests
 
         // Assert
         await fixture.RuleDefinitionSource.Received(1).GetRuleDefinitionRepositoryAsync(expectedDefinitionsBranch);
-        await fixture.ImmSource.Received(1).GetIpMaturityMatrixAsync(ImmFunctionFixture.Org, ImmFunctionFixture.Project, expectedProjectBranch);
+        await fixture.ImmSource.Received(1).GetIpMaturityModelAsync(ImmFunctionFixture.Org, ImmFunctionFixture.Project, expectedProjectBranch);
     }
 }

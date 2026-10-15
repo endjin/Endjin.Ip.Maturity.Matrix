@@ -2,7 +2,7 @@ namespace Endjin.Imm.Tests.TestData;
 
 /// <summary>
 /// Project IMM documents shared by the tests, in the same YAML form as a project's
-/// <c>imm.yaml</c> that <see cref="Endjin.Imm.Domain.IpMaturityMatrix.FromYaml(string)"/> loads.
+/// <c>imm.yaml</c> that <see cref="Endjin.Imm.Domain.IpMaturityModel.FromYaml(string)"/> loads.
 /// </summary>
 internal static class ImmYaml
 {

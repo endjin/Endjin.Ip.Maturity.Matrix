@@ -26,7 +26,7 @@ public class ErrorBadgeTests
 
     private const string ImmUrl = "https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Model/master/imm.yaml";
 
-    private static readonly Uri RuleSetUrl = new(IpMaturityMatrixRuleset.DefinitionsUrlForName("master"));
+    private static readonly Uri RuleSetUrl = new(IpMaturityModelRuleset.DefinitionsUrlForName("master"));
 
     [TestMethod]
     public async Task GitHubImmTotalScore_ImmNotFound_ReturnsA200SvgBadgeSayingImmYamlNotFoundInLightGrey()
@@ -83,7 +83,7 @@ public class ErrorBadgeTests
         // Arrange
         ImmFunctionFixture fixture = new(HostYaml.TwoRuleSet, HostYaml.BothRulesScored);
         fixture.RuleSetFailsWith(new GitHubContentNotFoundException(
-            new Uri(IpMaturityMatrixRuleset.DefinitionsUrlForName("does-not-exist")), HttpStatusCode.NotFound));
+            new Uri(IpMaturityModelRuleset.DefinitionsUrlForName("does-not-exist")), HttpStatusCode.NotFound));
         HttpRequest request = ImmFunctionFixture.CreateRequest("?definitionsBranch=does-not-exist");
 
         // Act
@@ -346,7 +346,7 @@ public class ErrorBadgeTests
     {
         try
         {
-            IpMaturityMatrix.FromYaml(yaml);
+            IpMaturityModel.FromYaml(yaml);
         }
         catch (YamlException ex)
         {
