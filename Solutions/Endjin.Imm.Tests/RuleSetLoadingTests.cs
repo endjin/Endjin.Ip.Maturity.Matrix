@@ -104,10 +104,12 @@ public class RuleSetLoadingTests
     }
 
     [TestMethod]
-    public void FromYaml_EmptyMeasureEntry_LoadsDefaultMeasureDefinition()
+    [DataRow("")]
+    [DataRow("!!null")]
+    public void FromYaml_NullMeasureEntry_LoadsDefaultMeasureDefinition(string nullMeasure)
     {
         // Arrange
-        const string ruleSetYaml = $"""
+        string ruleSetYaml = $"""
             -
                 Name: 'Shared Engineering Standards'
                 Id: '{RuleSetYaml.SharedEngineeringStandardsRuleId}'
@@ -116,7 +118,7 @@ public class RuleSetLoadingTests
                     -
                         Score: 1
                         Description: Configured
-                    -
+                    - {nullMeasure}
             """;
 
         // Act

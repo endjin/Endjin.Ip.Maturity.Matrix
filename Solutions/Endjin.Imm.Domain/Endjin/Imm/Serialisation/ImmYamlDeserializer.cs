@@ -26,16 +26,26 @@
         /// </para>
         /// <para>
         /// Property matching is case-insensitive, and unrecognised properties are ignored. A bare
-        /// <c>-</c> measure entry becomes a default instance of the base measure type (see
+        /// <c>-</c> measure entry, or one that is null in any other form including <c>!!null</c>,
+        /// becomes a default instance of the base measure type (see
         /// <see cref="EmptyNodeAsDefaultInstanceNodeDeserializer{T}"/>).
         /// </para>
         /// </remarks>
-        public static IDeserializer Create() =>
-            new DeserializerBuilder()
+        public static IDeserializer Create()
+        {
+            var emptyMeasureDefinition = new EmptyNodeAsDefaultInstanceNodeDeserializer<MeasureDefinition>();
+            var emptyMeasureAssertion = new EmptyNodeAsDefaultInstanceNodeDeserializer<MeasureAssertion>();
+
+            return new DeserializerBuilder()
                 .IgnoreUnmatchedProperties()
                 .WithCaseInsensitivePropertyMatching()
-                .WithNodeDeserializer(new EmptyNodeAsDefaultInstanceNodeDeserializer<MeasureDefinition>())
-                .WithNodeDeserializer(new EmptyNodeAsDefaultInstanceNodeDeserializer<MeasureAssertion>())
+
+                // Also registered as type resolvers (on top, so ahead of the one that rejects
+                // unknown tags), so that a !!null measure entry reaches them as deserializers.
+                .WithNodeTypeResolver(emptyMeasureDefinition)
+                .WithNodeTypeResolver(emptyMeasureAssertion)
+                .WithNodeDeserializer(emptyMeasureDefinition)
+                .WithNodeDeserializer(emptyMeasureAssertion)
 
                 // The type-discriminating deserializer must be configured last.
                 .WithTypeDiscriminatingNodeDeserializer(options =>
@@ -54,5 +64,6 @@
                         });
                 })
                 .Build();
+        }
     }
 }

@@ -22,12 +22,23 @@
     /// headers GitHub returns. We hold onto cached content using a sliding 20 minute window. When
     /// the cached content reaches the maximum age indicated by GitHub's last response, we perform
     /// a conditional GET using the ETag previously returned by GitHub, so if the content hasn't
-    /// changed since last time (and it with this application, it usually won't have), 
+    /// changed since last time (and with this application, it usually won't have), GitHub can
+    /// reply with 304 Not Modified and we reuse the content we already deserialized.
+    /// </para>
+    /// <para>
+    /// A response with no Cache-Control header, or one with no max-age, is treated as fresh for
+    /// one minute. A response marked <c>no-cache</c> is kept but revalidated every time it is
+    /// used. A response marked <c>no-store</c> is not kept for reuse at all, so each request
+    /// fetches the content again, unconditionally. (GitHub does not send <c>no-store</c> for the
+    /// public content we fetch, so honouring it as the origin asks costs nothing in practice.)
+    /// A 304 that does not repeat the ETag leaves the stored one in place.
     /// </para>
     /// </remarks>
     internal class HttpDeserializingCache<T>
         where T : class
     {
+        private static readonly TimeSpan DefaultFreshnessLifetime = TimeSpan.FromMinutes(1);
+
         private readonly object sync = new();
         private readonly IMemoryCache memoryCache;
         private readonly HttpClient httpClient;
@@ -106,23 +117,46 @@
                 response.EnsureSuccessStatusCode();
             }
 
+            CacheControlHeaderValue? cacheControl = response.Headers.CacheControl;
+            bool mayStore = cacheControl?.NoStore != true;
+
             // We want to update our expiration time whether we ended up fetching new content, or
             // we're just reusing the old content.
             lock (sync)
             {
                 record.ExpirationTicks = Environment.TickCount64 +
-                    (int)(response.Headers.CacheControl?.MaxAge?.TotalMilliseconds ?? 60_000.0);
-                record.ETag = response.Headers.ETag;
+                    (long)GetFreshnessLifetime(cacheControl).TotalMilliseconds;
+
+                // A 304 need not repeat the ETag, in which case the one we revalidated with still
+                // identifies the content we hold.
+                if (!contentNotChanged || response.Headers.ETag != null)
+                {
+                    record.ETag = response.Headers.ETag;
+                }
+
+                if (!mayStore)
+                {
+                    record.ETag = null;
+                }
             }
 
-            if (contentNotChanged && record.LastResult != null)
-            {
-                return record.LastResult;
-            }
-            T result = await this.deserializer.DeserializeAsync(response).ConfigureAwait(false);
-            record.LastResult = result;
+            T result = contentNotChanged && record.LastResult != null
+                ? record.LastResult
+                : await this.deserializer.DeserializeAsync(response).ConfigureAwait(false);
+
+            // Without a last result, the next fetch will be unconditional.
+            record.LastResult = mayStore ? result : null;
             return result;
         }
+
+        private static TimeSpan GetFreshnessLifetime(CacheControlHeaderValue? cacheControl) =>
+            cacheControl switch
+            {
+                null => DefaultFreshnessLifetime,
+                { NoCache: true } or { NoStore: true } => TimeSpan.Zero,
+                { MaxAge: TimeSpan maxAge } => maxAge,
+                _ => DefaultFreshnessLifetime,
+            };
 
         private class Record
         {

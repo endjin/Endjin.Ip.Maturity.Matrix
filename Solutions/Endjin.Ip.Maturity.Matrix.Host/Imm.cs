@@ -93,8 +93,11 @@ namespace Endjin.Ip.Maturity.Matrix.Host
 
             ImmEvaluation evaluationResult = evaluationEngine.Evaluate(ruleAssertions);
 
-            string encodedRulesObjectName = WebUtility.UrlEncode(rulesObjectName);
-            string encodedProjectObjectName = WebUtility.UrlEncode(projectObjectName);
+            // Each path segment and query value is URL-encoded, and each complete URL is then
+            // HTML-encoded (so '&' becomes '&amp;') because it is written into an attribute.
+            string badgeUrlPrefix = $"/api/imm/github/{Uri.EscapeDataString(org)}/{Uri.EscapeDataString(project)}/";
+            string badgeQueryString =
+                $"?cache=false&definitionsBranch={Uri.EscapeDataString(rulesObjectName)}&projectBranch={Uri.EscapeDataString(projectObjectName)}";
 
             var sb = new StringBuilder();
             using (var sw = new StringWriter(sb))
@@ -120,15 +123,8 @@ namespace Endjin.Ip.Maturity.Matrix.Host
                 sw.WriteLine("  <div>");
                 sw.WriteLine("  <p>Total score</p>");
 
-                sw.Write("    <img src=\"/api/imm/github/");
-                sw.Write(org);
-                sw.Write("/");
-                sw.Write(project);
-                sw.Write("/total");
-                sw.Write("?cache=false&definitionsBranch=");
-                sw.Write(encodedRulesObjectName);
-                sw.Write("&projectBranch=");
-                sw.Write(encodedProjectObjectName);
+                sw.Write("    <img src=\"");
+                sw.Write(WebUtility.HtmlEncode(badgeUrlPrefix + "total" + badgeQueryString));
                 sw.WriteLine("\" />");
 
                 sw.WriteLine("  </div>");
@@ -143,16 +139,9 @@ namespace Endjin.Ip.Maturity.Matrix.Host
                 {
                     sw.WriteLine("      <tr>");
                     sw.WriteLine("        <td>");
-                    sw.Write("          <img src=\"/api/imm/github/");
-                    sw.Write(org);
-                    sw.Write("/");
-                    sw.Write(project);
-                    sw.Write("/rule/");
-                    sw.Write(evaluation.RuleAssertion.Id);
-                    sw.Write("?cache=false&definitionsBranch=");
-                    sw.Write(encodedRulesObjectName);
-                    sw.Write("&projectBranch=");
-                    sw.Write(encodedProjectObjectName);
+                    sw.Write("          <img src=\"");
+                    sw.Write(WebUtility.HtmlEncode(
+                        badgeUrlPrefix + "rule/" + Uri.EscapeDataString(evaluation.RuleAssertion.Id.ToString()) + badgeQueryString));
                     sw.WriteLine("\" />");
                     sw.WriteLine("        </td>");
                     sw.WriteLine("      </tr>");

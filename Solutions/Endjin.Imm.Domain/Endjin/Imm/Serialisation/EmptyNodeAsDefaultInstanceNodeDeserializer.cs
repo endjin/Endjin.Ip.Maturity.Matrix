@@ -18,11 +18,19 @@
     /// </para>
     /// <para>
     /// The null detection mirrors YamlDotNet's own <c>NullNodeDeserializer</c>: a scalar with an
-    /// explicit <c>tag:yaml.org,2002:null</c> tag, or a plain scalar whose value is empty,
-    /// <c>~</c>, <c>null</c>, <c>Null</c> or <c>NULL</c>.
+    /// explicit <c>tag:yaml.org,2002:null</c> (<c>!!null</c>) tag, or a plain scalar whose value
+    /// is empty, <c>~</c>, <c>null</c>, <c>Null</c> or <c>NULL</c>.
+    /// </para>
+    /// <para>
+    /// YamlDotNet has no tag mapping for <c>!!null</c>, so its <c>PreventUnknownTagsNodeTypeResolver</c>
+    /// rejects such a node as an unresolved tag before any node deserializer sees it. So that the
+    /// tag can be handled, this type is also a node type resolver, and an instance must be
+    /// registered as one (ahead of that resolver) as well as as a node deserializer. As a resolver
+    /// it accepts only a <c>!!null</c> scalar where a <typeparamref name="T"/> is expected, so
+    /// <c>!!null</c> remains an unresolved tag everywhere else.
     /// </para>
     /// </remarks>
-    internal sealed class EmptyNodeAsDefaultInstanceNodeDeserializer<T> : INodeDeserializer
+    internal sealed class EmptyNodeAsDefaultInstanceNodeDeserializer<T> : INodeDeserializer, INodeTypeResolver
         where T : class, new()
     {
         private const string NullTag = "tag:yaml.org,2002:null";
@@ -42,9 +50,13 @@
             return true;
         }
 
+        /// <inheritdoc/>
+        public bool Resolve(NodeEvent? nodeEvent, ref Type currentType) =>
+            currentType == typeof(T) && nodeEvent is Scalar scalar && HasNullTag(scalar);
+
         private static bool IsNull(Scalar scalar)
         {
-            if (!scalar.Tag.IsEmpty && scalar.Tag.Value == NullTag)
+            if (HasNullTag(scalar))
             {
                 return true;
             }
@@ -52,5 +64,7 @@
             return scalar.Style == ScalarStyle.Plain
                 && scalar.Value is "" or "~" or "null" or "Null" or "NULL";
         }
+
+        private static bool HasNullTag(Scalar scalar) => !scalar.Tag.IsEmpty && scalar.Tag.Value == NullTag;
     }
 }

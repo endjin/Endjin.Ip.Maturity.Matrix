@@ -39,12 +39,21 @@ internal sealed class StubHttpMessageHandler(Func<HttpRequestMessage, int, Task<
 
     /// <summary>
     /// Creates a 304 Not Modified response, as GitHub returns for a conditional request whose
-    /// ETag still matches.
+    /// ETag still matches. A 304 need not repeat the ETag, so <paramref name="eTag"/> may be null.
     /// </summary>
-    public static HttpResponseMessage NotModified(string eTag, TimeSpan? maxAge = null)
+    public static HttpResponseMessage NotModified(string? eTag, TimeSpan? maxAge = null)
     {
         HttpResponseMessage response = new(HttpStatusCode.NotModified);
         SetCachingHeaders(response, eTag, maxAge);
+        return response;
+    }
+
+    /// <summary>
+    /// Replaces the response's Cache-Control header with the given value.
+    /// </summary>
+    public static HttpResponseMessage WithCacheControl(HttpResponseMessage response, string cacheControl)
+    {
+        response.Headers.CacheControl = CacheControlHeaderValue.Parse(cacheControl);
         return response;
     }
 

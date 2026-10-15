@@ -17,6 +17,8 @@ public class ImmLoadingTests
     [DataRow("null")]
     [DataRow("Null")]
     [DataRow("NULL")]
+    [DataRow("!!null")]
+    [DataRow("!!null ~")]
     public void FromYaml_NullMeasureEntry_LoadsAnEmptyMeasureAssertion(string nullMeasure)
     {
         // Arrange

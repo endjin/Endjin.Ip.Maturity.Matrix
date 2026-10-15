@@ -13,7 +13,8 @@ namespace Endjin.Imm.Tests;
 /// that a page showing many badges does not ask GitHub for the same file again and again, while
 /// changes to the file are still picked up once the cached copy is stale. Stale content is
 /// revalidated with a conditional request, failures are never cached, and an entry that nobody
-/// has asked for in 20 minutes is dropped.
+/// has asked for in 20 minutes is dropped. Content marked no-cache is revalidated every time it
+/// is used, and content marked no-store is not kept at all.
 /// </summary>
 [TestClass]
 public class GitHubContentCachingTests
@@ -82,6 +83,86 @@ public class GitHubContentCachingTests
         // Assert
         fixture.Handler.Requests.Count.ShouldBe(1);
         second.ShouldBeSameAs(first);
+    }
+
+    [TestMethod]
+    [DataRow("no-cache")]
+    [DataRow("public, no-cache")]
+    [DataRow("no-cache, max-age=3600")]
+    public async Task GetIpMaturityMatrixAsync_ResponseWithNoCache_IsRevalidatedWithETagOnEveryRequest(string cacheControl)
+    {
+        // Arrange
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
+            () => StubHttpMessageHandler.WithCacheControl(
+                StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\""), cacheControl),
+            () => StubHttpMessageHandler.WithCacheControl(StubHttpMessageHandler.NotModified("\"v1\""), cacheControl),
+            () => StubHttpMessageHandler.WithCacheControl(StubHttpMessageHandler.NotModified("\"v1\""), cacheControl));
+
+        // Act
+        IpMaturityMatrix first = await GetImmAsync(fixture);
+        IpMaturityMatrix second = await GetImmAsync(fixture);
+        IpMaturityMatrix third = await GetImmAsync(fixture);
+
+        // Assert
+        fixture.Handler.Requests.Select(r => r.IfNoneMatch).ShouldBe(
+        [
+            [],
+            ["\"v1\""],
+            ["\"v1\""],
+        ]);
+        second.ShouldBeSameAs(first);
+        third.ShouldBeSameAs(first);
+    }
+
+    // no-store forbids keeping the response, so there is no copy to revalidate: every request fetches the content afresh.
+    [TestMethod]
+    [DataRow("no-store")]
+    [DataRow("no-store, max-age=3600")]
+    [DataRow("no-cache, no-store")]
+    public async Task GetIpMaturityMatrixAsync_ResponseWithNoStore_IsFetchedAgainUnconditionallyOnEveryRequest(string cacheControl)
+    {
+        // Arrange
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingWith(
+            () => StubHttpMessageHandler.WithCacheControl(
+                StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\""), cacheControl));
+
+        // Act
+        IpMaturityMatrix first = await GetImmAsync(fixture);
+        IpMaturityMatrix second = await GetImmAsync(fixture);
+
+        // Assert
+        fixture.Handler.Requests.Select(r => r.IfNoneMatch).ShouldBe(
+        [
+            [],
+            [],
+        ]);
+        second.ShouldNotBeSameAs(first);
+        second.Rules.Single().Measures.Single().Score.ShouldBe(1);
+    }
+
+    [TestMethod]
+    public async Task GetIpMaturityMatrixAsync_NotModifiedResponseWithoutAnETag_KeepsRevalidatingWithThePreviousETag()
+    {
+        // Arrange
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
+            () => StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\"", TimeSpan.Zero),
+            () => StubHttpMessageHandler.NotModified(null, TimeSpan.Zero),
+            () => StubHttpMessageHandler.NotModified("\"v1\"", TimeSpan.Zero));
+
+        // Act
+        IpMaturityMatrix first = await GetImmAsync(fixture);
+        IpMaturityMatrix second = await GetImmAsync(fixture);
+        IpMaturityMatrix third = await GetImmAsync(fixture);
+
+        // Assert
+        fixture.Handler.Requests.Select(r => r.IfNoneMatch).ShouldBe(
+        [
+            [],
+            ["\"v1\""],
+            ["\"v1\""],
+        ]);
+        second.ShouldBeSameAs(first);
+        third.ShouldBeSameAs(first);
     }
 
     [TestMethod]

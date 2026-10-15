@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.RegularExpressions;
 using Endjin.Ip.Maturity.Matrix.Host.Tests.TestData;
 using Microsoft.AspNetCore.Http;
@@ -74,7 +75,8 @@ public partial class ShowBadgesPageTests
     [TestMethod]
     [DataRow("", "master", "master")]
     [DataRow("?definitionsBranch=v2&projectBranch=feature/x", "v2", "feature%2Fx")]
-    [DataRow("?projectBranch=release%201.0", "master", "release+1.0")]
+    [DataRow("?projectBranch=release%201.0", "master", "release%201.0")]
+    [DataRow("?projectBranch=a%26b%3Dc", "master", "a%26b%3Dc")]
     public async Task GitHubImmAllBadges_ScoredRules_ShowsTheTotalThenEachRuleBadgeFromTheSameBranches(
         string queryString,
         string expectedEncodedDefinitionsBranch,
@@ -95,6 +97,56 @@ public partial class ShowBadgesPageTests
             $"/api/imm/github/endjin/Endjin.Ip.Maturity.Matrix/rule/{HostYaml.DeploymentRuleId}{branches}",
             $"/api/imm/github/endjin/Endjin.Ip.Maturity.Matrix/rule/{HostYaml.SharedEngineeringStandardsRuleId}{branches}",
         ]);
+    }
+
+    [TestMethod]
+    [DataRow("my org", "my project", "my%20org", "my%20project")]
+    [DataRow("endjin", "x\" onerror=\"alert(1)", "endjin", "x%22%20onerror%3D%22alert%281%29")]
+    [DataRow("a<b>&c", "d/e?f#g", "a%3Cb%3E%26c", "d%2Fe%3Ff%23g")]
+    public async Task GitHubImmAllBadges_OrgOrProjectNeedingEncoding_IsUrlEncodedInEachBadgeUrlAndCannotBreakOutOfTheAttribute(
+        string org,
+        string project,
+        string expectedEncodedOrg,
+        string expectedEncodedProject)
+    {
+        // Arrange
+        ImmFunctionFixture fixture = new(HostYaml.TwoRuleSet, HostYaml.BothRulesScored);
+        string badges = $"/api/imm/github/{expectedEncodedOrg}/{expectedEncodedProject}";
+        const string branches = "?cache=false&definitionsBranch=master&projectBranch=master";
+
+        // Act
+        IActionResult result = await fixture.Functions.GitHubImmAllBadges(ImmFunctionFixture.CreateRequest(), org, project);
+
+        // Assert
+        string html = result.ShouldBeOfType<ContentResult>().Content!;
+        ImageSources(html).ShouldBe(
+        [
+            $"{badges}/total{branches}",
+            $"{badges}/rule/{HostYaml.DeploymentRuleId}{branches}",
+            $"{badges}/rule/{HostYaml.SharedEngineeringStandardsRuleId}{branches}",
+        ]);
+        List<string> imageElements = [.. ImageElementPattern().Matches(html).Select(m => m.Value)];
+        imageElements.Count.ShouldBe(3);
+        imageElements.ShouldAllBe(img => WellFormedImageElementPattern().IsMatch(img));
+    }
+
+    [TestMethod]
+    [DataRow("")]
+    [DataRow("?definitionsBranch=v2&projectBranch=feature/x")]
+    public async Task GitHubImmAllBadges_BadgeUrlQueryStrings_SeparateParametersWithHtmlEncodedAmpersands(string queryString)
+    {
+        // Arrange
+        ImmFunctionFixture fixture = new(HostYaml.TwoRuleSet, HostYaml.BothRulesScored);
+
+        // Act
+        IActionResult result = await fixture.Functions.GitHubImmAllBadges(
+            ImmFunctionFixture.CreateRequest(queryString), ImmFunctionFixture.Org, ImmFunctionFixture.Project);
+
+        // Assert
+        List<string> rawSources = RawImageSources(result.ShouldBeOfType<ContentResult>().Content!);
+        rawSources.Count.ShouldBe(3);
+        rawSources.ShouldAllBe(src => src.Contains("?cache=false&amp;definitionsBranch=") && src.Contains("&amp;projectBranch="));
+        rawSources.ShouldAllBe(src => !BareAmpersandPattern().IsMatch(src));
     }
 
     [TestMethod]
@@ -134,7 +186,12 @@ public partial class ShowBadgesPageTests
 
     private static string Title(string html) => TitlePattern().Match(html).Groups["title"].Value;
 
+    // The URLs the browser requests: the src attribute values with HTML character references decoded.
     private static List<string> ImageSources(string html) =>
+        [.. RawImageSources(html).Select(src => WebUtility.HtmlDecode(src))];
+
+    // The src attribute values exactly as they appear in the HTML.
+    private static List<string> RawImageSources(string html) =>
         [.. ImageSourcePattern().Matches(html).Select(m => m.Groups["src"].Value)];
 
     [GeneratedRegex("<title>(?<title>.*?)</title>", RegexOptions.Singleline)]
@@ -142,4 +199,16 @@ public partial class ShowBadgesPageTests
 
     [GeneratedRegex("<img src=\"(?<src>[^\"]*)\"")]
     private static partial Regex ImageSourcePattern();
+
+    // An img element, up to the first '>'.
+    [GeneratedRegex("<img\\b[^>]*>")]
+    private static partial Regex ImageElementPattern();
+
+    // An img element with a src attribute and nothing else, its value containing no markup.
+    [GeneratedRegex("^<img src=\"[^\"<>]*\" />$")]
+    private static partial Regex WellFormedImageElementPattern();
+
+    // An ampersand that does not start a character reference.
+    [GeneratedRegex("&(?!amp;|lt;|gt;|quot;|#)")]
+    private static partial Regex BareAmpersandPattern();
 }

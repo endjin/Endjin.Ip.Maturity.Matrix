@@ -92,7 +92,7 @@ public class RequestPipelineBenchmarks
         return BadgePainter.DrawSVG(
             "IMM",
             $"{evaluationResult.TotalScore} / {evaluationResult.MaximumPossibleTotalScore}",
-            BadgeColour.ForPercentage(100M * evaluationResult.TotalScore / evaluationResult.MaximumPossibleTotalScore),
+            BadgeColour.ForPercentage(TotalScore.Percentage(evaluationResult)),
             Style.Flat);
     }
 }
