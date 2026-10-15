@@ -5,7 +5,7 @@
     using System.Text;
 
     /// <summary>
-    /// Draws shields-style SVG badges.
+    /// Draws SVG status badges.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -14,7 +14,7 @@
     /// </para>
     /// <para>
     /// The viewer's browser draws the text with whichever font in the templates' font-family list it
-    /// has, which need not be Verdana, so (as shields.io does) every text is given a <c>textLength</c> of
+    /// has, which need not be Verdana, so every text is given a <c>textLength</c> of
     /// the measured width: the browser spaces the glyphs of whatever font it uses to fill exactly the
     /// width the badge was sized for. Texts are drawn at ten times the size inside a <c>scale(.1)</c>
     /// group, so that <c>x</c> and <c>textLength</c> can be written as whole numbers of tenths of a pixel:
