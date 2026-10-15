@@ -9,10 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SixLabors.Fonts" />
-  </ItemGroup>
-
-  <ItemGroup>
     <InternalsVisibleTo Include="Endjin.Badger.Tests" />
     <InternalsVisibleTo Include="Endjin.Imm.Benchmarks" />
   </ItemGroup>

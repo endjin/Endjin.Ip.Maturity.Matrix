@@ -2,6 +2,8 @@
 
   <ItemGroup>
     <PackageReference Include="Shouldly" />
+    <!-- Test-only: the oracle tests measure with Verdana itself to check VerdanaMetrics against it. -->
+    <PackageReference Include="SixLabors.Fonts" />
   </ItemGroup>
 
   <ItemGroup>

@@ -325,7 +325,7 @@ There are three test projects. They are written with MSTest and [Shouldly](https
 
 - `Solutions/Endjin.Imm.Tests` covers rule evaluation, YAML loading, and fetching and caching the rule set and IMMs from GitHub.
 - `Solutions/Endjin.Badger.Tests` covers SVG badge rendering.
-- `Solutions/Endjin.Ip.Maturity.Model.Host.Tests` covers the badge and `showbadges` functions.
+- `Solutions/Endjin.Ip.Maturity.Model.Host.Tests` covers the badge and `showbadges` functions, and the startup warm-up.
 
 To collect code coverage and a TRX report as well:
 
@@ -335,7 +335,72 @@ dotnet test --solution Solutions/Endjin.Ip.Maturity.Model.slnx --coverage --repo
 
 `Endjin.Imm.App` is a console app that renders badges for the `imm-default.yaml` file in its working directory, which is handy for checking changes to the badge rendering.
 
-`Endjin.Ip.Maturity.Model.Host` is an Azure Function using the isolated worker model with ASP.NET Core integration. To run it locally, copy `local.settings.json.template` to `local.settings.json` and start it with the [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) (`func start`, or `dotnet run`, which calls `func` for you). When deploying, the Function App must use the .NET 10 (isolated) stack and have the `FUNCTIONS_WORKER_RUNTIME` app setting set to `dotnet-isolated`.
+`Endjin.Ip.Maturity.Model.Host` is an Azure Function using the isolated worker model with ASP.NET Core integration. To run it locally, copy `local.settings.json.template` to `local.settings.json` and start it with the [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) (`func start`, or `dotnet run`, which calls `func` for you). The template sets `FUNCTIONS_WORKER_RUNTIME` to `dotnet-isolated`, which the Core Tools need. In Azure, the Function App runs on Flex Consumption, which sets the runtime in a different way: see the next section.
+
+### Deploying to Azure Functions Flex Consumption
+
+The Host is designed to run on the [Flex Consumption plan](https://learn.microsoft.com/azure/azure-functions/flex-consumption-plan), which runs on Linux only.
+
+#### Create the Function App
+
+Create the app with the .NET 10 isolated runtime and 2048 MB instances. Put its storage account in the same region as the app.
+
+```console
+az functionapp create --resource-group <rg> --name <app> --storage-account <storage> \
+  --flexconsumption-location <region> --runtime dotnet-isolated --runtime-version 10.0 \
+  --instance-memory 2048
+```
+
+- Use 2048 MB instances. Do not use 512 MB: the CPU allocation scales with the memory size, and a 512 MB instance has a quarter of a core (a 2048 MB instance has one core), so cold starts and badge rendering are slower.
+- Flex Consumption sets the runtime and its version in the app's `functionAppConfig`, not in app settings. Do not set these app settings, which Flex Consumption does not support: `FUNCTIONS_WORKER_RUNTIME`, `FUNCTIONS_EXTENSION_VERSION`, `WEBSITE_RUN_FROM_PACKAGE` and `WEBSITE_MAX_DYNAMIC_APPLICATION_SCALE_OUT`. The site settings `alwaysOn`, `use32BitWorkerProcess` and `netFrameworkVersion` also do not apply.
+- Do not set `WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED`. By default, Flex Consumption starts .NET isolated apps from a pre-started placeholder, which makes cold starts faster.
+- The Warmup trigger is not supported on Flex Consumption, so the Host does not use it. The Host warms itself up instead (see below).
+
+#### Remove cold starts with always-ready instances
+
+An app with no always-ready instances scales to zero, and the first request after that waits for a cold start. To keep one instance ready for HTTP requests at all times:
+
+```console
+az functionapp scale config always-ready set --resource-group <rg> --name <app> --settings http=1
+```
+
+You pay for always-ready instances while they are idle, so this is a trade-off between cost and latency. It is the only way to make sure that no request waits for a cold start.
+
+#### Deploy the package
+
+The build publishes the Host for `linux-x64` with [ReadyToRun](https://learn.microsoft.com/dotnet/core/deploying/ready-to-run) compilation, which precompiles the assemblies to native code so that less code is JIT compiled during a cold start. The publish settings are in `.zf/build-config.ps1`, not in the project file, so local builds and tests are not affected. The output is in `_packages/Endjin.Ip.Maturity.Model.Host/linux-x64/`, and CI uploads it as the `function-app` artifact. CI also runs `tools/Test-ReadyToRun.ps1`, which fails the build if the app's own assemblies are not ReadyToRun.
+
+The package is ready to run, so deploy it without a remote build. Zip the contents of the publish folder, including the hidden `.azurefunctions` folder, which the isolated worker needs. (PowerShell's `Compress-Archive` leaves out hidden files, so do not use it.)
+
+```console
+# Linux or macOS
+cd _packages/Endjin.Ip.Maturity.Model.Host/linux-x64 && zip -r ../app.zip . && cd -
+
+# PowerShell
+[IO.Compression.ZipFile]::CreateFromDirectory("$PWD/_packages/Endjin.Ip.Maturity.Model.Host/linux-x64", "$PWD/_packages/app.zip")
+
+az functionapp deployment source config-zip --resource-group <rg> --name <app> --src _packages/app.zip
+```
+
+From GitHub Actions, you can instead deploy the `function-app` artifact with [`Azure/functions-action`](https://github.com/Azure/functions-action), with `remote-build: false` and OpenID Connect sign-in to Azure.
+
+#### Startup warm-up
+
+When an instance starts, the Host's `StartupWarmup` service does, in the background, the one-off work that would otherwise slow down the first request: it renders badges, loads and evaluates a small IMM (which compiles that code and builds the YAML deserializer), and fetches the canonical rule set from GitHub, which the Host then caches. It does not delay startup, which matters because Flex Consumption allows an app only 30 seconds to initialize when an instance is assigned to it. Requests that arrive before it finishes are served as usual.
+
+When it finishes, it writes one log line that contains `Warm-up:`. The worker relays logs to the Functions host only when they are written during a function invocation, so the Host also writes this line (and only this line) to the console, which the Functions host captures. Look for it in the log stream, or in the Application Insights `traces` table, for example with `traces | where message contains "Warm-up:"`. The line gives the time taken by each step and whether the step succeeded:
+
+```text
+info: Endjin.Ip.Maturity.Model.Host.StartupWarmup[0] Warm-up: badges 104 ms (ok), yaml/evaluate 35 ms (ok), rule set 80 ms (ok)
+```
+
+A failed step shows `failed:` and the exception instead of `ok`, and the line is logged as a warning. A failure does not stop the Host: the step's work is done when the first request needs it, as it would be without the warm-up. If the rule set step fails, check that the app can reach `raw.githubusercontent.com`.
+
+To measure the effect of the warm-up, set the app setting `IMM_DISABLE_WARMUP` to `true`, which turns it off. `tools/Measure-ColdStart.ps1` measures cold starts locally under the Core Tools, with and without ReadyToRun and the warm-up. Its results show the relative effect of each, but they are not the times you will see on Flex Consumption.
+
+#### Troubleshooting
+
+If the worker process fails at startup with exit code 139 (a segmentation fault), you might have hit [azure-functions-dotnet-worker#3335](https://github.com/Azure/azure-functions-dotnet-worker/issues/3335), which affects .NET 10 isolated apps on Flex Consumption. The workarounds are to set the app setting `WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED` to `0` (cold starts are then slower), or to use 4096 MB instances.
 
 ### Benchmarks
 

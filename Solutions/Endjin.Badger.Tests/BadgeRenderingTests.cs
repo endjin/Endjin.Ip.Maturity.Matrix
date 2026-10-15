@@ -7,9 +7,9 @@ namespace Endjin.Badger.Tests;
 
 /// <summary>
 /// A badge is an SVG image in two segments, a grey subject on the left and a coloured status on
-/// the right, each sized to fit its text. The width of the text depends on the fonts installed
-/// (Verdana where available, otherwise the first installed font), so these tests check the
-/// structure and proportions of a badge rather than absolute widths.
+/// the right, each sized to fit its text. Text is sized from a table of Verdana's metrics, whatever
+/// fonts are installed. These tests check the structure and proportions of a badge;
+/// <see cref="BadgeWidthGoldenTests"/> and <see cref="VerdanaMetricsOracleTests"/> check absolute widths.
 /// </summary>
 [TestClass]
 public class BadgeRenderingTests
@@ -94,6 +94,47 @@ public class BadgeRenderingTests
         badge.Texts.Distinct().ShouldBe(["R&D <Tools>", "67%"], ignoreOrder: true);
         badge.Width.ShouldBe(RenderedBadge.ReadWidth(unencoded), Tolerance);
         badge.Width.ShouldBeLessThan(RenderedBadge.ReadWidth(encodingShownLiterally));
+    }
+
+    [TestMethod]
+    [DataRow("\U0001F600")]
+    [DataRow("中")]
+    [DataRow("\u0080")]
+    public void DrawSVG_CharacterNotInTheVerdanaTables_IsGivenTheFallbackWidth(string character)
+    {
+        // Arrange
+        float fallbackWidth = VerdanaMetrics.FallbackAdvanceUnits * VerdanaMetrics.PixelSize / VerdanaMetrics.UnitsPerEm;
+        double withoutCharacter = RenderedBadge.Parse(BadgePainter.DrawSVG("IMM", "50%", ColorScheme.Yellow), "IMM", "50%").SubjectWidth;
+
+        // Act
+        string svg = BadgePainter.DrawSVG("IMM" + character, "50%", ColorScheme.Yellow);
+
+        // Assert
+        RenderedBadge badge = RenderedBadge.Parse(svg, "IMM" + character, "50%");
+        badge.SubjectWidth.ShouldBe(withoutCharacter + fallbackWidth, Tolerance);
+        fallbackWidth.ShouldBe(6.1821f, 0.0001f);
+    }
+
+    [TestMethod]
+    public void DrawSVG_SubjectWithCombiningMarks_IsSizedAsIfTheMarksTookNoWidth()
+    {
+        // Act
+        string combined = BadgePainter.DrawSVG("Résumé", "50%", ColorScheme.Yellow);
+        string unmarked = BadgePainter.DrawSVG("Resume", "50%", ColorScheme.Yellow);
+
+        // Assert
+        RenderedBadge.ReadWidth(combined).ShouldBe(RenderedBadge.ReadWidth(unmarked), Tolerance);
+    }
+
+    [TestMethod]
+    public void DrawSVG_SubjectWithTrailingSpace_IsSizedAsIfTheSpaceWereNotThere()
+    {
+        // Act
+        string trailing = BadgePainter.DrawSVG("Coding Standards ", "50%", ColorScheme.Yellow);
+        string trimmed = BadgePainter.DrawSVG("Coding Standards", "50%", ColorScheme.Yellow);
+
+        // Assert
+        RenderedBadge.ReadWidth(trailing).ShouldBe(RenderedBadge.ReadWidth(trimmed), Tolerance);
     }
 
     [TestMethod]
