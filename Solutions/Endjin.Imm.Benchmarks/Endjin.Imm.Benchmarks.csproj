@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+
+    <!-- Not a test project: keep it out of `dotnet test` and Microsoft.Testing.Platform discovery. -->
+    <IsTestProject>false</IsTestProject>
+    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
+
+    <!-- CA1822: BenchmarkDotNet requires benchmarks to be public instance methods, even when they use no instance state. -->
+    <NoWarn>$(NoWarn);CA1822</NoWarn>
+
+    <!-- Run from the project directory so BenchmarkDotNet.Artifacts lands next to this project. -->
+    <RunWorkingDirectory>$(MSBuildProjectDirectory)</RunWorkingDirectory>
+
+    <NeutralLanguage>en-GB</NeutralLanguage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Endjin.Badger\Endjin.Badger.csproj" />
+    <ProjectReference Include="..\Endjin.Imm.Domain\Endjin.Imm.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data\RuleSet.yaml" LogicalName="RuleSet.yaml" />
+    <EmbeddedResource Include="..\Endjin.Imm.App\imm-default.yaml" Link="Data\imm-default.yaml" LogicalName="imm-default.yaml" />
+  </ItemGroup>
+
+</Project>

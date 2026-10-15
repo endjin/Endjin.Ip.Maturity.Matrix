@@ -25,4 +25,14 @@
     <PackageVersion Include="Shouldly" Version="4.3.0" />
   </ItemGroup>
 
+  <!--
+  Benchmark dependencies (Endjin.Imm.Benchmarks only). The Host must not reference
+  Microsoft.Extensions.Caching.Memory because the ASP.NET Core shared framework already provides it
+  (NU1510); the benchmark project needs it to build a real MemoryCache for HttpDeserializingCache.
+  -->
+  <ItemGroup>
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.13" />
+  </ItemGroup>
+
 </Project>

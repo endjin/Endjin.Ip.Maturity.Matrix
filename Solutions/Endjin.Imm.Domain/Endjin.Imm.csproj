@@ -15,4 +15,7 @@
     <PackageReference Include="NodaTime" />
     <PackageReference Include="YamlDotNet" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Endjin.Imm.Benchmarks" />
+  </ItemGroup>
 </Project>

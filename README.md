@@ -19,25 +19,35 @@ Each of these has different nuances when it comes to the categories in the IP Ma
 
 We have, collectively, defined the following categories as quality measures for our IP. In many ways these measures can be thought of as a more traditional "definition of done". These quality measures cover different aspects of the lifecycle of IP, from maintainance to adoption, to operational support. It also includes commercial and legal concerns.
 
-  - [Shared Engineering Standards](#Shared-Engineering-Standards)
-  - [Coding Standards](#Coding-Standards)
-  - [Executable Specifications](#Executable-Specifications)
-  - [Coverage](#Coverage)
-  - [Benchmarks](#Benchmarks)
-  - [Reference Documentation](#Reference-Documentation)
-  - [Design & Implementation Documentation](#Design--Implementation-Documentation)
-  - [How-to Documentation](#How-to-Documentation)
-  - [Demos](#Demos)
-  - [Date of Last IP Review](#Date-of-Last-IP-Review)
-  - [Framework Version](#Framework-Version)
-  - [Associated Work Items](#Associated-Work-Items)
-  - [Source Code Availability](#Source-Code-Availability)
-  - [License](#License)
-  - [Production Use](#Production-Use)
-  - [Insights](#Insights)
-  - [Packaging](#Packaging)
-  - [Deployment](#Deployment)
-  - [Ops](#Ops)
+- [IP Maturity Matrix](#ip-maturity-matrix)
+  - [Categories](#categories)
+    - [Shared Engineering Standards](#shared-engineering-standards)
+    - [Coding Standards](#coding-standards)
+    - [Executable Specifications](#executable-specifications)
+    - [Coverage](#coverage)
+    - [Benchmarks](#benchmarks)
+    - [Reference Documentation](#reference-documentation)
+    - [Design \& Implementation Documentation](#design--implementation-documentation)
+    - [How-to Documentation](#how-to-documentation)
+    - [Demos](#demos)
+    - [Date of Last IP Review](#date-of-last-ip-review)
+    - [Framework Version](#framework-version)
+    - [Associated Work Items](#associated-work-items)
+    - [Source Code Availability](#source-code-availability)
+    - [License](#license)
+    - [Production Use](#production-use)
+    - [Insights](#insights)
+    - [Packaging](#packaging)
+    - [Deployment](#deployment)
+    - [Ops](#ops)
+  - [The IMM Schema](#the-imm-schema)
+  - [How to use the IP Maturity Matrix](#how-to-use-the-ip-maturity-matrix)
+    - [Total Score](#total-score)
+    - [IMM Measures](#imm-measures)
+  - [Building](#building)
+  - [Licenses](#licenses)
+  - [Project Sponsor](#project-sponsor)
+  - [Code of conduct](#code-of-conduct)
 
 ### Shared Engineering Standards
 
@@ -313,6 +323,45 @@ dotnet test --solution Solutions/Endjin.Ip.Maturity.Matrix.slnx --coverage --rep
 
 `Endjin.Ip.Maturity.Matrix.Host` is an Azure Function using the isolated worker model with ASP.NET Core integration. To run it locally, copy `local.settings.json.template` to `local.settings.json` and start it with the [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) (`func start`, or `dotnet run`, which calls `func` for you). When deploying, the Function App must use the .NET 10 (isolated) stack and have the `FUNCTIONS_WORKER_RUNTIME` app setting set to `dotnet-isolated`.
 
+### Benchmarks
+
+`Solutions/Endjin.Imm.Benchmarks` is a [BenchmarkDotNet](https://benchmarkdotnet.org/) project that measures execution time and memory allocations for the work the Host does on each request:
+
+- loading rule sets and IMMs from YAML, including the cost of building the YAML deserializer
+- evaluating an IMM, and each rule calculator on its own
+- rendering SVG badges, and the font lookup and text measurement steps inside it
+- the complete pipeline for the total badge, rule badge and `showbadges` endpoints, with and without a cache hit
+- a hit in the HTTP deserializing cache
+
+The benchmarks make no network calls. They use a pinned snapshot of the canonical rule set (see `Solutions/Endjin.Imm.Benchmarks/Data/README.md`) and an in-process stub in place of GitHub.
+
+Always run the benchmarks in Release. A Debug build fails validation.
+
+```console
+# List the benchmarks
+dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --list flat
+
+# Run all the benchmarks with the default job (took 43 minutes for the first baseline)
+dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --filter "*"
+
+# Smoke test: run each benchmark once, to make sure that it executes
+dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --filter "*" --job dry
+
+# Quick, less accurate results
+dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --filter "*" --job short
+
+# Run some categories only (Yaml, Evaluate, Badge, Pipeline, Cache)
+dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --anyCategories Yaml Evaluate
+
+# Run one class, or one method
+dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --filter "*BadgePainterBenchmarks*"
+dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --filter "*.Evaluate"
+```
+
+The results go to `Solutions/Endjin.Imm.Benchmarks/BenchmarkDotNet.Artifacts/results` (GitHub Markdown, compressed JSON and CSV). This folder is in `.gitignore`. Baselines that we keep for comparison are committed in `Solutions/Endjin.Imm.Benchmarks/Baselines/`, one folder for each baseline, with a README that records the commit, command and environment.
+
+`dotnet test --solution` does not run the benchmarks.
+
 ## Licenses
 
 [![GitHub license](https://img.shields.io/badge/License-Apache%202-blue.svg)](https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Matrix/master/LICENSE)
@@ -323,15 +372,35 @@ For any licensing questions, please email [&#108;&#105;&#99;&#101;&#110;&#115;&#
 
 ## Project Sponsor
 
-This project is sponsored by [endjin](https://endjin.com), a UK based Microsoft Gold Partner for Cloud Platform, Data Platform, Data Analytics, DevOps, and a Power BI Partner.
+This project is sponsored by [endjin](https://endjin.com), a UK based Technology Consultancy which specializes in Data & Analytics, AI & Cloud Native App Dev.
+
+> We help small teams achieve big things.
+
+We produce three free weekly newsletters: 
+
+ - [Azure Weekly](https://azureweekly.info) for all things about the Microsoft Azure Platform
+ - [Power BI Weekly](https://powerbiweekly.info) for all things Power BI
+ - [Fabric Weekly](https://fabricweekly.info) for all things Microsoft Fabric
+
+Keep up with everything that's going on at endjin via our [blog](https://endjin.com/blog), follow us on [Twitter](https://twitter.com/endjin), [YouTube](https://www.youtube.com/c/endjin) or [LinkedIn](https://www.linkedin.com/company/endjin).
+
+We have become the maintainers of a number of popular .NET Open Source Projects:
+
+- [Reactive Extensions for .NET](https://github.com/dotnet/reactive)
+- [Reaqtor](https://github.com/reaqtive)
+- [Argotic Syndication Framework](https://github.com/argotic-syndication-framework/)
+
+And we have over 50 Open Source projects of our own, spread across the following GitHub Orgs:
+
+- [endjin](https://github.com/endjin/)
+- [Corvus](https://github.com/corvus-dotnet)
+- [Menes](https://github.com/menes-dotnet)
+- [Marain](https://github.com/marain-dotnet)
+- [AIS.NET](https://github.com/ais-dotnet)
+
+And the DevOps tooling we have created for managing all these projects is available on the [PowerShell Gallery](https://www.powershellgallery.com/profiles/endjin).
 
 For more information about our products and services, or for commercial support of this project, please [contact us](https://endjin.com/contact-us). 
-
-We produce two free weekly newsletters; [Azure Weekly](https://azureweekly.info) for all things about the Microsoft Azure Platform, and [Power BI Weekly](https://powerbiweekly.info).
-
-Keep up with everything that's going on at endjin via our [blog](https://blogs.endjin.com/), follow us on [Twitter](https://twitter.com/endjin), or [LinkedIn](https://www.linkedin.com/company/1671851/).
-
-Our other Open Source projects can be found at https://endjin.com/open-source
 
 ## Code of conduct
 
