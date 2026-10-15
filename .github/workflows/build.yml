@@ -65,3 +65,14 @@ jobs:
         buildAzureCredentials: ${{ secrets.AZURE_READER_CREDENTIALS }}
         secretsEncryptionKey: ${{ secrets.SHARED_WORKFLOW_KEY }}
         token: ${{ secrets.GITHUB_TOKEN }}
+
+    # The published Function App is the deployable output of this build (no NuGet packages are produced).
+    # It is uploaded here rather than through run-build-process's buildArtifactName/buildArtifactPath inputs,
+    # because those cannot include hidden files, and the isolated worker needs the '.azurefunctions' folder.
+    - name: Upload Function App
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: function-app
+        path: _packages/Endjin.Ip.Maturity.Model.Host/
+        include-hidden-files: true
+        if-no-files-found: error

@@ -29,7 +29,8 @@ internal sealed class ImmSourceFixture : IDisposable
 
         ServiceCollection services = new();
         services.AddSingleton(new HttpClient(this.Handler));
-        services.AddSingleton<IMemoryCache>(new MemoryCache(new MemoryCacheOptions { Clock = clock ?? new SystemClock() }));
+        this.MemoryCache = new MemoryCache(new MemoryCacheOptions { Clock = clock ?? new SystemClock() });
+        services.AddSingleton<IMemoryCache>(this.MemoryCache);
         services.AddImmSources();
 
         this.serviceProvider = services.BuildServiceProvider();
@@ -39,6 +40,11 @@ internal sealed class ImmSourceFixture : IDisposable
     /// Gets the stub that stands in for GitHub.
     /// </summary>
     public StubHttpMessageHandler Handler { get; }
+
+    /// <summary>
+    /// Gets the memory cache the sources store their content in.
+    /// </summary>
+    public MemoryCache MemoryCache { get; }
 
     /// <summary>
     /// Gets the source of project IMMs.

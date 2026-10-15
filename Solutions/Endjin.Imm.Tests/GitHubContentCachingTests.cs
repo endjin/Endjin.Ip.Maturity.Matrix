@@ -141,6 +141,92 @@ public class GitHubContentCachingTests
     }
 
     [TestMethod]
+    public async Task GetIpMaturityMatrixAsync_ResponseWithNoStoreReceivedSynchronously_IsNotLeftInTheMemoryCache()
+    {
+        // Arrange
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingWith(
+            () => StubHttpMessageHandler.WithCacheControl(
+                StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\""), "no-store"));
+
+        // Act
+        IpMaturityMatrix imm = await GetImmAsync(fixture);
+
+        // Assert
+        imm.Rules.Single().Measures.Single().Score.ShouldBe(1);
+        fixture.MemoryCache.Count.ShouldBe(0);
+    }
+
+    [TestMethod]
+    public async Task GetIpMaturityMatrixAsync_ResponseWithNoStoreReceivedAsynchronously_IsRemovedFromTheMemoryCacheAndStillReachesEveryWaitingCaller()
+    {
+        // Arrange
+        TaskCompletionSource<HttpResponseMessage> gitHubResponse = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        using ImmSourceFixture fixture = new((_, _) => gitHubResponse.Task);
+
+        // Act
+        Task<IpMaturityMatrix> first = GetImmAsync(fixture);
+        Task<IpMaturityMatrix> second = GetImmAsync(fixture);
+        int entriesWhileInFlight = fixture.MemoryCache.Count;
+        gitHubResponse.SetResult(StubHttpMessageHandler.WithCacheControl(
+            StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\""), "no-store"));
+        IpMaturityMatrix[] results = await Task.WhenAll(first, second);
+
+        // Assert
+        entriesWhileInFlight.ShouldBe(1);
+        fixture.Handler.Requests.Count.ShouldBe(1);
+        results[1].ShouldBeSameAs(results[0]);
+        fixture.MemoryCache.Count.ShouldBe(0);
+    }
+
+    // A 304 updates only the headers it carries (RFC 9111, section 4.3.4), so one without Cache-Control must not replace a
+    // stored no-cache policy with the one-minute default.
+    [TestMethod]
+    public async Task GetIpMaturityMatrixAsync_NotModifiedResponseWithoutCacheControl_KeepsTheNoCachePolicyOfTheOriginalResponse()
+    {
+        // Arrange
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
+            () => StubHttpMessageHandler.WithCacheControl(
+                StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\""), "no-cache"),
+            () => StubHttpMessageHandler.NotModified("\"v1\""),
+            () => StubHttpMessageHandler.NotModified("\"v1\""));
+
+        // Act
+        IpMaturityMatrix first = await GetImmAsync(fixture);
+        IpMaturityMatrix second = await GetImmAsync(fixture);
+        IpMaturityMatrix third = await GetImmAsync(fixture);
+
+        // Assert
+        fixture.Handler.Requests.Select(r => r.IfNoneMatch).ShouldBe(
+        [
+            [],
+            ["\"v1\""],
+            ["\"v1\""],
+        ]);
+        second.ShouldBeSameAs(first);
+        third.ShouldBeSameAs(first);
+    }
+
+    [TestMethod]
+    public async Task GetIpMaturityMatrixAsync_NotModifiedResponseWithItsOwnCacheControl_ReplacesTheStoredPolicy()
+    {
+        // Arrange
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
+            () => StubHttpMessageHandler.WithCacheControl(
+                StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\""), "no-cache"),
+            () => StubHttpMessageHandler.NotModified("\"v1\"", OneHour));
+
+        // Act
+        IpMaturityMatrix first = await GetImmAsync(fixture);
+        IpMaturityMatrix revalidated = await GetImmAsync(fixture);
+        IpMaturityMatrix third = await GetImmAsync(fixture);
+
+        // Assert
+        fixture.Handler.Requests.Count.ShouldBe(2);
+        revalidated.ShouldBeSameAs(first);
+        third.ShouldBeSameAs(first);
+    }
+
+    [TestMethod]
     public async Task GetIpMaturityMatrixAsync_NotModifiedResponseWithoutAnETag_KeepsRevalidatingWithThePreviousETag()
     {
         // Arrange
