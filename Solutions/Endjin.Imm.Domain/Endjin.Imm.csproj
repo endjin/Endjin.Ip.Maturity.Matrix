@@ -17,5 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Endjin.Imm.Benchmarks" />
+    <InternalsVisibleTo Include="Endjin.Imm.Tests" />
   </ItemGroup>
 </Project>

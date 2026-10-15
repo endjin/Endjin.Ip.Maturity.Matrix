@@ -22,15 +22,20 @@
         /// <inheritdoc/>
         public decimal Percentage(RuleAssertion ruleAssertion, IEvaluationContext context)
         {
-            var higestScore = this.MaximumFromApplicableMeasures(this.MakeContext(ruleAssertion, context));
-
-            return Math.Round(Convert.ToDecimal(this.Score(ruleAssertion, context) / Convert.ToDecimal(higestScore)) * 100);
+            return this.Calculate(ruleAssertion, context).Percentage;
         }
 
         /// <inheritdoc/>
         public long Score(RuleAssertion ruleAssertion, IEvaluationContext context)
         {
             return this.ScoreFromApplicableMeasures(this.MakeContext(ruleAssertion, context));
+        }
+
+        /// <inheritdoc/>
+        public RuleEvaluation Evaluate(RuleAssertion ruleAssertion, IEvaluationContext context)
+        {
+            (decimal percentage, long score) = this.Calculate(ruleAssertion, context);
+            return new RuleEvaluation(ruleAssertion, percentage, score);
         }
 
         /// <summary>
@@ -58,7 +63,38 @@
         /// </remarks>
         protected abstract long MaximumFromApplicableMeasures(CalculationContext context);
 
+        private (decimal Percentage, long Score) Calculate(RuleAssertion ruleAssertion, IEvaluationContext context)
+        {
+            CalculationContext calculationContext = this.MakeContext(ruleAssertion, context);
+
+            // The maximum is determined before the score (as it always has been), so when both
+            // would fail, the same exception surfaces.
+            var higestScore = this.MaximumFromApplicableMeasures(calculationContext);
+            var score = this.ScoreFromApplicableMeasures(calculationContext);
+
+            return (Math.Round(Convert.ToDecimal(score / Convert.ToDecimal(higestScore)) * 100), score);
+        }
+
         private CalculationContext MakeContext(RuleAssertion ruleAssertion, IEvaluationContext context)
+        {
+            // Fast path: when the assertion opts out of nothing, the filtering below would just
+            // copy both measure lists, so we use the lists as they are.
+            IList<MeasureAssertion> measureAssertions = ruleAssertion.Measures;
+            if (measureAssertions is not null && !AnyOptedOut(measureAssertions))
+            {
+                var definition = this.ruleDefinitions.GetDefinitionFor(ruleAssertion);
+                if (definition.Measures is IList<MeasureDefinition> measureDefinitions)
+                {
+                    return new CalculationContext(context, definition, ruleAssertion, measureDefinitions, measureAssertions);
+                }
+            }
+
+            return this.MakeFilteredContext(ruleAssertion, context);
+        }
+
+        // Separate from MakeContext because the lambdas here capture a local, and the compiler
+        // allocates the closure on entry to the scope declaring it, even on the fast path.
+        private CalculationContext MakeFilteredContext(RuleAssertion ruleAssertion, IEvaluationContext context)
         {
             // TODO: Validate any opt outs? Reject attempts to opt out of a non-optional rule.
             // That would need to be done as part of https://github.com/endjin/Endjin.Ip.Maturity.Model/issues/9
@@ -78,9 +114,31 @@
         }
 
         /// <summary>
+        /// Determines whether any of a rule assertion's measures is an opt-out.
+        /// </summary>
+        /// <param name="measureAssertions">The rule assertion's measures.</param>
+        /// <returns><c>true</c> if any measure has <see cref="MeasureAssertion.OptOut"/> set.</returns>
+        internal static bool AnyOptedOut(IList<MeasureAssertion> measureAssertions)
+        {
+            // Indexed rather than foreach to avoid allocating an enumerator. A null entry fails
+            // with a NullReferenceException, just as it does in the LINQ filter.
+            for (int i = 0; i < measureAssertions.Count; i++)
+            {
+                if (measureAssertions[i].OptOut)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Provides the information required to evaluate a particular rule assertion. (Includes
-        /// the assertion and corresponding definition, and copies of the measure assertions and
-        /// definitions filtered based on any measure opt-outs specified by the assertion.)
+        /// the assertion and corresponding definition, and the measure assertions and definitions
+        /// filtered based on any measure opt-outs specified by the assertion. When the assertion
+        /// opts out of nothing, these are the original, unfiltered lists, so calculators must not
+        /// modify them.)
         /// </summary>
         protected class CalculationContext
         {
@@ -88,8 +146,8 @@
                 IEvaluationContext evaluationContext,
                 RuleDefinition definition,
                 RuleAssertion assertion,
-                List<MeasureDefinition> applicableMeasureDefinitions,
-                List<MeasureAssertion> applicableMeasureAssertions)
+                IList<MeasureDefinition> applicableMeasureDefinitions,
+                IList<MeasureAssertion> applicableMeasureAssertions)
             {
                 EvaluationContext = evaluationContext;
                 Assertion = assertion;
@@ -112,13 +170,13 @@
             /// Gets the measures definitions application for this evaluation. When the rule
             /// assertion opts out of certain measures, they will not be included here.
             /// </summary>
-            public List<MeasureDefinition> ApplicableMeasureDefinitions { get; }
+            public IList<MeasureDefinition> ApplicableMeasureDefinitions { get; }
 
             /// <summary>
             /// Gets the asserted measures for this evaluation. This does not include entries in
             /// the YAML that were present only to declare that the measure is being opted out of.
             /// </summary>
-            public List<MeasureAssertion> ApplicableMeasureAssertions { get; }
+            public IList<MeasureAssertion> ApplicableMeasureAssertions { get; }
 
             /// <summary>
             /// Gets the rule definition associated with the rule for which to perform the

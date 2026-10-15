@@ -14,5 +14,10 @@
         {
             return 0;
         }
+
+        public RuleEvaluation Evaluate(RuleAssertion ruleAssertion, IEvaluationContext context)
+        {
+            return new RuleEvaluation(ruleAssertion, 0m, 0);
+        }
     }
 }

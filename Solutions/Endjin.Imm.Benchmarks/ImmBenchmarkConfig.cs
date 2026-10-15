@@ -22,7 +22,7 @@ namespace Endjin.Imm.Benchmarks;
 /// <para>
 /// The default artifacts path (<c>./BenchmarkDotNet.Artifacts</c>, relative to the working directory,
 /// which the project file sets to the project directory) is kept deliberately: it is gitignored, and
-/// results worth keeping are copied into <c>Baselines/</c> by hand.
+/// results worth keeping are copied into <c>Baselines/</c> by hand (also gitignored, so baselines stay local).
 /// </para>
 /// </remarks>
 internal sealed class ImmBenchmarkConfig : ManualConfig
@@ -41,5 +41,9 @@ internal sealed class ImmBenchmarkConfig : ManualConfig
 
         this.WithOrderer(new DefaultOrderer(SummaryOrderPolicy.Declared, MethodOrderPolicy.Declared));
         this.WithSummaryStyle(SummaryStyle.Default.WithRatioStyle(RatioStyle.Trend));
+
+        // The generated benchmark project references the Functions Host (Azure.Functions.Sdk), whose build
+        // regularly takes longer than BenchmarkDotNet's 120 s default.
+        this.WithBuildTimeout(TimeSpan.FromMinutes(10));
     }
 }

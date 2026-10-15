@@ -2,7 +2,6 @@ namespace Endjin.Ip.Maturity.Model.Host
 {
     #region Using Directives
 
-    using Endjin.Badger;
     using Endjin.Imm.Contracts;
     using Endjin.Imm.Domain;
     using Endjin.Imm.Processing;
@@ -12,10 +11,7 @@ namespace Endjin.Ip.Maturity.Model.Host
     using Microsoft.Extensions.Primitives;
 
     using System;
-    using System.IO;
     using System.Linq;
-    using System.Net;
-    using System.Text;
     using System.Threading.Tasks;
 
     #endregion
@@ -46,17 +42,7 @@ namespace Endjin.Ip.Maturity.Model.Host
 
             ImmEvaluation evaluationResult = evaluationEngine.Evaluate(ruleAssertions);
 
-            // When a project has opted out of every rule there is no maximum to score against, so treat that as 0%
-            // rather than dividing by zero.
-            decimal percentage = evaluationResult.MaximumPossibleTotalScore == 0
-                ? 0M
-                : 100M * evaluationResult.TotalScore / evaluationResult.MaximumPossibleTotalScore;
-
-            string svg = BadgePainter.DrawSVG(
-                "IMM",
-                $"{evaluationResult.TotalScore} / {evaluationResult.MaximumPossibleTotalScore}",
-                GetColourSchemeForPercentage(percentage),
-                Style.Flat);
+            string svg = ImmBadges.RenderTotalBadge(evaluationResult);
             return CreateUncacheResponse(
                 request,
                 svg,
@@ -77,7 +63,7 @@ namespace Endjin.Ip.Maturity.Model.Host
             var evaluationEngine = new EvaluationEngine(ruleDefinitions);
             RuleEvaluation result = evaluationEngine.Evaluate(imm).RuleEvaluations.First(x => x.RuleAssertion.Id == ruleIdAsGuid);
 
-            return CreateUncacheResponse(request, BadgePainter.DrawSVG(WebUtility.HtmlEncode(result.RuleAssertion.Name!), $"{result.Percentage}%", GetColourSchemeForPercentage(result.Percentage), Style.Flat), "image/svg+xml");
+            return CreateUncacheResponse(request, ImmBadges.RenderRuleBadge(result), "image/svg+xml");
         }
 
         [Function(nameof(GitHubImmAllBadges))]
@@ -93,71 +79,11 @@ namespace Endjin.Ip.Maturity.Model.Host
 
             ImmEvaluation evaluationResult = evaluationEngine.Evaluate(ruleAssertions);
 
-            // Each path segment and query value is URL-encoded, and each complete URL is then
-            // HTML-encoded (so '&' becomes '&amp;') because it is written into an attribute.
-            string badgeUrlPrefix = $"/api/imm/github/{Uri.EscapeDataString(org)}/{Uri.EscapeDataString(project)}/";
-            string badgeQueryString =
-                $"?cache=false&definitionsBranch={Uri.EscapeDataString(rulesObjectName)}&projectBranch={Uri.EscapeDataString(projectObjectName)}";
+            string html = ImmBadges.RenderShowBadgesPage(org, project, rulesObjectName, projectObjectName, evaluationResult);
 
-            var sb = new StringBuilder();
-            using (var sw = new StringWriter(sb))
-            {
-                sw.WriteLine("<!DOCTYPE html>");
-                sw.WriteLine("<html>");
-                sw.WriteLine("<head>");
-                sw.WriteLine("    <meta charset=\"utf-8\" />");
-                sw.Write("    <title>IP Maturity Matrix for ");
-                sw.Write(WebUtility.HtmlEncode(org));
-                sw.Write("/");
-                sw.Write(WebUtility.HtmlEncode(project));
-                sw.Write(" (");
-                sw.Write(WebUtility.HtmlEncode(projectObjectName));
-                if (rulesObjectName != "master")
-                {
-                    sw.Write(", rules: ");
-                    sw.Write(WebUtility.HtmlEncode(rulesObjectName));
-                }
-                sw.WriteLine(")</title>");
-                sw.WriteLine("<body>");
-
-                sw.WriteLine("  <div>");
-                sw.WriteLine("  <p>Total score</p>");
-
-                sw.Write("    <img src=\"");
-                sw.Write(WebUtility.HtmlEncode(badgeUrlPrefix + "total" + badgeQueryString));
-                sw.WriteLine("\" />");
-
-                sw.WriteLine("  </div>");
-
-                sw.WriteLine("  <div>");
-                sw.WriteLine("  <p>Rules</p>");
-
-                sw.WriteLine("  <table>");
-                sw.WriteLine("    <tbody>");
-
-                foreach (var evaluation in evaluationResult.RuleEvaluations)
-                {
-                    sw.WriteLine("      <tr>");
-                    sw.WriteLine("        <td>");
-                    sw.Write("          <img src=\"");
-                    sw.Write(WebUtility.HtmlEncode(
-                        badgeUrlPrefix + "rule/" + Uri.EscapeDataString(evaluation.RuleAssertion.Id.ToString()) + badgeQueryString));
-                    sw.WriteLine("\" />");
-                    sw.WriteLine("        </td>");
-                    sw.WriteLine("      </tr>");
-                }
-
-                sw.WriteLine("    </tbody>");
-                sw.WriteLine("  </table>");
-                sw.WriteLine("  </div>");
-                sw.WriteLine("</body>");
-                sw.WriteLine("</html>");
-            }
-
-            //string svg = BadgePainter.DrawSVG("IMM", $"{evaluationResult.TotalScore} / {evaluationResult.MaximumPossibleTotalScore}", ColorScheme.Red, Style.Flat);
             return CreateUncacheResponse(
                 request,
-                sb.ToString(),
+                html,
                 "text/html");
         }
 
@@ -202,17 +128,6 @@ namespace Endjin.Ip.Maturity.Model.Host
             await Task.WhenAll(new Task[] { rulesetTask, immTask }).ConfigureAwait(false);
 
             return (rulesetTask.Result, immTask.Result);
-        }
-
-        private static string GetColourSchemeForPercentage(decimal percentage)
-        {
-            return percentage switch
-            {
-                < 33 => ColorScheme.Red,
-                < 66 => ColorScheme.Yellow,
-                < 100 => ColorScheme.YellowGreen,
-                _ => ColorScheme.Green,
-            };
         }
     }
 }

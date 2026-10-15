@@ -344,7 +344,7 @@ dotnet test --solution Solutions/Endjin.Ip.Maturity.Model.slnx --coverage --repo
 - loading rule sets and IMMs from YAML, including the cost of building the YAML deserializer
 - evaluating an IMM, and each rule calculator on its own
 - rendering SVG badges, and the font lookup and text measurement steps inside it
-- the complete pipeline for the total badge, rule badge and `showbadges` endpoints, with and without a cache hit
+- the complete pipeline for the total badge, rule badge and `showbadges` endpoints, with and without a cache hit, using the Host's own code (the benchmarks reference the Host project, and the `HostEndpoint_*` benchmarks call its function methods)
 - a hit in the HTTP deserializing cache
 
 The benchmarks make no network calls. They use a pinned snapshot of the canonical rule set (see `Solutions/Endjin.Imm.Benchmarks/Data/README.md`) and an in-process stub in place of GitHub.
@@ -370,9 +370,13 @@ dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --anyCategori
 # Run one class, or one method
 dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --filter "*BadgePainterBenchmarks*"
 dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --filter "*.Evaluate"
+
+# On a hybrid CPU (performance and efficiency cores), keep the benchmark processes on the performance cores.
+# The mask is specific to the machine: 4095 (0xFFF) selects logical processors 0-11, the performance cores of an i7-13800H.
+dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --filter "*" --affinity 4095
 ```
 
-The results go to `Solutions/Endjin.Imm.Benchmarks/BenchmarkDotNet.Artifacts/results` (GitHub Markdown, compressed JSON and CSV). This folder is in `.gitignore`. Baselines that we keep for comparison are committed in `Solutions/Endjin.Imm.Benchmarks/Baselines/`, one folder for each baseline, with a README that records the commit, command and environment.
+The results go to `Solutions/Endjin.Imm.Benchmarks/BenchmarkDotNet.Artifacts/results` (GitHub Markdown, compressed JSON and CSV). This folder is in `.gitignore`. To keep a set of results for comparison, copy them into `Solutions/Endjin.Imm.Benchmarks/Baselines/`, one folder for each baseline, with a README that records the commit, command and environment. That folder is also in `.gitignore`: results depend on the machine they were measured on, so baselines are kept locally and not in source control.
 
 `dotnet test --solution` does not run the benchmarks.
 

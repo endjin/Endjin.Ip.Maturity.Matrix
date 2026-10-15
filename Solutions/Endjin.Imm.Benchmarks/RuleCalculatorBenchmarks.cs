@@ -7,8 +7,9 @@ using Endjin.Imm.Repository;
 namespace Endjin.Imm.Benchmarks;
 
 /// <summary>
-/// One <c>Percentage</c> + <c>Score</c> calculation per rule data type, mirroring what
-/// <see cref="EvaluationEngine"/> does for each rule.
+/// One <c>Percentage</c> + <c>Score</c> calculation per rule data type (what
+/// <see cref="EvaluationEngine"/> used to do for each rule), and the single <c>Evaluate</c>
+/// call that replaced them.
 /// </summary>
 [Config(typeof(ImmBenchmarkConfig))]
 [BenchmarkCategory("Evaluate")]
@@ -91,6 +92,27 @@ public class RuleCalculatorBenchmarks
     [Benchmark]
     public decimal Framework_Wildcard() => this.Run(this.frameworkWildcard);
 
+    // The *_Evaluate variants compute the percentage and score in the single pass that
+    // EvaluationEngine now uses (IRuleCalculator.Evaluate).
+
+    [Benchmark]
+    public RuleEvaluation Continuous_Evaluate() => this.RunEvaluate(this.continuous);
+
+    [Benchmark]
+    public RuleEvaluation Discrete_Evaluate() => this.RunEvaluate(this.discrete);
+
+    [Benchmark]
+    public RuleEvaluation Age_WithDate_Evaluate() => this.RunEvaluate(this.ageWithDate);
+
+    [Benchmark]
+    public RuleEvaluation Age_LegacyScore_Evaluate() => this.RunEvaluate(this.ageLegacyScore);
+
+    [Benchmark]
+    public RuleEvaluation Framework_Match_Evaluate() => this.RunEvaluate(this.frameworkMatch);
+
+    [Benchmark]
+    public RuleEvaluation Framework_Wildcard_Evaluate() => this.RunEvaluate(this.frameworkWildcard);
+
     private static Case CreateCase(string snapshot, string ruleId, DataType expectedType, string? immYaml)
     {
         IpMaturityMatrixRuleset ruleset = IpMaturityMatrixRuleset.FromYaml(SampleData.ExtractRule(snapshot, ruleId));
@@ -111,6 +133,8 @@ public class RuleCalculatorBenchmarks
     }
 
     private decimal Run(Case c) => c.Calculator.Percentage(c.Assertion, this.context) + c.Calculator.Score(c.Assertion, this.context);
+
+    private RuleEvaluation RunEvaluate(Case c) => c.Calculator.Evaluate(c.Assertion, this.context);
 
     private readonly record struct Case(IRuleCalculator Calculator, RuleAssertion Assertion);
 }

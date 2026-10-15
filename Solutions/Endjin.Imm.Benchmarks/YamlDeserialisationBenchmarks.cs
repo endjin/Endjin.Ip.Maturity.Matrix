@@ -5,7 +5,7 @@ namespace Endjin.Imm.Benchmarks;
 
 /// <summary>
 /// Loading rule sets and IMMs from YAML through the public factory methods, as the Host does on a
-/// cache miss. Both factories build a new YamlDotNet deserializer on every call.
+/// cache miss. Both factories use the same shared YamlDotNet deserializer.
 /// </summary>
 [Config(typeof(ImmBenchmarkConfig))]
 [BenchmarkCategory("Yaml")]

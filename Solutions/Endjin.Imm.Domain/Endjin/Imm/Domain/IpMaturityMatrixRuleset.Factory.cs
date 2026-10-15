@@ -16,7 +16,7 @@
         {
             using var input = new StringReader(yaml);
 
-            var rules = ImmYamlDeserializer.Create().Deserialize<RuleDefinition[]>(input);
+            var rules = ImmYamlDeserializer.Shared.Deserialize<RuleDefinition[]>(input);
 
             // An empty document (or one containing only comments) deserializes to null: that is a rule set with no rules.
             return new IpMaturityMatrixRuleset(rules ?? []);

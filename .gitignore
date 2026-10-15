@@ -345,3 +345,6 @@ coverage.cobertura.xml
 # Microsoft.Testing.Platform diagnostic logs written to the repo root by the ZeroFailed test task
 /*.diag
 *.sbom.*
+
+# Benchmark baselines are kept locally, not in source control
+Solutions/Endjin.Imm.Benchmarks/Baselines/

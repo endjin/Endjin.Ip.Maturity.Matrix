@@ -9,7 +9,7 @@
         {
             using var input = new StringReader(yaml);
 
-            var rules = ImmYamlDeserializer.Create().Deserialize<RuleAssertion[]>(input);
+            var rules = ImmYamlDeserializer.Shared.Deserialize<RuleAssertion[]>(input);
 
             // An empty document (or one containing only comments) deserializes to null: that is an IMM with no rules.
             return new IpMaturityMatrix(rules ?? []);

@@ -1,10 +1,12 @@
-using System.Net;
 using BenchmarkDotNet.Attributes;
-using Endjin.Badger;
 using Endjin.Imm.Contracts;
 using Endjin.Imm.Domain;
 using Endjin.Imm.Processing;
 using Endjin.Imm.Repository;
+using Endjin.Ip.Maturity.Model.Host;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using ImmFunctions = Endjin.Ip.Maturity.Model.Host.Imm;
 
 namespace Endjin.Imm.Benchmarks;
 
@@ -16,7 +18,14 @@ namespace Endjin.Imm.Benchmarks;
 /// <para>
 /// "CacheHit" starts from already deserialised objects, as the Host does when
 /// <c>HttpDeserializingCache</c> returns a completed task. "CacheMiss" adds both <c>FromYaml</c> calls
-/// (but no HTTP). The Host evaluates with the current date; these use the fixed reference date.
+/// (but no HTTP). These evaluate with the fixed reference date and then render with the Host's own
+/// <see cref="ImmBadges"/>.
+/// </para>
+/// <para>
+/// "HostEndpoint" calls the Host's <see cref="ImmFunctions"/> function methods themselves, with sources that
+/// return the already deserialised objects as completed tasks, so they also include query string
+/// parsing, the response headers and the <see cref="ContentResult"/>. Like the Host, they evaluate
+/// with the current date.
 /// </para>
 /// </remarks>
 [Config(typeof(ImmBenchmarkConfig))]
@@ -35,6 +44,8 @@ public class RequestPipelineBenchmarks
     private IRuleDefinitionRepository repository = null!;
     private IpMaturityMatrix imm = null!;
     private IEvaluationContext context = null!;
+    private ImmFunctions functions = null!;
+    private HttpRequest request = null!;
 
     [GlobalSetup]
     public void Setup()
@@ -46,6 +57,12 @@ public class RequestPipelineBenchmarks
         this.repository = new RuleDefinitionRepository(ruleset);
         this.imm = IpMaturityMatrix.FromYaml(this.immYaml);
         this.context = new SampleData.FixedDateContext(SampleData.ReferenceDate);
+
+        this.functions = new ImmFunctions(new CachedRuleDefinitionSource(this.repository), new CachedImmSource(this.imm));
+
+        // One request is reused by every invocation: the functions only read its (empty) query
+        // string and overwrite the same response headers each time.
+        this.request = new DefaultHttpContext().Request;
 
         // Warm up the font collection used by BadgePainter.
         _ = this.TotalBadge_CacheHit();
@@ -71,7 +88,7 @@ public class RequestPipelineBenchmarks
         var evaluationEngine = new EvaluationEngine(this.repository);
         RuleEvaluation result = evaluationEngine.Evaluate(this.imm, this.context).RuleEvaluations.First(x => x.RuleAssertion.Id == FrameworkRuleId);
 
-        return BadgePainter.DrawSVG(WebUtility.HtmlEncode(result.RuleAssertion.Name!), $"{result.Percentage}%", BadgeColour.ForPercentage(result.Percentage), Style.Flat);
+        return ImmBadges.RenderRuleBadge(result);
     }
 
     /// <summary>GET imm/github/{org}/{project}/showbadges.</summary>
@@ -80,8 +97,23 @@ public class RequestPipelineBenchmarks
     {
         var evaluationEngine = new EvaluationEngine(this.repository);
         ImmEvaluation evaluationResult = evaluationEngine.Evaluate(this.imm, this.context);
-        return ShowBadgesHtml.Render(Org, Project, RulesObjectName, ProjectObjectName, evaluationResult);
+        return ImmBadges.RenderShowBadgesPage(Org, Project, RulesObjectName, ProjectObjectName, evaluationResult);
     }
+
+    /// <summary><see cref="ImmFunctions.GitHubImmTotalScore"/> with both inputs already cached.</summary>
+    [Benchmark]
+    public Task<IActionResult> HostEndpoint_TotalBadge() =>
+        this.functions.GitHubImmTotalScore(this.request, Org, Project);
+
+    /// <summary><see cref="ImmFunctions.GitHubImmByRule"/> for the Framework rule with both inputs already cached.</summary>
+    [Benchmark]
+    public Task<IActionResult> HostEndpoint_RuleBadge() =>
+        this.functions.GitHubImmByRule(this.request, Org, Project, SampleData.FrameworkRuleId);
+
+    /// <summary><see cref="ImmFunctions.GitHubImmAllBadges"/> with both inputs already cached.</summary>
+    [Benchmark]
+    public Task<IActionResult> HostEndpoint_ShowBadges() =>
+        this.functions.GitHubImmAllBadges(this.request, Org, Project);
 
     private string TotalBadge(IRuleDefinitionRepository ruleSet, IpMaturityMatrix ruleAssertions)
     {
@@ -89,10 +121,21 @@ public class RequestPipelineBenchmarks
 
         ImmEvaluation evaluationResult = evaluationEngine.Evaluate(ruleAssertions, this.context);
 
-        return BadgePainter.DrawSVG(
-            "IMM",
-            $"{evaluationResult.TotalScore} / {evaluationResult.MaximumPossibleTotalScore}",
-            BadgeColour.ForPercentage(TotalScore.Percentage(evaluationResult)),
-            Style.Flat);
+        return ImmBadges.RenderTotalBadge(evaluationResult);
+    }
+
+    // Stand-ins for the GitHub sources on a cache hit: each returns the same completed task.
+    private sealed class CachedRuleDefinitionSource(IRuleDefinitionRepository repository) : IRuleDefinitionRepositorySource
+    {
+        private readonly Task<IRuleDefinitionRepository> result = Task.FromResult(repository);
+
+        public Task<IRuleDefinitionRepository> GetRuleDefinitionRepositoryAsync(string name) => this.result;
+    }
+
+    private sealed class CachedImmSource(IpMaturityMatrix imm) : IIpMaturityMatrixSource
+    {
+        private readonly Task<IpMaturityMatrix> result = Task.FromResult(imm);
+
+        public Task<IpMaturityMatrix> GetIpMaturityMatrixAsync(string gitHubOwner, string gitHubProject, string objectName) => this.result;
     }
 }

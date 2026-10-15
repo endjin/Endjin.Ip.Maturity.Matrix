@@ -48,7 +48,7 @@ public class EvaluationBenchmarks
     [Benchmark]
     public ImmEvaluation NewEngine_Then_Evaluate() => new EvaluationEngine(this.repository).Evaluate(this.imm, this.context);
 
-    /// <summary>Worst case of the linear <c>FirstOrDefault</c> lookup.</summary>
+    /// <summary>The last rule: the worst case for the original linear <c>FirstOrDefault</c> lookup, now a hash lookup.</summary>
     [Benchmark]
     public RuleDefinition Repository_GetDefinitionFor_LastRule() => this.repository.GetDefinitionFor(this.lastAssertion);
 }

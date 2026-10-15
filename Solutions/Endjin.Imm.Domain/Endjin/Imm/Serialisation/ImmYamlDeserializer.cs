@@ -1,15 +1,40 @@
 ﻿namespace Endjin.Imm.Serialisation
 {
-    using System;
-    using System.Collections.Generic;
     using Endjin.Imm.Domain;
     using YamlDotNet.Serialization;
+    using YamlDotNet.Serialization.NodeDeserializers;
 
     /// <summary>
     /// Builds the YAML deserializer used to load both rule set definitions and project IMM files.
     /// </summary>
     internal static class ImmYamlDeserializer
     {
+        /// <summary>
+        /// Gets a deserializer, configured as by <see cref="Create"/>, that is shared by every load.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Building a deserializer is expensive (both in its own right and because each new instance
+        /// starts with empty type metadata caches that the first load has to populate), so the
+        /// factory methods use this single instance rather than building one per call.
+        /// </para>
+        /// <para>
+        /// Sharing it, including concurrently (rule sets and IMMs are fetched and loaded in
+        /// parallel), is safe because a YamlDotNet <see cref="Deserializer"/> holds no per-document
+        /// state: each <c>Deserialize</c> call creates its own parser and serializer state, and the
+        /// configured components are immutable after <see cref="DeserializerBuilder.Build"/> or keep
+        /// only thread-safe caches. Specifically, the type inspector and object factory caches are
+        /// concurrent dictionaries keyed by type, and <see cref="MeasureNodeDeserializer"/> and
+        /// <see cref="EmptyNodeAsDefaultInstanceNodeDeserializer{T}"/> are stateless. A load that
+        /// fails part way through therefore leaves nothing behind that could affect later loads.
+        /// </para>
+        /// <para>
+        /// Any new node deserializer or type resolver added to <see cref="Create"/> must keep this
+        /// property: it must not hold mutable per-document state.
+        /// </para>
+        /// </remarks>
+        public static IDeserializer Shared { get; } = Create();
+
         /// <summary>
         /// Creates a deserializer configured for IMM YAML documents.
         /// </summary>
@@ -22,7 +47,9 @@
         /// <c>Age</c> key becomes an <see cref="AgeMeasureDefinition"/>. Likewise, a measure
         /// assertion with a <c>Framework</c> key becomes a <see cref="FrameworkMeasureAssertion"/>,
         /// and one with a <c>Date</c> key becomes an <see cref="AgeMeasureAssertion"/>. Entries
-        /// with none of these keys deserialize as the base type. Key matching is case-insensitive.
+        /// with none of these keys deserialize as the base type. If an entry has both, the first
+        /// one determines the type. Key matching is case-insensitive. This is implemented by
+        /// <see cref="MeasureNodeDeserializer"/>.
         /// </para>
         /// <para>
         /// Property matching is case-insensitive, and unrecognised properties are ignored. A bare
@@ -47,22 +74,8 @@
                 .WithNodeDeserializer(emptyMeasureDefinition)
                 .WithNodeDeserializer(emptyMeasureAssertion)
 
-                // The type-discriminating deserializer must be configured last.
-                .WithTypeDiscriminatingNodeDeserializer(options =>
-                {
-                    options.AddUniqueKeyTypeDiscriminator<MeasureDefinition>(
-                        new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
-                        {
-                            [nameof(FrameworkMeasureDefinition.Framework)] = typeof(FrameworkMeasureDefinition),
-                            [nameof(AgeMeasureDefinition.Age)] = typeof(AgeMeasureDefinition),
-                        });
-                    options.AddUniqueKeyTypeDiscriminator<MeasureAssertion>(
-                        new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
-                        {
-                            [nameof(FrameworkMeasureAssertion.Framework)] = typeof(FrameworkMeasureAssertion),
-                            [nameof(AgeMeasureAssertion.Date)] = typeof(AgeMeasureAssertion),
-                        });
-                })
+                // In the position YamlDotNet uses for its own type-discriminating deserializer.
+                .WithNodeDeserializer(new MeasureNodeDeserializer(), s => s.Before<DictionaryNodeDeserializer>())
                 .Build();
         }
     }

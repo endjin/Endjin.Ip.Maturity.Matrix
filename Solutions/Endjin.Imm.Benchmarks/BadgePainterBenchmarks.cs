@@ -6,9 +6,14 @@ using SixLabors.Fonts;
 namespace Endjin.Imm.Benchmarks;
 
 /// <summary>
-/// SVG badge rendering, plus the individual steps <see cref="BadgePainter.DrawSVG"/> performs on
-/// every call (font lookup, font and text options construction, text measurement, HTML decoding).
+/// SVG badge rendering, plus the individual steps <see cref="BadgePainter.DrawSVG"/> performs (font
+/// lookup, font and text options construction, text measurement, HTML decoding).
 /// </summary>
+/// <remarks>
+/// <see cref="BadgePainter.DrawSVG"/> resolves the font once and remembers measured text widths, so
+/// the DrawSVG benchmarks other than <see cref="DrawSVG_Rule_Flat_UncachedText"/> measure the warm
+/// path; the step benchmarks show what a first (or evicted) call costs.
+/// </remarks>
 [Config(typeof(ImmBenchmarkConfig))]
 [BenchmarkCategory("Badge")]
 public class BadgePainterBenchmarks
@@ -23,10 +28,19 @@ public class BadgePainterBenchmarks
     private FontFamily family;
     private TextOptions options = null!;
     private string decodedRuleSubject = string.Empty;
+    private string[] uncachedRuleSubjects = [];
+    private int nextUncachedRuleSubject;
 
     [GlobalSetup]
     public void Setup()
     {
+        // Twice as many distinct subjects as BadgePainter remembers measurements for, used in turn, so
+        // that each one has always been evicted by the time it comes round again.
+        this.uncachedRuleSubjects =
+        [
+            .. Enumerable.Range(0, 2 * BadgePainter.MaxCachedMeasurements).Select(i => $"{RuleSubject} {i}"),
+        ];
+
         // Same font selection and sizing as BadgePainter.DrawSVG.
         this.family = SystemFonts.TryGet("Verdana", out FontFamily verdana) ? verdana : SystemFonts.Families.First();
         Font font = new(this.family, 11 * 0.75f, FontStyle.Regular);
@@ -42,6 +56,17 @@ public class BadgePainterBenchmarks
 
     [Benchmark]
     public string DrawSVG_Rule_Flat() => BadgePainter.DrawSVG(RuleSubject, RuleStatus, ColorScheme.YellowGreen, Style.Flat);
+
+    /// <summary>
+    /// A rule badge whose subject has not been measured recently (the cold cost of a badge).
+    /// </summary>
+    [Benchmark]
+    public string DrawSVG_Rule_Flat_UncachedText()
+    {
+        string subject = this.uncachedRuleSubjects[this.nextUncachedRuleSubject];
+        this.nextUncachedRuleSubject = (this.nextUncachedRuleSubject + 1) % this.uncachedRuleSubjects.Length;
+        return BadgePainter.DrawSVG(subject, RuleStatus, ColorScheme.YellowGreen, Style.Flat);
+    }
 
     [Benchmark]
     public string DrawSVG_Total_FlatSquare() => BadgePainter.DrawSVG(TotalSubject, TotalStatus, ColorScheme.Yellow, Style.FlatSquare);
