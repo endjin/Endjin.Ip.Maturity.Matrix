@@ -156,7 +156,7 @@ namespace Endjin.Ip.Maturity.Model.Host
             {
                 this.LogFailure(org, project, failure, ex);
                 string html = ImmBadges.RenderShowBadgesErrorPage(
-                    org, project, rulesObjectName, projectObjectName, failure.PageMessage, failure.Url, failure.Hint);
+                    org, project, rulesObjectName, projectObjectName, failure.BadgeMessage, failure.PageMessage, failure.Url, failure.Hint);
                 request.HttpContext.Response.Headers[ErrorHeaderName] = failure.Code;
                 return CreateUncacheResponse(request, html, "text/html", failure.PageStatusCode);
             }

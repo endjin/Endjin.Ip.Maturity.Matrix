@@ -102,12 +102,14 @@ namespace Endjin.Ip.Maturity.Model.Host
         }
 
         /// <summary>
-        /// Renders the page shown by showbadges in place of the badges when they cannot be shown.
+        /// Renders the page shown by showbadges in place of the badges when they cannot be shown: the error
+        /// badge the total badge endpoint returns, then what went wrong and what to try next.
         /// </summary>
         /// <param name="org">The GitHub organisation.</param>
         /// <param name="project">The GitHub repository.</param>
         /// <param name="rulesObjectName">The branch or object name the rule definitions were requested from.</param>
         /// <param name="projectObjectName">The branch or object name the project's IMM was requested from.</param>
+        /// <param name="badgeMessage">The error badge's status text, such as "imm.yaml not found".</param>
         /// <param name="message">What went wrong.</param>
         /// <param name="url">The URL that was requested from GitHub, if the problem is with one.</param>
         /// <param name="hint">What to try next, if there is a suggestion.</param>
@@ -117,6 +119,7 @@ namespace Endjin.Ip.Maturity.Model.Host
             string project,
             string rulesObjectName,
             string projectObjectName,
+            string badgeMessage,
             string message,
             string? url,
             string? hint)
@@ -142,6 +145,11 @@ namespace Endjin.Ip.Maturity.Model.Host
             sb.AppendLine(")</title>");
             sb.AppendLine("</head>");
             sb.AppendLine("<body>");
+            sb.AppendLine("  <div>");
+            sb.AppendLine("  <p>Total score</p>");
+            sb.Append("    ");
+            sb.AppendLine(RenderErrorBadge("IMM", badgeMessage));
+            sb.AppendLine("  </div>");
             sb.Append("  <p>");
             sb.Append(WebUtility.HtmlEncode(message));
             sb.AppendLine("</p>");

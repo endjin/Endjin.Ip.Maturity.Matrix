@@ -10,7 +10,7 @@ using YamlDotNet.Core;
 namespace Endjin.Ip.Maturity.Model.Host.Tests;
 
 /// <summary>
-/// When the showbadges page cannot show a project's badges, it shows a short page saying why, with
+/// When the showbadges page cannot show a project's badges, it shows the error badge and a short page saying why, with
 /// a status code to match: 404 when the IMM or rule set does not exist, 422 when the IMM is not
 /// valid, and 502 when GitHub is unavailable. The page names the URL requested from GitHub where
 /// that helps, and suggests what to try next. Like the badges, it is never cached, and the
@@ -38,6 +38,7 @@ public class ShowBadgesErrorPageTests
         content.ContentType.ShouldBe("text/html");
         content.Content!.ShouldContain(ImmUrl);
         content.Content!.ShouldContain("?projectBranch=main");
+        content.Content!.ShouldContain(ImmBadges.RenderErrorBadge("IMM", "imm.yaml not found"));
         IHeaderDictionary headers = request.HttpContext.Response.Headers;
         headers["X-Imm-Error"].ToString().ShouldBe("imm-not-found");
         headers.CacheControl.ToString().ShouldBe("no-cache, no-store, must-revalidate");
@@ -79,6 +80,7 @@ public class ShowBadgesErrorPageTests
         content.StatusCode.ShouldBe(StatusCodes.Status502BadGateway);
         content.ContentType.ShouldBe("text/html");
         content.Content!.ShouldContain("503");
+        content.Content!.ShouldContain(ImmBadges.RenderErrorBadge("IMM", "unavailable"));
         request.HttpContext.Response.Headers["X-Imm-Error"].ToString().ShouldBe("upstream-unavailable");
     }
 
