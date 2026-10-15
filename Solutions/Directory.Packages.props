@@ -22,17 +22,23 @@
   whose version is pinned in global.json; the SDK adds its own PackageVersion items when CPM is enabled.
   -->
   <ItemGroup>
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
+    <PackageVersion Include="NSubstitute" Version="6.2.0" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
   </ItemGroup>
 
   <!--
-  Benchmark dependencies (Endjin.Imm.Benchmarks only). The Host must not reference
-  Microsoft.Extensions.Caching.Memory because the ASP.NET Core shared framework already provides it
-  (NU1510); the benchmark project needs it to build a real MemoryCache for HttpDeserializingCache.
+  Used by Endjin.Imm.Tests and Endjin.Imm.Benchmarks, which both build a real MemoryCache for the
+  GitHub sources (HttpDeserializingCache). The Host, and Endjin.Ip.Maturity.Matrix.Host.Tests, must not
+  reference it, because the ASP.NET Core shared framework already provides it (NU1510).
   -->
   <ItemGroup>
-    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.13" />
+  </ItemGroup>
+
+  <!-- Benchmark dependencies (Endjin.Imm.Benchmarks only). -->
+  <ItemGroup>
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
   </ItemGroup>
 
 </Project>

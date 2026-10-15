@@ -321,7 +321,13 @@ The full build process, which is the same one CI runs, uses [ZeroFailed](https:/
 
 It versions the build with GitVersion, then builds, tests, writes a code coverage report to `_codeCoverage/`, and publishes the Functions app to `_packages/`. Its configuration is in `.zf/build-config.ps1`.
 
-The tests are in `Solutions/Endjin.Imm.Tests`. They are written with MSTest and [Shouldly](https://docs.shouldly.org/), and run on Microsoft.Testing.Platform. To collect code coverage and a TRX report as well:
+There are three test projects. They are written with MSTest and [Shouldly](https://docs.shouldly.org/), and run on Microsoft.Testing.Platform. None of them uses the network: GitHub is replaced by a stub HTTP handler or by [NSubstitute](https://nsubstitute.github.io/) substitutes.
+
+- `Solutions/Endjin.Imm.Tests` covers rule evaluation, YAML loading, and fetching and caching the rule set and IMMs from GitHub.
+- `Solutions/Endjin.Badger.Tests` covers SVG badge rendering.
+- `Solutions/Endjin.Ip.Maturity.Matrix.Host.Tests` covers the badge and `showbadges` functions.
+
+To collect code coverage and a TRX report as well:
 
 ```console
 dotnet test --solution Solutions/Endjin.Ip.Maturity.Matrix.slnx --coverage --report-trx

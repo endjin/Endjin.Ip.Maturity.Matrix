@@ -10,8 +10,9 @@ namespace Endjin.Imm.Benchmarks;
 // GitHubImmAllBadges), so that the request pipeline can be benchmarked without the Functions
 // host. They are copies, and will drift if Imm.cs changes. The next iteration should extract this
 // logic into a testable, public (or InternalsVisibleTo) type in the Host and benchmark that instead.
-// Known quirks are preserved deliberately: the title writes the org twice, and the colour switch
-// maps exactly 66% and anything from 99% to just under 100% to red.
+// They match Imm.cs after the colour band fix (exactly 66% and 99.x% are no longer red) and the
+// showbadges title fix (org/project, HTML-encoded); the Host's behaviour is specified by
+// Endjin.Ip.Maturity.Matrix.Host.Tests.
 
 /// <summary>
 /// Copy of <c>Imm.GetColourSchemeForPercentage</c> from the Host.
@@ -22,12 +23,10 @@ internal static class BadgeColour
     {
         return percentage switch
         {
-            var _ when percentage < 33 => ColorScheme.Red,
-            var _ when percentage < 66 => ColorScheme.Yellow,
-            var _ when percentage > 66
-                    && percentage < 99 => ColorScheme.YellowGreen,
-            100 => ColorScheme.Green,
-            _ => ColorScheme.Red,
+            < 33 => ColorScheme.Red,
+            < 66 => ColorScheme.Yellow,
+            < 100 => ColorScheme.YellowGreen,
+            _ => ColorScheme.Green,
         };
     }
 }
@@ -49,12 +48,12 @@ internal static class ShowBadgesHtml
             sw.WriteLine("<html>");
             sw.WriteLine("<head>");
             sw.WriteLine("    <meta charset=\"utf-8\" />");
-            sw.Write("    <title>IP Maturity Matrix for");
-            sw.Write(org);
+            sw.Write("    <title>IP Maturity Matrix for ");
+            sw.Write(WebUtility.HtmlEncode(org));
             sw.Write("/");
-            sw.Write(org);
+            sw.Write(WebUtility.HtmlEncode(project));
             sw.Write(" (");
-            sw.Write(projectObjectName);
+            sw.Write(WebUtility.HtmlEncode(projectObjectName));
             if (rulesObjectName != "master")
             {
                 sw.Write(", rules: ");

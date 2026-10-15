@@ -48,6 +48,9 @@ public class FrameworkNameRuleTests
     [DataRow("netcoreapp2.1")]
     [DataRow("node10")]
     [DataRow("node8")]
+    [DataRow("NETCOREAPP3.1")]
+    [DataRow("NetCoreApp2.1")]
+    [DataRow("Node10")]
     public void Evaluate_SupportedLtsVersion_ScoresTwo(string framework)
     {
         // Arrange
@@ -114,6 +117,100 @@ public class FrameworkNameRuleTests
         evaluation.TotalScore.ShouldBe(score);
         evaluation.MaximumPossibleTotalScore.ShouldBe(3);
     }
+
+    [TestMethod]
+    public void Evaluate_FrameworkNotSpecifiedAndRuleDefinesAFallbackMeasure_ScoresTheFallbackMeasure()
+    {
+        // Arrange
+        const string immYaml = $"""
+            -
+                Name: 'Framework Version'
+                Id: '{RuleSetYaml.FrameworkVersionRuleId}'
+                Measures:
+                    -
+            """;
+
+        // Act
+        ImmEvaluation evaluation = ImmEvaluator.Evaluate(FrameworkWithUnknownFrameworkFallbackRuleSet, immYaml);
+
+        // Assert
+        RuleEvaluation rule = evaluation.ForRule(RuleSetYaml.FrameworkVersionRuleId);
+        rule.Score.ShouldBe(1);
+        rule.Percentage.ShouldBe(33);
+        evaluation.TotalScore.ShouldBe(1);
+        evaluation.MaximumPossibleTotalScore.ShouldBe(3);
+    }
+
+    [TestMethod]
+    public void Evaluate_UnlistedFrameworkAndNoWildcardOrFallback_ScoresZero()
+    {
+        // Arrange
+        const string ruleSetYaml = $"""
+            -
+                Name: 'Framework Version'
+                Id: '{RuleSetYaml.FrameworkVersionRuleId}'
+                DataType: Framework
+                Measures:
+                    -
+                        Score: 3
+                        Framework: net10.0
+                        Description: 'Using the most current LTS version'
+                    -
+                        Score: 2
+                        Framework: net8.0
+                        Description: 'Using a LTS version'
+            """;
+
+        // Act
+        ImmEvaluation evaluation = ImmEvaluator.Evaluate(ruleSetYaml, ImmWithFramework("netcoreapp2.0"));
+
+        // Assert
+        RuleEvaluation rule = evaluation.ForRule(RuleSetYaml.FrameworkVersionRuleId);
+        rule.Score.ShouldBe(0);
+        rule.Percentage.ShouldBe(0);
+        evaluation.MaximumPossibleTotalScore.ShouldBe(3);
+    }
+
+    // Framework measures are tried in order, and a framework that matches none of them reaches the fallback measure
+    // (the one without a Framework). That is a rule set authoring error: the fallback is only for IMMs without a
+    // Framework, so a rule set must end its Framework measures with '*' before the fallback.
+    [TestMethod]
+    public void Evaluate_FrameworkMatchesNothingBeforeTheFallbackMeasure_ThrowsArgumentException()
+    {
+        // Arrange
+        string immYaml = ImmWithFramework("netcoreapp2.0");
+
+        // Act
+        ArgumentException exception = Should.Throw<ArgumentException>(
+            () => ImmEvaluator.Evaluate(FrameworkWithUnknownFrameworkFallbackRuleSet, immYaml));
+
+        // Assert
+        exception.ParamName.ShouldBe("ruleAssertion");
+        exception.Message.ShouldStartWith("Rule measure definition's Framework is not set, so it should not be used with FrameworkRuleCalculator");
+    }
+
+    /// <summary>
+    /// A Framework rule with no '*' framework, whose fallback measure scores 1 for an IMM that has
+    /// no Framework.
+    /// </summary>
+    private const string FrameworkWithUnknownFrameworkFallbackRuleSet = $"""
+        -
+            Name: 'Framework Version'
+            Id: '{RuleSetYaml.FrameworkVersionRuleId}'
+            DataType: Framework
+            Measures:
+                -
+                    Score: 3
+                    Framework: net10.0
+                    Description: 'Using the most current LTS version'
+                -
+                    Score: 2
+                    Framework: net8.0
+                    Description: 'Using a LTS version'
+                -
+                    Score: 1
+                    Description: 'Framework not stated'
+        """;
 
     private static string ImmWithFramework(string framework) => $"""
         -

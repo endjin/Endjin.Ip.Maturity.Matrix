@@ -46,10 +46,16 @@ namespace Endjin.Ip.Maturity.Matrix.Host
 
             ImmEvaluation evaluationResult = evaluationEngine.Evaluate(ruleAssertions);
 
+            // When a project has opted out of every rule there is no maximum to score against, so treat that as 0%
+            // rather than dividing by zero.
+            decimal percentage = evaluationResult.MaximumPossibleTotalScore == 0
+                ? 0M
+                : 100M * evaluationResult.TotalScore / evaluationResult.MaximumPossibleTotalScore;
+
             string svg = BadgePainter.DrawSVG(
                 "IMM",
                 $"{evaluationResult.TotalScore} / {evaluationResult.MaximumPossibleTotalScore}",
-                GetColourSchemeForPercentage(100M * evaluationResult.TotalScore / evaluationResult.MaximumPossibleTotalScore),
+                GetColourSchemeForPercentage(percentage),
                 Style.Flat);
             return CreateUncacheResponse(
                 request,
@@ -97,12 +103,12 @@ namespace Endjin.Ip.Maturity.Matrix.Host
                 sw.WriteLine("<html>");
                 sw.WriteLine("<head>");
                 sw.WriteLine("    <meta charset=\"utf-8\" />");
-                sw.Write("    <title>IP Maturity Matrix for");
-                sw.Write(org);
+                sw.Write("    <title>IP Maturity Matrix for ");
+                sw.Write(WebUtility.HtmlEncode(org));
                 sw.Write("/");
-                sw.Write(org);
+                sw.Write(WebUtility.HtmlEncode(project));
                 sw.Write(" (");
-                sw.Write(projectObjectName);
+                sw.Write(WebUtility.HtmlEncode(projectObjectName));
                 if (rulesObjectName != "master")
                 {
                     sw.Write(", rules: ");
@@ -213,12 +219,10 @@ namespace Endjin.Ip.Maturity.Matrix.Host
         {
             return percentage switch
             {
-                var _ when percentage < 33 => ColorScheme.Red,
-                var _ when percentage < 66 => ColorScheme.Yellow,
-                var _ when percentage > 66
-                        && percentage < 99 => ColorScheme.YellowGreen,
-                100 => ColorScheme.Green,
-                _ => ColorScheme.Red,
+                < 33 => ColorScheme.Red,
+                < 66 => ColorScheme.Yellow,
+                < 100 => ColorScheme.YellowGreen,
+                _ => ColorScheme.Green,
             };
         }
     }

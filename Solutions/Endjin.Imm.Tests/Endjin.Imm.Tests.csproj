@@ -1,6 +1,8 @@
 <Project Sdk="MSTest.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Shouldly" />
   </ItemGroup>
 

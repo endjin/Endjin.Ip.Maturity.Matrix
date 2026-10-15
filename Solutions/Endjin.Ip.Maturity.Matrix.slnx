@@ -1,8 +1,10 @@
 <Solution>
+  <Project Path="Endjin.Badger.Tests/Endjin.Badger.Tests.csproj" />
   <Project Path="Endjin.Badger/Endjin.Badger.csproj" />
   <Project Path="Endjin.Imm.App/Endjin.Imm.App.csproj" />
   <Project Path="Endjin.Imm.Benchmarks/Endjin.Imm.Benchmarks.csproj" />
   <Project Path="Endjin.Imm.Domain/Endjin.Imm.csproj" />
   <Project Path="Endjin.Imm.Tests/Endjin.Imm.Tests.csproj" />
+  <Project Path="Endjin.Ip.Maturity.Matrix.Host.Tests/Endjin.Ip.Maturity.Matrix.Host.Tests.csproj" />
   <Project Path="Endjin.Ip.Maturity.Matrix.Host/Endjin.Ip.Maturity.Matrix.Host.csproj" />
 </Solution>

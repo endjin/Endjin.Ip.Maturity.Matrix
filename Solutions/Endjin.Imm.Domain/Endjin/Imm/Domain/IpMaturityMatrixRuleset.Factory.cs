@@ -18,7 +18,8 @@
 
             var rules = ImmYamlDeserializer.Create().Deserialize<RuleDefinition[]>(input);
 
-            return new IpMaturityMatrixRuleset(rules);
+            // An empty document (or one containing only comments) deserializes to null: that is a rule set with no rules.
+            return new IpMaturityMatrixRuleset(rules ?? []);
         }
     }
 }
