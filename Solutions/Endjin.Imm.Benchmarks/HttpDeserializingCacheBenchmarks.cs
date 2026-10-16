@@ -27,7 +27,7 @@ public class HttpDeserializingCacheBenchmarks
 {
     private const string ImmUrl = "https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Model/master/imm.yaml";
 
-    private static readonly string RuleSetUrl = IpMaturityModelRuleset.DefinitionsUrlForName("master");
+    private static readonly string RuleSetUrl = IpMaturityModelRuleset.RuleSetDefinitionsUrl;
 
     private MemoryCache memoryCache = null!;
     private HttpClient httpClient = null!;

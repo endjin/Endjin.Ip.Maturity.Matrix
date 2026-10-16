@@ -36,7 +36,8 @@ public partial class ShowBadgesPageTests
 
     [TestMethod]
     [DataRow("?projectBranch=feature/x", "IP Maturity Model for endjin/Endjin.Ip.Maturity.Model (feature/x)")]
-    [DataRow("?definitionsBranch=master&projectBranch=feature/x", "IP Maturity Model for endjin/Endjin.Ip.Maturity.Model (feature/x)")]
+    [DataRow("?definitionsBranch=main&projectBranch=feature/x", "IP Maturity Model for endjin/Endjin.Ip.Maturity.Model (feature/x)")]
+    [DataRow("?definitionsBranch=master&projectBranch=feature/x", "IP Maturity Model for endjin/Endjin.Ip.Maturity.Model (feature/x, rules: master)")]
     [DataRow("?definitionsBranch=v2", "IP Maturity Model for endjin/Endjin.Ip.Maturity.Model (master, rules: v2)")]
     [DataRow("?definitionsBranch=v2&projectBranch=feature/x", "IP Maturity Model for endjin/Endjin.Ip.Maturity.Model (feature/x, rules: v2)")]
     public async Task GitHubImmAllBadges_BranchQueryString_TitleShowsTheProjectBranchAndAnyNonDefaultRuleSetBranch(
@@ -73,10 +74,10 @@ public partial class ShowBadgesPageTests
     }
 
     [TestMethod]
-    [DataRow("", "master", "master")]
+    [DataRow("", "main", "master")]
     [DataRow("?definitionsBranch=v2&projectBranch=feature/x", "v2", "feature%2Fx")]
-    [DataRow("?projectBranch=release%201.0", "master", "release%201.0")]
-    [DataRow("?projectBranch=a%26b%3Dc", "master", "a%26b%3Dc")]
+    [DataRow("?projectBranch=release%201.0", "main", "release%201.0")]
+    [DataRow("?projectBranch=a%26b%3Dc", "main", "a%26b%3Dc")]
     public async Task GitHubImmAllBadges_ScoredRules_ShowsTheTotalThenEachRuleBadgeFromTheSameBranches(
         string queryString,
         string expectedEncodedDefinitionsBranch,
@@ -112,7 +113,7 @@ public partial class ShowBadgesPageTests
         // Arrange
         ImmFunctionFixture fixture = new(HostYaml.TwoRuleSet, HostYaml.BothRulesScored);
         string badges = $"/api/imm/github/{expectedEncodedOrg}/{expectedEncodedProject}";
-        const string branches = "?cache=false&definitionsBranch=master&projectBranch=master";
+        const string branches = "?cache=false&definitionsBranch=main&projectBranch=master";
 
         // Act
         IActionResult result = await fixture.Functions.GitHubImmAllBadges(ImmFunctionFixture.CreateRequest(), org, project);
@@ -162,8 +163,8 @@ public partial class ShowBadgesPageTests
         // Assert
         ImageSources(result.ShouldBeOfType<ContentResult>().Content!).ShouldBe(
         [
-            "/api/imm/github/endjin/Endjin.Ip.Maturity.Model/total?cache=false&definitionsBranch=master&projectBranch=master",
-            $"/api/imm/github/endjin/Endjin.Ip.Maturity.Model/rule/{HostYaml.SharedEngineeringStandardsRuleId}?cache=false&definitionsBranch=master&projectBranch=master",
+            "/api/imm/github/endjin/Endjin.Ip.Maturity.Model/total?cache=false&definitionsBranch=main&projectBranch=master",
+            $"/api/imm/github/endjin/Endjin.Ip.Maturity.Model/rule/{HostYaml.SharedEngineeringStandardsRuleId}?cache=false&definitionsBranch=main&projectBranch=master",
         ]);
     }
 

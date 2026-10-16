@@ -11,8 +11,8 @@ namespace Endjin.Ip.Maturity.Model.Host.Tests;
 /// A project's README can show badges for its overall IMM score and for each rule. The badges are
 /// coloured by how much of the maximum possible score the project has achieved: red below 33%,
 /// yellow below 66%, yellow-green below 100%, and green for full marks. They are never cached,
-/// so that changes to the IMM show up as soon as GitHub serves them. By default, the rule set and
-/// the IMM are read from their master branches; a query string can pick other branches.
+/// so that changes to the IMM show up as soon as GitHub serves them. By default, the rule set is read
+/// from its main branch and the IMM from the project's master branch; a query string can pick other branches.
 /// </summary>
 [TestClass]
 public class BadgeEndpointTests
@@ -243,14 +243,14 @@ public class BadgeEndpointTests
     }
 
     [TestMethod]
-    [DataRow("", "master", "master")]
-    [DataRow("?projectBranch=", "master", "master")]
-    [DataRow("?definitionsBranch=&projectBranch=", "master", "master")]
-    [DataRow("?projectBranch=feature/x", "master", "feature/x")]
-    [DataRow("?projectBranch=feature%2Fx", "master", "feature/x")]
+    [DataRow("", "main", "master")]
+    [DataRow("?projectBranch=", "main", "master")]
+    [DataRow("?definitionsBranch=&projectBranch=", "main", "master")]
+    [DataRow("?projectBranch=feature/x", "main", "feature/x")]
+    [DataRow("?projectBranch=feature%2Fx", "main", "feature/x")]
     [DataRow("?definitionsBranch=v2", "v2", "master")]
     [DataRow("?definitionsBranch=v2&projectBranch=release/1.0", "v2", "release/1.0")]
-    [DataRow("?projectBranch=main&projectBranch=dev", "master", "main")]
+    [DataRow("?projectBranch=main&projectBranch=dev", "main", "main")]
     [DataRow("?definitionsBranch=v2&definitionsBranch=v3&projectBranch=main", "v2", "main")]
     public async Task GitHubImmTotalScore_BranchQueryString_ReadsTheRuleSetAndImmFromThoseBranches(
         string queryString,
@@ -270,7 +270,7 @@ public class BadgeEndpointTests
     }
 
     [TestMethod]
-    [DataRow("", "master", "master")]
+    [DataRow("", "main", "master")]
     [DataRow("?definitionsBranch=v2&projectBranch=feature/x", "v2", "feature/x")]
     public async Task GitHubImmByRule_BranchQueryString_ReadsTheRuleSetAndImmFromThoseBranches(
         string queryString,

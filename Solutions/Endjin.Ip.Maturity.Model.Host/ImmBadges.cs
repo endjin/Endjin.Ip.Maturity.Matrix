@@ -136,7 +136,7 @@ namespace Endjin.Ip.Maturity.Model.Host
             sb.Append(WebUtility.HtmlEncode(project));
             sb.Append(" (");
             sb.Append(WebUtility.HtmlEncode(projectObjectName));
-            if (rulesObjectName != "master")
+            if (rulesObjectName != IpMaturityModelRuleset.DefaultDefinitionsBranch)
             {
                 sb.Append(", rules: ");
                 sb.Append(WebUtility.HtmlEncode(rulesObjectName));
@@ -214,7 +214,7 @@ namespace Endjin.Ip.Maturity.Model.Host
             sb.Append(WebUtility.HtmlEncode(project));
             sb.Append(" (");
             sb.Append(WebUtility.HtmlEncode(projectObjectName));
-            if (rulesObjectName != "master")
+            if (rulesObjectName != IpMaturityModelRuleset.DefaultDefinitionsBranch)
             {
                 sb.Append(", rules: ");
                 sb.Append(WebUtility.HtmlEncode(rulesObjectName));

@@ -181,16 +181,16 @@ namespace Endjin.Ip.Maturity.Model.Host
         private static (string RuleDefinitionsObjectName, string ProjectObjectName) GetGitHubBranchOrObjectNames(
             HttpRequest request)
         {
-            string definitionsObject = ObjectNameFromQuerystring("definitionsBranch");
-            string projectObject = ObjectNameFromQuerystring("projectBranch");
+            string definitionsObject = ObjectNameFromQuerystring("definitionsBranch", IpMaturityModelRuleset.DefaultDefinitionsBranch);
+            string projectObject = ObjectNameFromQuerystring("projectBranch", "master");
             return (definitionsObject, projectObject);
 
             // A repeated parameter uses its first value: StringValues.ToString() would join them all with
             // commas, naming a branch that does not exist.
-            string ObjectNameFromQuerystring(string name) =>
+            string ObjectNameFromQuerystring(string name, string defaultValue) =>
                 request.Query.TryGetValue(name, out StringValues value) && !string.IsNullOrEmpty(value[0])
                     ? value[0]!
-                    : "master";
+                    : defaultValue;
         }
 
         /// <summary>
@@ -318,7 +318,7 @@ namespace Endjin.Ip.Maturity.Model.Host
                 StatusCodes.Status404NotFound,
                 $"No rule set was found on branch '{rulesObjectName}'.",
                 url.OriginalString,
-                "Check the definitionsBranch parameter, or remove it to use the rule set on master.",
+                $"Check the definitionsBranch parameter, or remove it to use the rule set on {IpMaturityModelRuleset.DefaultDefinitionsBranch}.",
                 LogLevel.Information);
 
             public static ImmFailure Unavailable(GitHubContentUnavailableException exception) => new(

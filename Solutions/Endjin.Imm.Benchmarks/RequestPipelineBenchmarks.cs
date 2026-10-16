@@ -35,7 +35,7 @@ public class RequestPipelineBenchmarks
 {
     private const string Org = "endjin";
     private const string Project = "Endjin.Ip.Maturity.Model";
-    private const string RulesObjectName = "master";
+    private const string RulesObjectName = IpMaturityModelRuleset.DefaultDefinitionsBranch;
     private const string ProjectObjectName = "master";
 
     private static readonly Guid FrameworkRuleId = Guid.Parse(SampleData.FrameworkRuleId);

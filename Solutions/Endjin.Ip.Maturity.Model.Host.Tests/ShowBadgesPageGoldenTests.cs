@@ -26,7 +26,7 @@ public class ShowBadgesPageGoldenTests
             <body>
               <div>
               <p>Total score</p>
-                <img src="/api/imm/github/endjin/Endjin.Ip.Maturity.Model/total?cache=false&amp;definitionsBranch=master&amp;projectBranch=master" />
+                <img src="/api/imm/github/endjin/Endjin.Ip.Maturity.Model/total?cache=false&amp;definitionsBranch=main&amp;projectBranch=master" />
               </div>
               <div>
               <p>Rules</p>
@@ -34,12 +34,12 @@ public class ShowBadgesPageGoldenTests
                 <tbody>
                   <tr>
                     <td>
-                      <img src="/api/imm/github/endjin/Endjin.Ip.Maturity.Model/rule/{HostYaml.DeploymentRuleId}?cache=false&amp;definitionsBranch=master&amp;projectBranch=master" />
+                      <img src="/api/imm/github/endjin/Endjin.Ip.Maturity.Model/rule/{HostYaml.DeploymentRuleId}?cache=false&amp;definitionsBranch=main&amp;projectBranch=master" />
                     </td>
                   </tr>
                   <tr>
                     <td>
-                      <img src="/api/imm/github/endjin/Endjin.Ip.Maturity.Model/rule/{HostYaml.SharedEngineeringStandardsRuleId}?cache=false&amp;definitionsBranch=master&amp;projectBranch=master" />
+                      <img src="/api/imm/github/endjin/Endjin.Ip.Maturity.Model/rule/{HostYaml.SharedEngineeringStandardsRuleId}?cache=false&amp;definitionsBranch=main&amp;projectBranch=master" />
                     </td>
                   </tr>
                 </tbody>

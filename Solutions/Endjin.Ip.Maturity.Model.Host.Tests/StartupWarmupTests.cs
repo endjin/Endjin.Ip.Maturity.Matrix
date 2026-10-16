@@ -43,7 +43,7 @@ public class StartupWarmupTests
 
         fetch.SetResult(new RuleDefinitionRepository(IpMaturityModelRuleset.FromYaml(HostYaml.TwoRuleSet)));
         await warmup.Completion.WaitAsync(WaitLimit);
-        await source.Received(1).GetRuleDefinitionRepositoryAsync("master");
+        await source.Received(1).GetRuleDefinitionRepositoryAsync("main");
         source.ReceivedCalls().Count().ShouldBe(1);
     }
 

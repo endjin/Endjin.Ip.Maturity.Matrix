@@ -41,7 +41,7 @@ namespace Endjin.Ip.Maturity.Model.Host
         /// <summary>
         /// The branch of the rule set that the badges use when no other branch is requested.
         /// </summary>
-        private const string DefaultRuleSetBranch = "master";
+        private const string DefaultRuleSetBranch = IpMaturityModelRuleset.DefaultDefinitionsBranch;
 
         private const string WarmupRuleId = "00000000-0000-0000-0000-000000000001";
 

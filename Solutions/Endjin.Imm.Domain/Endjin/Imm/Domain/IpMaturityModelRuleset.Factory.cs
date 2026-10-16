@@ -6,9 +6,15 @@
     public partial class IpMaturityModelRuleset
     {
         /// <summary>
+        /// The branch of the rule definitions repository that holds the canonical rule set, and that
+        /// is used when no other branch is requested.
+        /// </summary>
+        public const string DefaultDefinitionsBranch = "main";
+
+        /// <summary>
         /// The URL for the canonical rule set definitions.
         /// </summary>
-        public static readonly string RuleSetDefinitionsUrl = DefinitionsUrlForName("master");
+        public static readonly string RuleSetDefinitionsUrl = DefinitionsUrlForName(DefaultDefinitionsBranch);
 
         public static string DefinitionsUrlForName(string name) => $"https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Matrix.RuleDefinitions/{name}/RuleSet.yaml";
 

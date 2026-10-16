@@ -16,7 +16,7 @@
 The snapshot contains 18 rules: 9 Continuous, 7 Discrete, 1 Age (`da4ed776-0365-4d8a-a297-c4e91a14d646`,
 Date of Last IP Review) and 1 Framework (`6c0402b3-f0e3-4bd7-83fe-04bb6dca7924`, Framework Version).
 
-The repository's default branch is `main`. The Host requests `master`, which GitHub still serves.
+The repository's default branch is `main`, which is the branch the Host requests by default.
 
 ## imm-default.yaml
 
