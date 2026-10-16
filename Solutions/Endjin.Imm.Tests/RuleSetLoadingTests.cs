@@ -130,4 +130,101 @@ public class RuleSetLoadingTests
         MeasureDefinition emptyMeasure = rule.Measures[1].ShouldBeOfType<MeasureDefinition>();
         emptyMeasure.Score.ShouldBe(0);
     }
+
+    [TestMethod]
+    [DataRow("Name", "Id", "DataType", "CanOptOut", "Measures", DisplayName = "Pascal case")]
+    [DataRow("name", "id", "datatype", "canoptout", "measures", DisplayName = "Lower case")]
+    [DataRow("NAME", "ID", "DATATYPE", "CANOPTOUT", "MEASURES", DisplayName = "Upper case")]
+    [DataRow("'Name'", "\"Id\"", "'DataType'", "\"CanOptOut\"", "'Measures'", DisplayName = "Quoted")]
+    public void FromYaml_RuleKeysInAnyCase_LoadsEveryProperty(string name, string id, string dataType, string canOptOut, string measures)
+    {
+        // Arrange
+        string ruleSetYaml = $"""
+            -
+                {name}: 'Deployment'
+                {id}: '{RuleSetYaml.DeploymentRuleId}'
+                {dataType}: Continuous
+                {canOptOut}: true
+                {measures}:
+                    -
+                        Score: 2
+                        Description: Automated
+            """;
+
+        // Act
+        IpMaturityModelRuleset ruleSet = IpMaturityModelRuleset.FromYaml(ruleSetYaml);
+
+        // Assert
+        RuleDefinition rule = ruleSet.Rules.ShouldHaveSingleItem();
+        rule.Name.ShouldBe("Deployment");
+        rule.Id.ShouldBe(Guid.Parse(RuleSetYaml.DeploymentRuleId));
+        rule.DataType.ShouldBe(DataType.Continuous);
+        rule.CanOptOut.ShouldBeTrue();
+        MeasureDefinition measure = rule.Measures.ShouldHaveSingleItem();
+        measure.Score.ShouldBe(2);
+        measure.Description.ShouldBe("Automated");
+    }
+
+    [TestMethod]
+    [DataRow("Continuous", DataType.Continuous)]
+    [DataRow("discrete", DataType.Discrete)]
+    [DataRow("AGE", DataType.Age)]
+    [DataRow("Framework", DataType.Framework)]
+    public void FromYaml_DataTypeName_LoadsTheDataTypeIgnoringCase(string dataType, DataType expected)
+    {
+        // Arrange
+        string ruleSetYaml = $"- {{Name: Rule, Id: '{RuleSetYaml.DeploymentRuleId}', DataType: {dataType}}}";
+
+        // Act
+        IpMaturityModelRuleset ruleSet = IpMaturityModelRuleset.FromYaml(ruleSetYaml);
+
+        // Assert
+        ruleSet.Rules.ShouldHaveSingleItem().DataType.ShouldBe(expected);
+    }
+
+    [TestMethod]
+    public void FromYaml_RuleWithUnknownProperties_IgnoresTheUnknownProperties()
+    {
+        // Arrange
+        const string ruleSetYaml = $"""
+            -
+                Name: 'Deployment'
+                Owner: 'Engineering'
+                Id: '{RuleSetYaml.DeploymentRuleId}'
+                Links:
+                    -
+                        Title: Guidance
+                        Url: 'https://example.com'
+                DataType: Discrete
+                Measures:
+                    -
+                        Score: 1
+                        Description: Manual
+            """;
+
+        // Act
+        IpMaturityModelRuleset ruleSet = IpMaturityModelRuleset.FromYaml(ruleSetYaml);
+
+        // Assert
+        RuleDefinition rule = ruleSet.Rules.ShouldHaveSingleItem();
+        rule.Name.ShouldBe("Deployment");
+        rule.Id.ShouldBe(Guid.Parse(RuleSetYaml.DeploymentRuleId));
+        rule.DataType.ShouldBe(DataType.Discrete);
+        rule.Measures.ShouldHaveSingleItem().Description.ShouldBe("Manual");
+    }
+
+    [TestMethod]
+    [DataRow("Id: not-a-guid", DisplayName = "Invalid Id")]
+    [DataRow("DataType: Percentage", DisplayName = "Unknown DataType")]
+    [DataRow("CanOptOut: maybe", DisplayName = "Invalid CanOptOut")]
+    [DataRow("Name: [a, b]", DisplayName = "Sequence for Name")]
+    [DataRow("Measures: 5", DisplayName = "Scalar for Measures")]
+    public void FromYaml_RulePropertyWithInvalidValue_ThrowsYamlException(string property)
+    {
+        // Arrange
+        string ruleSetYaml = $"-\n    Name: 'Deployment'\n    {property}\n";
+
+        // Act & Assert
+        Should.Throw<YamlDotNet.Core.YamlException>(() => IpMaturityModelRuleset.FromYaml(ruleSetYaml));
+    }
 }

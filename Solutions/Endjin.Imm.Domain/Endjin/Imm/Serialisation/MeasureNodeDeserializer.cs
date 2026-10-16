@@ -45,7 +45,8 @@
     /// Values are read by the deserializer's own value pipeline (so anchors, aliases, tags, null
     /// forms and scalar conversion behave as for any other property) and then converted to the
     /// property type as YamlDotNet would, including deferred assignment when a value is an alias
-    /// whose anchored node has not finished deserializing.
+    /// whose anchored node has not finished deserializing. The common forms of scalar values are
+    /// read directly by <see cref="ScalarValueReader"/> instead, with the same result.
     /// </item>
     /// <item>
     /// Exceptions are reported as YamlDotNet reported them. A property that cannot be read
@@ -213,7 +214,10 @@
                     _ => typeof(string),
                 };
 
-                object? value = nestedObjectDeserializer(parser, propertyType);
+                // The common scalar forms are read directly, with the same result (see ScalarValueReader).
+                object? value = ScalarValueReader.TryRead(parser, propertyType, out object? scalar)
+                    ? scalar
+                    : nestedObjectDeserializer(parser, propertyType);
                 if (value is IValuePromise promise)
                 {
                     fields.Defer(property, propertyType, promise);

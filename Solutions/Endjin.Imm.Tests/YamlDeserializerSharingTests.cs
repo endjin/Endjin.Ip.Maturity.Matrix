@@ -119,6 +119,10 @@ public class YamlDeserializerSharingTests
     [DataRow("-\n    Measures:\n        -\n            Framework: net10.0\n            Score: high", DisplayName = "Invalid value inside a discriminated measure")]
     [DataRow("-\n    Measures:\n        -\n            Framework: [a, b]", DisplayName = "Wrong node kind for a discriminator key")]
     [DataRow("-\n    Measures:\n        - 'null'", DisplayName = "Scalar where a measure is expected")]
+    [DataRow("-\n    Name: 'Deployment'\n    Id: not-a-guid", DisplayName = "Invalid value for a rule property")]
+    [DataRow("-\n    Name: [a, b]\n    Id: 74e29f9b-6dca-4161-8fdd-b468a1eb185d", DisplayName = "Wrong node kind for a rule property")]
+    [DataRow("-\n    Measures: 5", DisplayName = "Scalar where the measures are expected")]
+    [DataRow("- {Name: a}\n- {Id: 5}", DisplayName = "Invalid rule after a valid one")]
     public void FromYaml_AfterALoadFails_LoadsTheNextDocumentCorrectly(string invalidYaml)
     {
         // Arrange

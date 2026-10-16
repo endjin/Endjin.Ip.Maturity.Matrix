@@ -24,7 +24,7 @@
         /// state: each <c>Deserialize</c> call creates its own parser and serializer state, and the
         /// configured components are immutable after <see cref="DeserializerBuilder.Build"/> or keep
         /// only thread-safe caches. Specifically, the type inspector and object factory caches are
-        /// concurrent dictionaries keyed by type, and <see cref="MeasureNodeDeserializer"/> and
+        /// concurrent dictionaries keyed by type, and <see cref="MeasureNodeDeserializer"/>, <see cref="RuleNodeDeserializer"/> and
         /// <see cref="EmptyNodeAsDefaultInstanceNodeDeserializer{T}"/> are stateless. A load that
         /// fails part way through therefore leaves nothing behind that could affect later loads.
         /// </para>
@@ -52,6 +52,14 @@
         /// <see cref="MeasureNodeDeserializer"/>.
         /// </para>
         /// <para>
+        /// Rule mappings are read straight into <see cref="RuleDefinition"/> or
+        /// <see cref="RuleAssertion"/> by <see cref="RuleNodeDeserializer"/>, which behaves as
+        /// YamlDotNet's general-purpose object deserializer would but without its per-key property
+        /// lookup and reflection-based writes, and without passing the common forms of values
+        /// through YamlDotNet's value pipeline (see <see cref="ScalarValueReader"/>). YamlDotNet
+        /// still reads the root sequence of rules and every rule node that is not a mapping.
+        /// </para>
+        /// <para>
         /// Property matching is case-insensitive, and unrecognised properties are ignored. A bare
         /// <c>-</c> measure entry, or one that is null in any other form including <c>!!null</c>,
         /// becomes a default instance of the base measure type (see
@@ -76,6 +84,9 @@
 
                 // In the position YamlDotNet uses for its own type-discriminating deserializer.
                 .WithNodeDeserializer(new MeasureNodeDeserializer(), s => s.Before<DictionaryNodeDeserializer>())
+
+                // Ahead of the object deserializer that would otherwise read rule mappings.
+                .WithNodeDeserializer(new RuleNodeDeserializer(), s => s.Before<DictionaryNodeDeserializer>())
                 .Build();
         }
     }

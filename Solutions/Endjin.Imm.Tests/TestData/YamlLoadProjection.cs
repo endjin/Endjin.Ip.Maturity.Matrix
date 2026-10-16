@@ -18,8 +18,14 @@ internal static class YamlLoadProjection
         }
 
         StringBuilder text = new();
-        foreach (RuleDefinition rule in rules)
+        foreach (RuleDefinition? rule in rules)
         {
+            if (rule is null)
+            {
+                text.Append("Rule <null>\n");
+                continue;
+            }
+
             text.Append(CultureInfo.InvariantCulture, $"Rule {Quote(rule.Name)} {rule.Id} {rule.DataType} CanOptOut={rule.CanOptOut}\n");
             AppendMeasures(text, rule.Measures);
         }
@@ -35,8 +41,14 @@ internal static class YamlLoadProjection
         }
 
         StringBuilder text = new();
-        foreach (RuleAssertion rule in rules)
+        foreach (RuleAssertion? rule in rules)
         {
+            if (rule is null)
+            {
+                text.Append("Rule <null>\n");
+                continue;
+            }
+
             text.Append(CultureInfo.InvariantCulture, $"Rule {Quote(rule.Name)} {rule.Id} OptOut={rule.OptOut}\n");
             AppendMeasures(text, rule.Measures);
         }

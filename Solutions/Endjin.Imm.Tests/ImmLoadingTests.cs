@@ -63,6 +63,101 @@ public class ImmLoadingTests
     }
 
     [TestMethod]
+    public void FromYaml_RuleWithAgeProperty_IgnoresTheAgeProperty()
+    {
+        // Arrange
+        // Some published imm.yaml files (for example endjin/dotnet-adr) put an Age key on the
+        // rule itself. A rule assertion has no such property, so it is ignored like any other
+        // unrecognised key.
+        const string immYaml = $"""
+            -
+                Name: 'Date of Last IP Review'
+                Id: '{RuleSetYaml.DateOfLastIpReviewRuleId}'
+                Age: <P1M
+                Measures:
+                    -
+                        Score: 3
+                        Date: 2026-09-01
+            """;
+
+        // Act
+        IpMaturityModel imm = IpMaturityModel.FromYaml(immYaml);
+
+        // Assert
+        RuleAssertion rule = imm.Rules.ShouldHaveSingleItem();
+        rule.Name.ShouldBe("Date of Last IP Review");
+        rule.Id.ShouldBe(Guid.Parse(RuleSetYaml.DateOfLastIpReviewRuleId));
+        AgeMeasureAssertion measure = rule.Measures.ShouldHaveSingleItem().ShouldBeOfType<AgeMeasureAssertion>();
+        measure.Score.ShouldBe(3);
+        measure.Date.ShouldBe("2026-09-01");
+    }
+
+    [TestMethod]
+    [DataRow("Name", "Id", "OptOut", "Measures", DisplayName = "Pascal case")]
+    [DataRow("name", "id", "optout", "measures", DisplayName = "Lower case")]
+    [DataRow("NAME", "ID", "OPTOUT", "MEASURES", DisplayName = "Upper case")]
+    [DataRow("'Name'", "\"Id\"", "'OptOut'", "\"Measures\"", DisplayName = "Quoted")]
+    public void FromYaml_RuleKeysInAnyCase_LoadsEveryProperty(string name, string id, string optOut, string measures)
+    {
+        // Arrange
+        string immYaml = $"""
+            -
+                {name}: 'Deployment'
+                {id}: '{RuleSetYaml.DeploymentRuleId}'
+                {optOut}: true
+                {measures}:
+                    -
+                        Score: 1
+                        Description: Manual
+            """;
+
+        // Act
+        IpMaturityModel imm = IpMaturityModel.FromYaml(immYaml);
+
+        // Assert
+        RuleAssertion rule = imm.Rules.ShouldHaveSingleItem();
+        rule.Name.ShouldBe("Deployment");
+        rule.Id.ShouldBe(Guid.Parse(RuleSetYaml.DeploymentRuleId));
+        rule.OptOut.ShouldBeTrue();
+        MeasureAssertion measure = rule.Measures.ShouldHaveSingleItem();
+        measure.Score.ShouldBe(1);
+        measure.Description.ShouldBe("Manual");
+    }
+
+    [TestMethod]
+    [DataRow("true", true)]
+    [DataRow("yes", true)]
+    [DataRow("on", true)]
+    [DataRow("false", false)]
+    [DataRow("no", false)]
+    [DataRow("off", false)]
+    public void FromYaml_RuleOptOutWord_LoadsTheOptOutFlag(string optOut, bool expected)
+    {
+        // Arrange
+        string immYaml = $"- {{Name: Deployment, Id: '{RuleSetYaml.DeploymentRuleId}', OptOut: {optOut}, Measures: []}}";
+
+        // Act
+        IpMaturityModel imm = IpMaturityModel.FromYaml(immYaml);
+
+        // Assert
+        imm.Rules.ShouldHaveSingleItem().OptOut.ShouldBe(expected);
+    }
+
+    [TestMethod]
+    [DataRow("Id: not-a-guid", DisplayName = "Invalid Id")]
+    [DataRow("OptOut: maybe", DisplayName = "Invalid OptOut")]
+    [DataRow("Name: {a: b}", DisplayName = "Mapping for Name")]
+    [DataRow("Measures: {Score: 1}", DisplayName = "Mapping for Measures")]
+    public void FromYaml_RulePropertyWithInvalidValue_ThrowsYamlException(string property)
+    {
+        // Arrange
+        string immYaml = $"-\n    Name: 'Deployment'\n    {property}\n";
+
+        // Act & Assert
+        Should.Throw<YamlDotNet.Core.YamlException>(() => IpMaturityModel.FromYaml(immYaml));
+    }
+
+    [TestMethod]
     [DataRow("")]
     [DataRow("# This project has not assessed itself yet.")]
     public void FromYaml_DocumentWithNoRules_LoadsAnImmWithNoRules(string immYaml)
