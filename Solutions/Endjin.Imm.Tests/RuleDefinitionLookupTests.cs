@@ -89,13 +89,17 @@ public class RuleDefinitionLookupTests
     }
 
     [TestMethod]
-    public void GetDefinitionFor_RuleDefinedAfterANullEntry_ThrowsNullReferenceExceptionAsTheLinearSearchDid()
+    public void GetDefinitionFor_RuleDefinedAfterANullEntry_ReturnsItsDefinition()
     {
         // Arrange
-        RuleDefinitionRepository repository = new(RuleSetOf(new RuleDefinition { Id = OtherRuleId }, null!, new RuleDefinition { Id = RuleId }));
+        RuleDefinition expected = new() { Id = RuleId };
+        RuleDefinitionRepository repository = new(RuleSetOf(new RuleDefinition { Id = OtherRuleId }, null!, expected));
 
-        // Act / Assert
-        Should.Throw<NullReferenceException>(() => repository.GetDefinitionFor(new RuleAssertion { Id = RuleId }));
+        // Act
+        RuleDefinition definition = repository.GetDefinitionFor(new RuleAssertion { Id = RuleId });
+
+        // Assert
+        definition.ShouldBeSameAs(expected);
     }
 
     [TestMethod]
