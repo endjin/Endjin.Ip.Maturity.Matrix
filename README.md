@@ -386,6 +386,24 @@ az functionapp deployment source config-zip --resource-group <rg> --name <app> -
 
 From GitHub Actions, you can instead deploy the `function-app` artifact with [`Azure/functions-action`](https://github.com/Azure/functions-action), with `remote-build: false` and OpenID Connect sign-in to Azure.
 
+#### Deploy with ZeroFailed
+
+`deploy.ps1` runs a [ZeroFailed](https://github.com/zerofailed/ZeroFailed) deployment, which does the steps in this section for you. It provisions the Function App, zips the package and deploys it. The deployment uses these files:
+
+- `infra/main.bicep` creates the storage account, Application Insights, the Flex Consumption plan and the Function App. It uses the settings that this section describes.
+- `config/common.ps1` lists the settings that every environment needs. `config/<environment>.ps1` sets their values for one environment, for example `config/dev.ps1`.
+- `.zf/deploy-config.ps1` configures the deployment process.
+
+To deploy:
+
+1. Sign in to Azure PowerShell with `Connect-AzAccount`. You need the Owner role on the subscription, because the template assigns storage roles to the app's managed identity.
+2. Run `./build.ps1`. The build publishes the app to `_packages/Endjin.Ip.Maturity.Model.Host/linux-x64/`.
+3. Run `./deploy.ps1 -EnvironmentName dev`.
+
+The process waits for the deployment of the package to finish. If the deployment fails, the process fails too. Then the process requests a badge from the app, to check that the app works.
+
+`.zf/deploy-config.ps1` uses a development branch of the ZeroFailed.Deploy.Azure extension, because the released versions cannot report the result of a Flex Consumption deployment. When a release supports Flex Consumption, change the extension's `GitRef` to that release.
+
 #### Startup warm-up
 
 When an instance starts, the Host's `StartupWarmup` service does, in the background, the one-off work that would otherwise slow down the first request: it renders badges, loads and evaluates a small IMM (which compiles that code and builds the YAML deserializer), and fetches the canonical rule set from GitHub, which the Host then caches. It does not delay startup, which matters because Flex Consumption allows an app only 30 seconds to initialize when an instance is assigned to it. Requests that arrive before it finishes are served as usual.
