@@ -8,14 +8,9 @@
   <ItemGroup>
     <PackageVersion Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.1.1" />
-    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.1.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.13" />
     <PackageVersion Include="NodaTime" Version="3.3.5" />
-    <!-- Pinned to 2.1.3: 2.2.0+ enforce a Six Labors licence key and fail Release builds without one.
-         Test/generator only (Endjin.Badger.Tests; tools/*.cs pin the same version): never reference it from the
-         Host or anything it ships, which size badge text with the precomputed Endjin.Badger.VerdanaMetrics table. -->
-    <PackageVersion Include="SixLabors.Fonts" Version="2.1.3" />
     <PackageVersion Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>
 
@@ -30,9 +25,9 @@
   </ItemGroup>
 
   <!--
-  Used by Endjin.Imm.Tests and Endjin.Imm.Benchmarks, which both build a real MemoryCache for the
-  GitHub sources (HttpDeserializingCache). The Host, and Endjin.Ip.Maturity.Model.Host.Tests, must not
-  reference it, because the ASP.NET Core shared framework already provides it (NU1510).
+  Used by Endjin.Imm.Tests, which builds a real MemoryCache for the GitHub sources (HttpDeserializingCache).
+  Projects that reference the ASP.NET Core shared framework (the Host, Endjin.Ip.Maturity.Model.Host.Tests
+  and Endjin.Imm.Benchmarks) must not reference it, because the framework already provides it (NU1510).
   -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.13" />

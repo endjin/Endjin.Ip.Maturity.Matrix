@@ -10,7 +10,7 @@ namespace Endjin.Badger.Tests;
 /// the right, each sized to fit its text. Text is sized from a table of Verdana's metrics, whatever
 /// fonts are installed, and every text is given that width as its <c>textLength</c>, so that a browser
 /// drawing it in another font still fills the same width. These tests check the structure and
-/// proportions of a badge; <see cref="BadgeWidthGoldenTests"/> and <see cref="VerdanaMetricsOracleTests"/>
+/// proportions of a badge; <see cref="BadgeWidthGoldenTests"/> and <see cref="VerdanaMetricsWidthTests"/>
 /// check absolute widths, and <see cref="FallbackFontWidthTests"/> how far other fonts are from Verdana.
 /// </summary>
 [TestClass]

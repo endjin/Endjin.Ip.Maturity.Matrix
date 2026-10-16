@@ -5,7 +5,7 @@ namespace Endjin.Badger.Tests;
 /// <summary>
 /// Badge widths come from a table of Verdana's metrics rather than the fonts installed, so a badge
 /// must be byte-for-byte the same on every operating system. The expected SVGs were rendered once
-/// on Windows; <see cref="VerdanaMetricsOracleTests"/> shows that the widths in them match Verdana
+/// on Windows; <see cref="VerdanaMetricsWidthTests"/> shows that the table's widths match Verdana
 /// itself, and they match what BadgePainter produced with Verdana installed before the table
 /// existed to within 0.0001px. Each text's <c>textLength</c> is its measured width (the segment width
 /// less 8px of padding) and its <c>x</c> the centre of its segment, both in tenths of a pixel rounded
