@@ -61,7 +61,8 @@ namespace Endjin.Badger {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;{0}&quot; height=&quot;20&quot;&gt;
+        ///   Looks up a localized string similar to &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;{0}&quot; height=&quot;20&quot; role=&quot;img&quot; aria-label=&quot;{5}: {6}&quot;&gt;
+        ///  &lt;title&gt;{5}: {6}&lt;/title&gt;
         ///  &lt;linearGradient id=&quot;b&quot; x2=&quot;0&quot; y2=&quot;100%&quot;&gt;
         ///    &lt;stop offset=&quot;0&quot; stop-color=&quot;#bbb&quot; stop-opacity=&quot;.1&quot;/&gt;
         ///    &lt;stop offset=&quot;1&quot; stop-opacity=&quot;.1&quot;/&gt;
@@ -83,14 +84,17 @@ namespace Endjin.Badger {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;{0}&quot; height=&quot;20&quot;&gt;
+        ///   Looks up a localized string similar to &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;{0}&quot; height=&quot;20&quot; role=&quot;img&quot; aria-label=&quot;{5}: {6}&quot;&gt;
+        ///  &lt;title&gt;{5}: {6}&lt;/title&gt;
         ///  &lt;g shape-rendering=&quot;crispEdges&quot;&gt;
         ///    &lt;path fill=&quot;#555&quot; d=&quot;M0 0h{1}v20H0z&quot;/&gt;
         ///    &lt;path fill=&quot;{7}&quot; d=&quot;M{1} 0h{2}v20H{1}z&quot;/&gt;
         ///  &lt;/g&gt;
-        ///  &lt;g fill=&quot;#fff&quot; text-anchor=&quot;middle&quot; font-family=&quot;DejaVu Sans,Verdana,Geneva,sans-serif&quot; font-size=&quot;11px&quot;&gt;
-        ///    &lt;text x=&quot;{3}&quot; y=&quot;14&quot;&gt;{5}&lt;/text&gt;
-        ///    &lt;text x=&quot;{4}&quot; y=&quot;14&quot;&gt;{6}&lt;/text&gt;
+        ///  &lt;g fill=&quot;#fff&quot; text-anchor=&quot;middle&quot; font-family=&quot;Verdana,Geneva,DejaVu Sans,sans-serif&quot; text-rendering=&quot;geometricPrecision&quot; font-size=&quot;110&quot;&gt;
+        ///    &lt;g transform=&quot;scale(.1)&quot;&gt;
+        ///      &lt;text x=&quot;{3}&quot; y=&quot;140&quot; textLength=&quot;{8}&quot;&gt;{5}&lt;/text&gt;
+        ///      &lt;text x=&quot;{4}&quot; y=&quot;140&quot; textLength=&quot;{9}&quot;&gt;{6}&lt;/text&gt;
+        ///    &lt;/g&gt;
         ///  &lt;/g&gt;
         ///&lt;/svg&gt;.
         /// </summary>
@@ -101,7 +105,8 @@ namespace Endjin.Badger {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;{0}&quot; height=&quot;18&quot;&gt;
+        ///   Looks up a localized string similar to &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;{0}&quot; height=&quot;18&quot; role=&quot;img&quot; aria-label=&quot;{5}: {6}&quot;&gt;
+        ///  &lt;title&gt;{5}: {6}&lt;/title&gt;
         ///  &lt;linearGradient id=&quot;b&quot; x2=&quot;0&quot; y2=&quot;100%&quot;&gt;
         ///    &lt;stop offset=&quot;0&quot; stop-color=&quot;#fff&quot; stop-opacity=&quot;.7&quot;/&gt;
         ///    &lt;stop offset=&quot;.1&quot; stop-color=&quot;#aaa&quot; stop-opacity=&quot;.1&quot;/&gt;

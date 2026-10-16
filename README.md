@@ -1,4 +1,4 @@
-# IP Maturity Matrix
+# IP Maturity Model
 
 The aim of this framework is to measure maturity across the disciplines required to build, test, deploy, reuse, support & sell Intellectual Property. This flexible framework is based on a number of conventions to measure "quality", many of these measures are subjective, rather than qualitative, and need to reviewed by people rather than automated by tools.
 
@@ -13,31 +13,41 @@ Our IP exists at different levels of fidelity:
 | 4     | Solution                      |
 | 5     | Product                       |
 
-Each of these has different nuances when it comes to the categories in the IP Maturity Matrix outlined below. 
+Each of these has different nuances when it comes to the categories in the IP Maturity Model outlined below. 
 
 ## Categories
 
 We have, collectively, defined the following categories as quality measures for our IP. In many ways these measures can be thought of as a more traditional "definition of done". These quality measures cover different aspects of the lifecycle of IP, from maintainance to adoption, to operational support. It also includes commercial and legal concerns.
 
-  - [Shared Engineering Standards](#Shared-Engineering-Standards)
-  - [Coding Standards](#Coding-Standards)
-  - [Executable Specifications](#Executable-Specifications)
-  - [Coverage](#Coverage)
-  - [Benchmarks](#Benchmarks)
-  - [Reference Documentation](#Reference-Documentation)
-  - [Design & Implementation Documentation](#Design--Implementation-Documentation)
-  - [How-to Documentation](#How-to-Documentation)
-  - [Demos](#Demos)
-  - [Date of Last IP Review](#Date-of-Last-IP-Review)
-  - [Framework Version](#Framework-Version)
-  - [Associated Work Items](#Associated-Work-Items)
-  - [Source Code Availability](#Source-Code-Availability)
-  - [License](#License)
-  - [Production Use](#Production-Use)
-  - [Insights](#Insights)
-  - [Packaging](#Packaging)
-  - [Deployment](#Deployment)
-  - [Ops](#Ops)
+- [IP Maturity Model](#ip-maturity-model)
+  - [Categories](#categories)
+    - [Shared Engineering Standards](#shared-engineering-standards)
+    - [Coding Standards](#coding-standards)
+    - [Executable Specifications](#executable-specifications)
+    - [Coverage](#coverage)
+    - [Benchmarks](#benchmarks)
+    - [Reference Documentation](#reference-documentation)
+    - [Design \& Implementation Documentation](#design--implementation-documentation)
+    - [How-to Documentation](#how-to-documentation)
+    - [Demos](#demos)
+    - [Date of Last IP Review](#date-of-last-ip-review)
+    - [Framework Version](#framework-version)
+    - [Associated Work Items](#associated-work-items)
+    - [Source Code Availability](#source-code-availability)
+    - [License](#license)
+    - [Production Use](#production-use)
+    - [Insights](#insights)
+    - [Packaging](#packaging)
+    - [Deployment](#deployment)
+    - [Ops](#ops)
+  - [The IMM Schema](#the-imm-schema)
+  - [How to use the IP Maturity Model](#how-to-use-the-ip-maturity-model)
+    - [Total Score](#total-score)
+    - [IMM Measures](#imm-measures)
+  - [Building](#building)
+  - [Licenses](#licenses)
+  - [Project Sponsor](#project-sponsor)
+  - [Code of conduct](#code-of-conduct)
 
 ### Shared Engineering Standards
 
@@ -240,13 +250,13 @@ We need to consider other personas, whose funciton is to support the IP we creat
 
 ## The IMM Schema
 
-The IMM schema is designed to be very flexible as you may decide that you want to add or alter categories. The [current RuleSet](https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Matrix/master/Solutions/Endjin.Imm.App/RuleSet.yaml) is defined in the `Endjin.Imm.App` project in the solution.
+The IMM schema is designed to be very flexible as you may decide that you want to add or alter categories. The [current RuleSet](https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Model/master/Solutions/Endjin.Imm.App/RuleSet.yaml) is defined in the `Endjin.Imm.App` project in the solution.
 
 Each rule needs a unique, guid based Id, a name, and a data type which can either be `Discrete` (meaning it can only be scored by a single item listed in the schema), or `Continuous` (meaning that the score can be cumulative). These two data types are used to select and run the correct rules engine to calculate the values to be used to render the badges.
 
-## How to use the IP Maturity Matrix
+## How to use the IP Maturity Model
 
-Each project that adopts the IMM simply adds a `imm.yaml` file into the root of the repo. `Endjin.Ip.Maturity.Matrix.Host` is an Azure Function, which when given the path to the GitHub repo, will render the IMM Measure as a badge, which can be displayed in the repo and provide an "at a glance" view of the quality of the project. 
+Each project that adopts the IMM simply adds a `imm.yaml` file into the root of the repo. `Endjin.Ip.Maturity.Model.Host` is an Azure Function, which when given the path to the GitHub repo, will render the IMM Measure as a badge, which can be displayed in the repo and provide an "at a glance" view of the quality of the project. 
 
 The Azure Function exposes a HTTP Trigger, which has two actions.
 
@@ -294,25 +304,188 @@ Here are examples for the [AIS.NET Project](https://github.com/ais-dotnet/Ais.Ne
 
 [![Packaging](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/547fd9f5-9caf-449f-82d9-4fba9e7ce13a?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/ais-dotnet/Ais.Net/rule/547fd9f5-9caf-449f-82d9-4fba9e7ce13a?cache=false)
 
+## Building
+
+You will need the .NET 10 SDK; the version is pinned by `global.json` in the root of the repo. The solution, `Solutions/Endjin.Ip.Maturity.Model.slnx`, uses Central Package Management (`Solutions/Directory.Packages.props`) and shared build settings (`Solutions/Directory.Build.props`).
+
+```console
+dotnet build Solutions/Endjin.Ip.Maturity.Model.slnx
+dotnet test --solution Solutions/Endjin.Ip.Maturity.Model.slnx
+```
+
+The full build process, which is the same one CI runs, uses [ZeroFailed](https://github.com/zerofailed/ZeroFailed). It needs PowerShell 7, and it downloads the ZeroFailed and InvokeBuild modules on first run:
+
+```console
+./build.ps1
+```
+
+It versions the build with GitVersion, then builds, tests, writes a code coverage report to `_codeCoverage/`, and publishes the Functions app to `_packages/`. Its configuration is in `.zf/build-config.ps1`.
+
+There are three test projects. They are written with MSTest and [Shouldly](https://docs.shouldly.org/), and run on Microsoft.Testing.Platform. None of them uses the network: GitHub is replaced by a stub HTTP handler or by [NSubstitute](https://nsubstitute.github.io/) substitutes.
+
+- `Solutions/Endjin.Imm.Tests` covers rule evaluation, YAML loading, and fetching and caching the rule set and IMMs from GitHub.
+- `Solutions/Endjin.Badger.Tests` covers SVG badge rendering, including how far the widths of the fonts a browser falls back to without Verdana (DejaVu Sans, and Liberation Sans for Arial and Helvetica) are from the Verdana widths badges are sized with.
+- `Solutions/Endjin.Ip.Maturity.Model.Host.Tests` covers the badge and `showbadges` functions, and the startup warm-up.
+
+To collect code coverage and a TRX report as well:
+
+```console
+dotnet test --solution Solutions/Endjin.Ip.Maturity.Model.slnx --coverage --report-trx
+```
+
+`Endjin.Imm.App` is a console app that renders badges for the `imm-default.yaml` file in its working directory, which is handy for checking changes to the badge rendering.
+
+Badge text is sized from a table of Verdana's advance widths and kerning (`Solutions/Endjin.Badger/VerdanaMetrics.g.cs`), so no fonts are needed on the server. The viewer's browser draws the text in the first font it has from `Verdana, Geneva, DejaVu Sans, sans-serif`, and each text has a `textLength` of its measured Verdana width, so whatever font is used fills exactly the width the badge was sized for. The tables are generated by `tools/GenerateFontMetrics.cs`, which also generates the DejaVu Sans and Liberation Sans tables the tests compare against (the font files themselves are never committed).
+
+`Endjin.Ip.Maturity.Model.Host` is an Azure Function using the isolated worker model with ASP.NET Core integration. To run it locally, copy `local.settings.json.template` to `local.settings.json` and start it with the [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) (`func start`, or `dotnet run`, which calls `func` for you). The template sets `FUNCTIONS_WORKER_RUNTIME` to `dotnet-isolated`, which the Core Tools need. In Azure, the Function App runs on Flex Consumption, which sets the runtime in a different way: see the next section.
+
+### Deploying to Azure Functions Flex Consumption
+
+The Host is designed to run on the [Flex Consumption plan](https://learn.microsoft.com/azure/azure-functions/flex-consumption-plan), which runs on Linux only.
+
+#### Create the Function App
+
+Create the app with the .NET 10 isolated runtime and 2048 MB instances. Put its storage account in the same region as the app.
+
+```console
+az functionapp create --resource-group <rg> --name <app> --storage-account <storage> \
+  --flexconsumption-location <region> --runtime dotnet-isolated --runtime-version 10.0 \
+  --instance-memory 2048
+```
+
+- Use 2048 MB instances. Do not use 512 MB: the CPU allocation scales with the memory size, and a 512 MB instance has a quarter of a core (a 2048 MB instance has one core), so cold starts and badge rendering are slower.
+- Flex Consumption sets the runtime and its version in the app's `functionAppConfig`, not in app settings. Do not set these app settings, which Flex Consumption does not support: `FUNCTIONS_WORKER_RUNTIME`, `FUNCTIONS_EXTENSION_VERSION`, `WEBSITE_RUN_FROM_PACKAGE` and `WEBSITE_MAX_DYNAMIC_APPLICATION_SCALE_OUT`. The site settings `alwaysOn`, `use32BitWorkerProcess` and `netFrameworkVersion` also do not apply.
+- Do not set `WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED`. By default, Flex Consumption starts .NET isolated apps from a pre-started placeholder, which makes cold starts faster.
+- The Warmup trigger is not supported on Flex Consumption, so the Host does not use it. The Host warms itself up instead (see below).
+
+#### Remove cold starts with always-ready instances
+
+An app with no always-ready instances scales to zero, and the first request after that waits for a cold start. To keep one instance ready for HTTP requests at all times:
+
+```console
+az functionapp scale config always-ready set --resource-group <rg> --name <app> --settings http=1
+```
+
+You pay for always-ready instances while they are idle, so this is a trade-off between cost and latency. It is the only way to make sure that no request waits for a cold start.
+
+#### Deploy the package
+
+The build publishes the Host for `linux-x64` with [ReadyToRun](https://learn.microsoft.com/dotnet/core/deploying/ready-to-run) compilation, which precompiles the assemblies to native code so that less code is JIT compiled during a cold start. The publish settings are in `.zf/build-config.ps1`, not in the project file, so local builds and tests are not affected. The output is in `_packages/Endjin.Ip.Maturity.Model.Host/linux-x64/`, and CI uploads it as the `function-app` artifact. CI also runs `tools/Test-ReadyToRun.ps1`, which fails the build if the app's own assemblies are not ReadyToRun.
+
+The package is ready to run, so deploy it without a remote build. Zip the contents of the publish folder, including the hidden `.azurefunctions` folder, which the isolated worker needs. (PowerShell's `Compress-Archive` leaves out hidden files, so do not use it.)
+
+```console
+# Linux or macOS
+cd _packages/Endjin.Ip.Maturity.Model.Host/linux-x64 && zip -r ../app.zip . && cd -
+
+# PowerShell
+[IO.Compression.ZipFile]::CreateFromDirectory("$PWD/_packages/Endjin.Ip.Maturity.Model.Host/linux-x64", "$PWD/_packages/app.zip")
+
+az functionapp deployment source config-zip --resource-group <rg> --name <app> --src _packages/app.zip
+```
+
+From GitHub Actions, you can instead deploy the `function-app` artifact with [`Azure/functions-action`](https://github.com/Azure/functions-action), with `remote-build: false` and OpenID Connect sign-in to Azure.
+
+#### Startup warm-up
+
+When an instance starts, the Host's `StartupWarmup` service does, in the background, the one-off work that would otherwise slow down the first request: it renders badges, loads and evaluates a small IMM (which compiles that code and builds the YAML deserializer), and fetches the canonical rule set from GitHub, which the Host then caches. It does not delay startup, which matters because Flex Consumption allows an app only 30 seconds to initialize when an instance is assigned to it. Requests that arrive before it finishes are served as usual.
+
+When it finishes, it writes one log line that contains `Warm-up:`. The worker relays logs to the Functions host only when they are written during a function invocation, so the Host also writes this line (and only this line) to the console, which the Functions host captures. Look for it in the log stream, or in the Application Insights `traces` table, for example with `traces | where message contains "Warm-up:"`. The line gives the time taken by each step and whether the step succeeded:
+
+```text
+info: Endjin.Ip.Maturity.Model.Host.StartupWarmup[0] Warm-up: badges 104 ms (ok), yaml/evaluate 35 ms (ok), rule set 80 ms (ok)
+```
+
+A failed step shows `failed:` and the exception instead of `ok`, and the line is logged as a warning. A failure does not stop the Host: the step's work is done when the first request needs it, as it would be without the warm-up. If the rule set step fails, check that the app can reach `raw.githubusercontent.com`.
+
+To measure the effect of the warm-up, set the app setting `IMM_DISABLE_WARMUP` to `true`, which turns it off. `tools/Measure-ColdStart.ps1` measures cold starts locally under the Core Tools, with and without ReadyToRun and the warm-up. Its results show the relative effect of each, but they are not the times you will see on Flex Consumption.
+
+#### Troubleshooting
+
+If the worker process fails at startup with exit code 139 (a segmentation fault), you might have hit [azure-functions-dotnet-worker#3335](https://github.com/Azure/azure-functions-dotnet-worker/issues/3335), which affects .NET 10 isolated apps on Flex Consumption. The workarounds are to set the app setting `WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED` to `0` (cold starts are then slower), or to use 4096 MB instances.
+
+### Benchmarks
+
+`Solutions/Endjin.Imm.Benchmarks` is a [BenchmarkDotNet](https://benchmarkdotnet.org/) project that measures execution time and memory allocations for the work the Host does on each request:
+
+- loading rule sets and IMMs from YAML, including the cost of building the YAML deserializer
+- evaluating an IMM, and each rule calculator on its own
+- rendering SVG badges, and the text measurement and HTML decoding steps inside it
+- the complete pipeline for the total badge, rule badge and `showbadges` endpoints, with and without a cache hit, using the Host's own code (the benchmarks reference the Host project, and the `HostEndpoint_*` benchmarks call its function methods)
+- a hit in the HTTP deserializing cache
+
+The benchmarks make no network calls. They use a pinned snapshot of the canonical rule set (see `Solutions/Endjin.Imm.Benchmarks/Data/README.md`) and an in-process stub in place of GitHub.
+
+Always run the benchmarks in Release. A Debug build fails validation.
+
+```console
+# List the benchmarks
+dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --list flat
+
+# Run all the benchmarks with the default job (took 43 minutes for the first baseline)
+dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --filter "*"
+
+# Smoke test: run each benchmark once, to make sure that it executes
+dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --filter "*" --job dry
+
+# Quick, less accurate results
+dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --filter "*" --job short
+
+# Run some categories only (Yaml, Evaluate, Badge, Pipeline, Cache)
+dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --anyCategories Yaml Evaluate
+
+# Run one class, or one method
+dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --filter "*BadgePainterBenchmarks*"
+dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --filter "*.Evaluate"
+
+# On a hybrid CPU (performance and efficiency cores), keep the benchmark processes on the performance cores.
+# The mask is specific to the machine: 4095 (0xFFF) selects logical processors 0-11, the performance cores of an i7-13800H.
+dotnet run -c Release --project Solutions/Endjin.Imm.Benchmarks -- --filter "*" --affinity 4095
+```
+
+The results go to `Solutions/Endjin.Imm.Benchmarks/BenchmarkDotNet.Artifacts/results` (GitHub Markdown, compressed JSON and CSV). This folder is in `.gitignore`. To keep a set of results for comparison, copy them into `Solutions/Endjin.Imm.Benchmarks/Baselines/`, one folder for each baseline, with a README that records the commit, command and environment. That folder is also in `.gitignore`: results depend on the machine they were measured on, so baselines are kept locally and not in source control.
+
+`dotnet test --solution` does not run the benchmarks.
+
 ## Licenses
 
-[![GitHub license](https://img.shields.io/badge/License-Apache%202-blue.svg)](https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Matrix/master/LICENSE)
+[![GitHub license](https://img.shields.io/badge/License-Apache%202-blue.svg)](https://raw.githubusercontent.com/endjin/Endjin.Ip.Maturity.Model/master/LICENSE)
 
-The IP Maturity Matrix is available under the Apache 2.0 open source license.
+The IP Maturity Model is available under the Apache 2.0 open source license.
 
 For any licensing questions, please email [&#108;&#105;&#99;&#101;&#110;&#115;&#105;&#110;&#103;&#64;&#101;&#110;&#100;&#106;&#105;&#110;&#46;&#99;&#111;&#109;](&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#108;&#105;&#99;&#101;&#110;&#115;&#105;&#110;&#103;&#64;&#101;&#110;&#100;&#106;&#105;&#110;&#46;&#99;&#111;&#109;)
 
 ## Project Sponsor
 
-This project is sponsored by [endjin](https://endjin.com), a UK based Microsoft Gold Partner for Cloud Platform, Data Platform, Data Analytics, DevOps, and a Power BI Partner.
+This project is sponsored by [endjin](https://endjin.com), a UK based Technology Consultancy which specializes in Data & Analytics, AI & Cloud Native App Dev.
+
+> We help small teams achieve big things.
+
+We produce three free weekly newsletters: 
+
+ - [Azure Weekly](https://azureweekly.info) for all things about the Microsoft Azure Platform
+ - [Power BI Weekly](https://powerbiweekly.info) for all things Power BI
+ - [Fabric Weekly](https://fabricweekly.info) for all things Microsoft Fabric
+
+Keep up with everything that's going on at endjin via our [blog](https://endjin.com/blog), follow us on [Twitter](https://twitter.com/endjin), [YouTube](https://www.youtube.com/c/endjin) or [LinkedIn](https://www.linkedin.com/company/endjin).
+
+We have become the maintainers of a number of popular .NET Open Source Projects:
+
+- [Reactive Extensions for .NET](https://github.com/dotnet/reactive)
+- [Reaqtor](https://github.com/reaqtive)
+- [Argotic Syndication Framework](https://github.com/argotic-syndication-framework/)
+
+And we have over 50 Open Source projects of our own, spread across the following GitHub Orgs:
+
+- [endjin](https://github.com/endjin/)
+- [Corvus](https://github.com/corvus-dotnet)
+- [Menes](https://github.com/menes-dotnet)
+- [Marain](https://github.com/marain-dotnet)
+- [AIS.NET](https://github.com/ais-dotnet)
+
+And the DevOps tooling we have created for managing all these projects is available on the [PowerShell Gallery](https://www.powershellgallery.com/profiles/endjin).
 
 For more information about our products and services, or for commercial support of this project, please [contact us](https://endjin.com/contact-us). 
-
-We produce two free weekly newsletters; [Azure Weekly](https://azureweekly.info) for all things about the Microsoft Azure Platform, and [Power BI Weekly](https://powerbiweekly.info).
-
-Keep up with everything that's going on at endjin via our [blog](https://blogs.endjin.com/), follow us on [Twitter](https://twitter.com/endjin), or [LinkedIn](https://www.linkedin.com/company/1671851/).
-
-Our other Open Source projects can be found at https://endjin.com/open-source
 
 ## Code of conduct
 

@@ -1,0 +1,85 @@
+name: build
+on:
+  push:
+    branches:
+    - main
+    tags:
+    - '*'
+  pull_request:
+    branches:
+    - main
+  workflow_dispatch:
+    inputs:
+      forcePublish:
+        description: When true the Publish stage will always be run, otherwise it only runs for tagged versions.
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  actions: write  # enable cache clean-up
+  checks: write  # enable test result annotations
+  contents: write  # enable creating releases
+  issues: read
+  packages: write  # enable publishing packages
+  pull-requests: write  # enable test result annotations
+
+jobs:
+  build:
+    name: Run Build
+    runs-on: ubuntu-latest
+    outputs:
+      semver: ${{ steps.run_build.outputs.semver }}
+      major: ${{ steps.run_build.outputs.major }}
+      majorMinor: ${{ steps.run_build.outputs.majorMinor }}
+      preReleaseTag: ${{ steps.run_build.outputs.preReleaseTag }}
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
+      with:
+        fetch-depth: 0
+        submodules: true
+
+    - uses: endjin/Endjin.RecommendedPractices.GitHubActions/actions/prepare-env-vars-and-secrets@main
+      id: prepareEnvVarsAndSecrets
+      with:
+        environmentVariablesYaml: |
+          ZF_BUILD_DOTNET_SKIP_NUGET_PACKAGES: "true"
+        secretsYaml: |
+          NUGET_API_KEY: ""
+        secretsEncryptionKey: ${{ secrets.SHARED_WORKFLOW_KEY }}
+
+    - uses: endjin/Endjin.RecommendedPractices.GitHubActions/actions/run-build-process@main
+      id: run_build
+      with:
+        netSdkVersion: '10.0.x'
+        forcePublish: ${{ github.event.inputs.forcePublish == 'true' }}
+        sbomOutputStorageAccountName: ${{ vars.SBOM_OUTPUT_STORAGE_ACCOUNT_NAME }}
+        sbomOutputStorageContainerName: ${{ vars.SBOM_OUTPUT_STORAGE_CONTAINER_NAME }}
+        buildEnv: ${{ steps.prepareEnvVarsAndSecrets.outputs.environmentVariablesYamlBase64 }}
+        buildSecrets: ${{ steps.prepareEnvVarsAndSecrets.outputs.secretsYamlBase64 }}
+        buildAzureCredentials: ${{ secrets.AZURE_READER_CREDENTIALS }}
+        secretsEncryptionKey: ${{ secrets.SHARED_WORKFLOW_KEY }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    # The Function App is published for linux-x64 with ReadyToRun (see .zf/build-config.ps1), to cut JIT time
+    # on cold starts on Flex Consumption. Fail the build if the app's own assemblies were not precompiled.
+    - name: Verify ReadyToRun
+      shell: pwsh
+      run: ./tools/Test-ReadyToRun.ps1 -PublishDir _packages/Endjin.Ip.Maturity.Model.Host/linux-x64
+
+    # The published Function App is the deployable output of this build (no NuGet packages are produced).
+    # It is uploaded here rather than through run-build-process's buildArtifactName/buildArtifactPath inputs,
+    # because those cannot include hidden files, and the isolated worker needs the '.azurefunctions' folder.
+    # The artifact's contents are the root of the app: zip them as they are to deploy.
+    - name: Upload Function App
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: function-app
+        path: _packages/Endjin.Ip.Maturity.Model.Host/linux-x64/
+        include-hidden-files: true
+        if-no-files-found: error

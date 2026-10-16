@@ -4,6 +4,6 @@
 
     public interface IEvaluationEngine
     {
-        ImmEvaluation Evaluate(IpMaturityMatrix imm, IEvaluationContext? context = null);
+        ImmEvaluation Evaluate(IpMaturityModel imm, IEvaluationContext? context = null);
     }
 }
