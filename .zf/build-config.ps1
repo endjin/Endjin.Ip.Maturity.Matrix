@@ -47,6 +47,11 @@ $NuSpecFilesToPackage = @(
 $IncludeAssembliesInCodeCoverage = "Endjin*"
 $ExcludeAssembliesInCodeCoverage = "Endjin*.Tests", "Endjin*.Benchmarks"
 
+# Leave out code no test can reach, so the Host's coverage reflects the code we wrote: the Functions worker's
+# source-generated types (under obj/.../Microsoft.Azure.Functions.Worker.Sdk.Generators/) and the Host's top-level
+# startup in Program.cs, which only runs inside the Functions host.
+$ExcludeFilesInCodeCoverage = "*Microsoft.Azure.Functions.Worker.Sdk.Generators*", "*Endjin.Ip.Maturity.Model.Host*Program.cs"
+
 task . FullBuild
 
 #
