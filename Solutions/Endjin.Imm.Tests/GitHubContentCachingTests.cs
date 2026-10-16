@@ -567,6 +567,36 @@ public class GitHubContentCachingTests
         retried.Rules.Single().Measures.Single().Score.ShouldBe(1);
     }
 
+    // The ETag of content that could not be deserialized must not be remembered: revalidating with it
+    // would get a 304, and the cache would then serve the previous, valid IMM as if it were current,
+    // hiding the broken update from the project's owner until the file changed again.
+    [TestMethod]
+    public async Task GetIpMaturityModelAsync_ValidImmReplacedWithMalformedYaml_KeepsReportingItAsInvalid()
+    {
+        // Arrange
+        using ImmSourceFixture fixture = new((request, callIndex) => Task.FromResult(
+            callIndex == 0
+                ? StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"v1\"", TimeSpan.Zero)
+                : request.Headers.IfNoneMatch.Any(e => e.Tag == "\"v2\"")
+                    ? StubHttpMessageHandler.NotModified("\"v2\"", TimeSpan.Zero)
+                    : StubHttpMessageHandler.Ok("- Name: 'unterminated", "\"v2\"", TimeSpan.Zero)));
+        await GetImmAsync(fixture);
+
+        // Act
+        Task<IpMaturityModel> afterBrokenUpdate = GetImmAsync(fixture);
+        await Should.ThrowAsync<InvalidImmContentException>(() => afterBrokenUpdate);
+        Task<IpMaturityModel> nextRequest = GetImmAsync(fixture);
+
+        // Assert
+        await Should.ThrowAsync<InvalidImmContentException>(() => nextRequest);
+        fixture.Handler.Requests.Select(r => r.IfNoneMatch).ShouldBe(
+        [
+            [],
+            ["\"v1\""],
+            ["\"v1\""],
+        ]);
+    }
+
     [TestMethod]
     public async Task GetIpMaturityModelAsync_ConcurrentRequestsForTheSameImm_ShareASingleRequestToGitHub()
     {

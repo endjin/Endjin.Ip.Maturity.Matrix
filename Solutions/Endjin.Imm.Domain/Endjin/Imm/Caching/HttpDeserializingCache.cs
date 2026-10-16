@@ -183,6 +183,14 @@
                 : response.Headers.CacheControl;
             bool mayStore = cacheControl?.NoStore != true;
 
+            // Deserialize before the record takes this response's ETag and freshness. If the content
+            // is invalid, the record must keep describing the content it last held successfully:
+            // otherwise the next request would revalidate with the invalid content's ETag, get a 304,
+            // and serve the previous content as if it were current, hiding the broken update.
+            T result = contentNotChanged && record.LastResult != null
+                ? record.LastResult
+                : await this.DeserializeAsync(requestUri, response).ConfigureAwait(false);
+
             // We want to update our expiration time whether we ended up fetching new content, or
             // we're just reusing the old content.
             lock (sync)
@@ -202,10 +210,6 @@
                     record.ETag = null;
                 }
             }
-
-            T result = contentNotChanged && record.LastResult != null
-                ? record.LastResult
-                : await this.DeserializeAsync(requestUri, response).ConfigureAwait(false);
 
             // Without a last result, the next fetch will be unconditional.
             record.LastResult = mayStore ? result : null;
