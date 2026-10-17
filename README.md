@@ -397,8 +397,9 @@ From GitHub Actions, you can instead deploy the `function-app` artifact with [`A
 To deploy:
 
 1. Sign in to Azure PowerShell with `Connect-AzAccount`. You need the Owner role on the subscription, because the template assigns storage roles to the app's managed identity.
-2. Run `./build.ps1`. The build publishes the app to `_packages/Endjin.Ip.Maturity.Model.Host/linux-x64/`.
-3. Run `./deploy.ps1 -EnvironmentName dev`.
+2. Set the environment variables `AZURE_SUBSCRIPTION_ID` and `AZURE_TENANT_ID` to the IDs of the target subscription and its tenant. `config/dev.ps1` reads these variables, so the repository does not contain the IDs.
+3. Run `./build.ps1`. The build publishes the app to `_packages/Endjin.Ip.Maturity.Model.Host/linux-x64/`.
+4. Run `./deploy.ps1 -EnvironmentName dev`.
 
 The process waits for the deployment of the package to finish. If the deployment fails, the process fails too. Then the process requests a badge from the app, to check that the app works.
 
