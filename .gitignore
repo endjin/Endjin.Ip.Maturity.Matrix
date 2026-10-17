@@ -336,3 +336,15 @@ coverage.cobertura.xml
 /.vscode
 
 *.feature.cs
+.endjin/
+
+# ZeroFailed build output and downloaded extensions
+/_packages/
+/_codeCoverage/
+/.zf/extensions/
+# Microsoft.Testing.Platform diagnostic logs written to the repo root by the ZeroFailed test task
+/*.diag
+*.sbom.*
+
+# Benchmark baselines are kept locally, not in source control
+Solutions/Endjin.Imm.Benchmarks/Baselines/

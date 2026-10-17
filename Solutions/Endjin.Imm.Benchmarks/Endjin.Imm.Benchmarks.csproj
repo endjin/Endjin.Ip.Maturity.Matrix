@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+
+    <!-- Not a test project: keep it out of `dotnet test` and Microsoft.Testing.Platform discovery. -->
+    <IsTestProject>false</IsTestProject>
+    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
+
+    <!-- CA1822: BenchmarkDotNet requires benchmarks to be public instance methods, even when they use no instance state. -->
+    <NoWarn>$(NoWarn);CA1822</NoWarn>
+
+    <!-- Run from the project directory so BenchmarkDotNet.Artifacts lands next to this project. -->
+    <RunWorkingDirectory>$(MSBuildProjectDirectory)</RunWorkingDirectory>
+
+    <NeutralLanguage>en-GB</NeutralLanguage>
+  </PropertyGroup>
+
+  <!--
+  The Host is referenced so that the request pipeline benchmarks run the Host's own code. The Host needs the
+  ASP.NET Core shared framework, which also supplies Microsoft.Extensions.Caching.Memory, so that must not be
+  referenced as a package here (NU1510).
+  -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Endjin.Badger\Endjin.Badger.csproj" />
+    <ProjectReference Include="..\Endjin.Imm.Domain\Endjin.Imm.csproj" />
+    <ProjectReference Include="..\Endjin.Ip.Maturity.Model.Host\Endjin.Ip.Maturity.Model.Host.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data\RuleSet.yaml" LogicalName="RuleSet.yaml" />
+    <EmbeddedResource Include="..\Endjin.Imm.App\imm-default.yaml" Link="Data\imm-default.yaml" LogicalName="imm-default.yaml" />
+  </ItemGroup>
+
+</Project>

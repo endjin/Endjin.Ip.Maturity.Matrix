@@ -91,7 +91,7 @@
 
                     // Need to work out which kind of rule: < or *
                     // If <, then parse the rule as Period in ISO8601 form, and 
-                    if (LocalDateMatchesRule(dateInImm, context.EvaluationContext.EvaluationReferenceDate, amd.Age))
+                    if (LocalDateMatchesRule(dateInImm, context.EvaluationContext.EvaluationReferenceDate, amd))
                     {
                         return measureDefinition.Score;
                     }
@@ -115,19 +115,20 @@
             return 0;
         }
 
-        private static bool LocalDateMatchesRule(LocalDate dateInImm, LocalDate referenceDate, string ageText)
+        private static bool LocalDateMatchesRule(LocalDate dateInImm, LocalDate referenceDate, AgeMeasureDefinition amd)
         {
-            return ageText switch
+            return amd.Age switch
             {
                 "*" => true,
-                string t when t[0] == '<' => DateWithinPeriod(dateInImm, referenceDate, ageText),
-                string t when t[0] == '>' => !DateWithinPeriod(dateInImm, referenceDate, ageText),
+                string t when t[0] == '<' => DateWithinPeriod(dateInImm, referenceDate, amd),
+                string t when t[0] == '>' => !DateWithinPeriod(dateInImm, referenceDate, amd),
                 _ => false
             };
 
-            static bool DateWithinPeriod(LocalDate dateInImm, LocalDate referenceDate, string ageText)
+            static bool DateWithinPeriod(LocalDate dateInImm, LocalDate referenceDate, AgeMeasureDefinition amd)
             {
-                Period p = PeriodPattern.NormalizingIso.Parse(ageText[1..]).Value;
+                // The definition caches the parsed period (the text after the leading < or >).
+                Period p = amd.GetAgePeriod().Value;
 
                 LocalDate dateOnWhichNoLongerWithinPeriod = dateInImm.Plus(p);
                 return dateOnWhichNoLongerWithinPeriod > referenceDate;
