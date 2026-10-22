@@ -1,0 +1,28 @@
+<Project Sdk="Azure.Functions.Sdk">
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);IDE0042</NoWarn>
+    <NeutralLanguage>en-GB</NeutralLanguage>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" />
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Endjin.Badger\Endjin.Badger.csproj" />
+    <ProjectReference Include="..\Endjin.Imm.Domain\Endjin.Imm.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="local.settings.json.template">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
+  </ItemGroup>
+</Project>

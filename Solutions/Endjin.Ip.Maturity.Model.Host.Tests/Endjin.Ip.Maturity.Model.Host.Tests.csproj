@@ -1,0 +1,20 @@
+<Project Sdk="MSTest.Sdk">
+
+  <!--
+  Microsoft.Extensions.Caching.Memory and the DI container come from the ASP.NET Core shared framework, so
+  they must not be referenced as packages here (NU1510).
+  -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Shouldly" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Endjin.Ip.Maturity.Model.Host\Endjin.Ip.Maturity.Model.Host.csproj" />
+  </ItemGroup>
+
+</Project>
