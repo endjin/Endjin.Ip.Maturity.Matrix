@@ -402,6 +402,29 @@ public class GitHubContentCachingTests
         exception.InnerException.ShouldBeSameAs(connectionFailure);
     }
 
+    // A body that ends before its declared length is reported by HttpClient as an HttpRequestException
+    // wrapping an HttpIOException. HttpClient usually buffers the body before returning the response,
+    // so this arrives from SendAsync; a handler that does not buffer reports it when the body is read.
+    [TestMethod]
+    public async Task GetIpMaturityModelAsync_BodyEndsPrematurely_ThrowsContentUnavailableException()
+    {
+        // Arrange
+        HttpRequestException truncation = new(
+            "Error while copying content to a stream.", new HttpIOException(HttpRequestError.ResponseEnded));
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingWith(() => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StreamContent(new FailingStream(truncation)),
+        });
+
+        // Act
+        GitHubContentUnavailableException exception = await Should.ThrowAsync<GitHubContentUnavailableException>(() => GetImmAsync(fixture));
+
+        // Assert
+        exception.Url.ShouldBe(new Uri(ImmUrl));
+        exception.StatusCode.ShouldBeNull();
+        exception.InnerException.ShouldBeSameAs(truncation);
+    }
+
     [TestMethod]
     [DataRow(HttpStatusCode.InternalServerError)]
     [DataRow(HttpStatusCode.ServiceUnavailable)]
@@ -721,4 +744,45 @@ public class GitHubContentCachingTests
 
     private static Task<IpMaturityModel> GetImmAsync(ImmSourceFixture fixture) =>
         fixture.ImmSource.GetIpMaturityModelAsync(Owner, Project, Branch);
+
+    /// <summary>
+    /// A read-only stream whose every read fails with the given exception, standing in for a
+    /// response body that cannot be read to the end.
+    /// </summary>
+    private sealed class FailingStream(Exception failure) : Stream
+    {
+        public override bool CanRead => true;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => false;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override int Read(byte[] buffer, int offset, int count) => throw failure;
+
+        public override int Read(Span<byte> buffer) => throw failure;
+
+        public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) =>
+            Task.FromException<int>(failure);
+
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
+            ValueTask.FromException<int>(failure);
+
+        public override void Flush()
+        {
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+    }
 }
