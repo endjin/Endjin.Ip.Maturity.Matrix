@@ -325,7 +325,7 @@ There are three test projects. They are written with MSTest and [Shouldly](https
 
 - `Solutions/Endjin.Imm.Tests` covers rule evaluation, YAML loading, and fetching and caching the rule set and IMMs from GitHub.
 - `Solutions/Endjin.Badger.Tests` covers SVG badge rendering, including how far the widths of the fonts a browser falls back to without Verdana (DejaVu Sans, and Liberation Sans for Arial and Helvetica) are from the Verdana widths badges are sized with.
-- `Solutions/Endjin.Ip.Maturity.Model.Host.Tests` covers the badge and `showbadges` functions, and the startup warm-up.
+- `Solutions/Endjin.Ip.Maturity.Model.Host.Tests` covers the badge and `showbadges` functions, the startup warm-up, the spans they are traced with, and when telemetry is exported.
 
 To collect code coverage and a TRX report as well:
 
@@ -390,15 +390,102 @@ From GitHub Actions, you can instead deploy the `function-app` artifact with [`A
 
 When an instance starts, the Host's `StartupWarmup` service does, in the background, the one-off work that would otherwise slow down the first request: it renders badges, loads and evaluates a small IMM (which compiles that code and builds the YAML deserializer), and fetches the canonical rule set from GitHub, which the Host then caches. It does not delay startup, which matters because Flex Consumption allows an app only 30 seconds to initialize when an instance is assigned to it. Requests that arrive before it finishes are served as usual.
 
-When it finishes, it writes one log line that contains `Warm-up:`. The worker relays logs to the Functions host only when they are written during a function invocation, so the Host also writes this line (and only this line) to the console, which the Functions host captures. Look for it in the log stream, or in the Application Insights `traces` table, for example with `traces | where message contains "Warm-up:"`. The line gives the time taken by each step and whether the step succeeded:
+When it finishes, it writes one log line that contains `Warm-up:`. When the Host exports telemetry (see [Tracing and logging with OpenTelemetry](#tracing-and-logging-with-opentelemetry)), the line goes to the exporter with the rest of the Host's logs. When it does not, the line would never be seen, because the worker relays logs to the Functions host only when they are written during a function invocation, so the Host writes this line (and only this line) to the console, which the Functions host captures. Look for it in the Application Insights `traces` table, for example with `traces | where message contains "Warm-up:"`, or in the console output of `func start`. The line gives the time taken by each step and whether the step succeeded:
 
 ```text
-info: Endjin.Ip.Maturity.Model.Host.StartupWarmup[0] Warm-up: badges 104 ms (ok), yaml/evaluate 35 ms (ok), rule set 80 ms (ok)
+info: Endjin.Ip.Maturity.Model.Host.StartupWarmup[1] Warm-up: badges 104 ms (ok), yaml/evaluate 35 ms (ok), rule set 80 ms (ok)
 ```
 
 A failed step shows `failed:` and the exception instead of `ok`, and the line is logged as a warning. A failure does not stop the Host: the step's work is done when the first request needs it, as it would be without the warm-up. If the rule set step fails, check that the app can reach `raw.githubusercontent.com`.
 
 To measure the effect of the warm-up, set the app setting `IMM_DISABLE_WARMUP` to `true`, which turns it off. `tools/Measure-ColdStart.ps1` measures cold starts locally under the Core Tools, with and without ReadyToRun and the warm-up. Its results show the relative effect of each, but they are not the times you will see on Flex Consumption.
+
+The warm-up is also traced, as a trace of its own: an `imm.warmup` span with a child span for each step, `imm.warmup.badges`, `imm.warmup.yaml` and `imm.warmup.ruleset`. The last one contains the spans of the rule set fetch. A step that fails, and the `imm.warmup` span, have the status Error, and `imm.warmup` has the tag `imm.warmup.failed`.
+
+#### Tracing and logging with OpenTelemetry
+
+The Host can export traces and logs with [OpenTelemetry](https://opentelemetry.io/), so that you can see where the time of any badge request went: waiting for the Functions host, fetching the rule set and the IMM from GitHub (or getting them from the cache), parsing the YAML, evaluating the IMM, and rendering the badge or page. Each log line carries the trace id and span id of the request that wrote it.
+
+The Host exports only when one of these settings is set. Without either, nothing listens to the spans, so they are never created and cost nothing.
+
+- `APPLICATIONINSIGHTS_CONNECTION_STRING` exports traces, logs and metrics to Application Insights.
+- `OTEL_EXPORTER_OTLP_ENDPOINT` exports traces and logs over OTLP, for example to the Aspire dashboard. The other standard `OTEL_EXPORTER_OTLP_*` settings also apply.
+
+You can set both. These are the spans of one badge request:
+
+```text
+<Functions host request span>                      (host process)
+└─ GitHubImmTotalScore                             Microsoft.Azure.Functions.Worker (the invocation)
+   └─ imm.badge.total                              Endjin.Ip.Maturity.Model.Host
+      ├─ imm.content.get  [rule set URL]           Endjin.Imm (cache lookup)
+      │  └─ imm.content.fetch                      Endjin.Imm (only on a miss or revalidation)
+      │     ├─ GET                                 System.Net.Http (raw.githubusercontent.com)
+      │     └─ imm.content.deserialize             Endjin.Imm (only when a body was received)
+      ├─ imm.content.get  [IMM URL]                Endjin.Imm (in parallel with the one above)
+      │  └─ ...
+      ├─ imm.evaluate                              Endjin.Imm
+      └─ imm.render                                Endjin.Ip.Maturity.Model.Host
+```
+
+The rule endpoint's span is `imm.badge.rule`, and the `showbadges` endpoint's span is `imm.badge.showbadges`. The spans have these tags:
+
+- `imm.badge.*`: `imm.github.owner`, `imm.github.repo`, `imm.github.ref` (the `projectBranch`) and `imm.ruleset.ref` (the `definitionsBranch`); `imm.rule.id` on the rule endpoint; and `imm.error`, the `X-Imm-Error` code, when an error badge or page is returned. The status is Error only when GitHub is unavailable, or when an exception propagates (then `error.type` and an `exception` event are also recorded). A request for an IMM that does not exist is answered correctly, so its span has an `imm.error` tag but is not an error.
+- `imm.render`: `imm.render.kind`, which is `total`, `rule`, `showbadges`, `error-badge` or `error-page`.
+- `imm.content.get`: `url.full`, and `imm.cache.result`, which is `hit` (the cached content was fresh), `miss` (nothing was cached, so it was fetched), `revalidate` (the cached content was stale, so it was fetched again with its ETag) or `coalesced` (the request joined a fetch that another request had started; the span links to that fetch).
+- `imm.content.fetch`: `url.full`, `http.response.status_code`, `imm.cache.conditional` (an ETag was sent), `imm.cache.not_modified` (GitHub returned 304) and `imm.cache.stale_if_error` (GitHub was unavailable, so the content cached before was used).
+- `imm.content.deserialize`: `imm.content.length`, the length of the YAML.
+- `imm.evaluate`: `imm.rule_count`, `imm.score` and `imm.max_score`.
+
+`host.json` sets `telemetryMode` to `OpenTelemetry`, so that the Functions host's request span and the worker's spans are in one trace.
+
+##### In Azure
+
+Set the app setting `APPLICATIONINSIGHTS_CONNECTION_STRING` to the connection string of an Application Insights resource. Nothing else is needed. To see the spans of one request as a tree, open a request in Application Insights and choose **View all** under the end-to-end transaction details. Span tags appear in `customDimensions`.
+
+In this mode, log streaming in the Azure portal is not supported. Use Application Insights (Live Metrics, or the `traces` table) instead.
+
+These queries are a place to start. The full tree for one request, given its operation id:
+
+```kusto
+union requests, dependencies
+| where operation_Id == "<id>"
+| project timestamp, itemType, name, duration, customDimensions
+| order by timestamp asc
+```
+
+Where the time goes, on average and at the 95th percentile, for each span:
+
+```kusto
+dependencies
+| where name startswith "imm."
+| summarize avg(duration), percentile(duration, 95), count() by name
+```
+
+How well the cache works:
+
+```kusto
+dependencies
+| where name == "imm.content.get"
+| summarize count() by tostring(customDimensions["imm.cache.result"])
+```
+
+##### Locally, with the Aspire dashboard
+
+The [Aspire dashboard](https://learn.microsoft.com/dotnet/aspire/fundamentals/dashboard/standalone) shows traces and logs from any OTLP exporter. Start it with Docker:
+
+```console
+docker run --rm -it -p 18888:18888 -p 4317:18889 -e DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true mcr.microsoft.com/dotnet/aspire-dashboard:latest
+```
+
+Then add the endpoint to the `Values` in `local.settings.json`, start the Host with `func start`, request a badge, and open `http://localhost:18888`:
+
+```json
+"OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317"
+```
+
+##### Tracing connections
+
+Set `IMM_TRACE_CONNECTIONS` to `1` or `true` to also trace DNS lookups, socket connections, TLS handshakes and waits for a connection from the pool. These spans are noisy, so leave the setting off unless you need it. They are useful for diagnosing cold starts, where the first fetch from GitHub pays for setting up a connection, and the Host's 5-minute connection recycling, which makes a fetch set up a new one.
 
 #### Troubleshooting
 

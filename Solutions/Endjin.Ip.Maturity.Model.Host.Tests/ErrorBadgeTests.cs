@@ -334,6 +334,8 @@ public class ErrorBadgeTests
         string svg = ImmBadges.RenderErrorBadge("IMM", "imm.yaml not found");
 
         // Assert
+        // Both sides are normalised: the raw string literal takes its line endings from this file,
+        // which Git may check out with either.
         svg.ReplaceLineEndings("\n").TrimEnd('\n').ShouldBe(
             """
             <svg xmlns="http://www.w3.org/2000/svg" width="151.2334" height="20" role="img" aria-label="IMM: imm.yaml not found">
@@ -359,7 +361,7 @@ public class ErrorBadgeTests
                 </g>
               </g>
             </svg>
-            """);
+            """.ReplaceLineEndings("\n"));
     }
 
     private static YamlException YamlErrorFrom(string yaml)

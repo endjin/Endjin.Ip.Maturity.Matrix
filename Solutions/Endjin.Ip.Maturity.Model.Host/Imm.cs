@@ -13,6 +13,7 @@ namespace Endjin.Ip.Maturity.Model.Host
     using Microsoft.Extensions.Primitives;
 
     using System;
+    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Threading.Tasks;
@@ -31,8 +32,16 @@ namespace Endjin.Ip.Maturity.Model.Host
     /// with an error status. Both set the <c>X-Imm-Error</c> header to a code identifying the
     /// problem. Any other exception is a bug, and propagates.
     /// </para>
+    /// <para>
+    /// Each endpoint traces its work as a span from <see cref="HostTelemetry.ActivitySourceName"/>
+    /// (<c>imm.badge.total</c>, <c>imm.badge.rule</c> or <c>imm.badge.showbadges</c>) tagged with
+    /// the repository and branches requested, with an <c>imm.render</c> child around rendering the
+    /// badge or page. When a badge or page shows an error, the span's <c>imm.error</c> tag holds
+    /// the <c>X-Imm-Error</c> code; its status is Error only when the problem is logged as a
+    /// warning (GitHub is unavailable), or when an exception propagates.
+    /// </para>
     /// </remarks>
-    public class Imm
+    public partial class Imm
     {
         /// <summary>
         /// The name of the response header that identifies why a badge or page shows an error.
@@ -42,6 +51,11 @@ namespace Endjin.Ip.Maturity.Model.Host
         private const string SvgMediaType = "image/svg+xml";
         private const string TotalSubject = "IMM";
         private const string UnnamedRuleSubject = "IMM rule";
+
+        private const string TotalActivityName = "imm.badge.total";
+        private const string RuleActivityName = "imm.badge.rule";
+        private const string ShowBadgesActivityName = "imm.badge.showbadges";
+        private const string RenderActivityName = "imm.render";
 
         private readonly IRuleDefinitionRepositorySource ruleDefinitionRepositorySource;
         private readonly IIpMaturityModelSource immSource;
@@ -64,24 +78,38 @@ namespace Endjin.Ip.Maturity.Model.Host
             string project)
         {
             (string rulesObjectName, string projectObjectName) = GetGitHubBranchOrObjectNames(request);
-            (Task<IRuleDefinitionRepository> rulesetTask, Task<IpMaturityModel> immTask) =
-                this.FetchFromGitHub(org, project, rulesObjectName, projectObjectName);
+            using Activity? activity = StartBadgeActivity(TotalActivityName, org, project, rulesObjectName, projectObjectName);
             try
             {
-                await Task.WhenAll(rulesetTask, immTask).ConfigureAwait(false);
-                var evaluationEngine = new EvaluationEngine(rulesetTask.Result);
+                (Task<IRuleDefinitionRepository> rulesetTask, Task<IpMaturityModel> immTask) =
+                    this.FetchFromGitHub(org, project, rulesObjectName, projectObjectName);
+                try
+                {
+                    await Task.WhenAll(rulesetTask, immTask).ConfigureAwait(false);
+                    var evaluationEngine = new EvaluationEngine(rulesetTask.Result);
 
-                ImmEvaluation evaluationResult = evaluationEngine.Evaluate(immTask.Result);
+                    ImmEvaluation evaluationResult = evaluationEngine.Evaluate(immTask.Result);
 
-                string svg = ImmBadges.RenderTotalBadge(evaluationResult);
-                return CreateUncacheResponse(
-                    request,
-                    svg,
-                    SvgMediaType);
+                    string svg;
+                    using (StartRenderActivity("total"))
+                    {
+                        svg = ImmBadges.RenderTotalBadge(evaluationResult);
+                    }
+
+                    return CreateUncacheResponse(
+                        request,
+                        svg,
+                        SvgMediaType);
+                }
+                catch (Exception ex) when (TryDescribeFailure(ex, rulesetTask, org, project, rulesObjectName, projectObjectName, out ImmFailure? failure))
+                {
+                    return this.CreateErrorBadgeResponse(activity, request, org, project, TotalSubject, failure, ex);
+                }
             }
-            catch (Exception ex) when (TryDescribeFailure(ex, rulesetTask, org, project, rulesObjectName, projectObjectName, out ImmFailure? failure))
+            catch (Exception ex)
             {
-                return this.CreateErrorBadgeResponse(request, org, project, TotalSubject, failure, ex);
+                RecordUnexpectedException(activity, ex);
+                throw;
             }
         }
 
@@ -92,40 +120,56 @@ namespace Endjin.Ip.Maturity.Model.Host
             string project,
             string ruleId)
         {
-            // Not a {ruleId:guid} route constraint, which would make the request a 404 with no badge.
-            if (!Guid.TryParse(ruleId, out Guid ruleIdAsGuid))
-            {
-                return this.CreateErrorBadgeResponse(request, org, project, UnnamedRuleSubject, ImmFailure.InvalidRuleId(ruleId), null);
-            }
-
             (string rulesObjectName, string projectObjectName) = GetGitHubBranchOrObjectNames(request);
-            (Task<IRuleDefinitionRepository> rulesetTask, Task<IpMaturityModel> immTask) =
-                this.FetchFromGitHub(org, project, rulesObjectName, projectObjectName);
+            using Activity? activity = StartBadgeActivity(RuleActivityName, org, project, rulesObjectName, projectObjectName);
+            activity?.SetTag("imm.rule.id", ruleId);
             try
             {
-                await Task.WhenAll(rulesetTask, immTask).ConfigureAwait(false);
-                IRuleDefinitionRepository ruleDefinitions = rulesetTask.Result;
-                IpMaturityModel imm = immTask.Result;
-                var evaluationEngine = new EvaluationEngine(ruleDefinitions);
-                RuleEvaluation? result = evaluationEngine.Evaluate(imm).RuleEvaluations.FirstOrDefault(x => x.RuleAssertion.Id == ruleIdAsGuid);
-
-                if (result is null)
+                // Not a {ruleId:guid} route constraint, which would make the request a 404 with no badge.
+                if (!Guid.TryParse(ruleId, out Guid ruleIdAsGuid))
                 {
-                    // The evaluation leaves out rules the IMM opts out of.
-                    ImmFailure failure = imm.Rules.Any(r => r is not null && r.Id == ruleIdAsGuid && r.OptOut)
-                        ? ImmFailure.RuleOptedOut(ruleIdAsGuid)
-                        : ImmFailure.RuleNotFound(ruleIdAsGuid);
-                    return this.CreateErrorBadgeResponse(
-                        request, org, project, RuleSubject(rulesetTask, immTask, ruleIdAsGuid), failure, null);
+                    return this.CreateErrorBadgeResponse(activity, request, org, project, UnnamedRuleSubject, ImmFailure.InvalidRuleId(ruleId), null);
                 }
 
-                string? definitionName = ruleDefinitions.GetDefinitionFor(result.RuleAssertion).Name;
-                return CreateUncacheResponse(request, ImmBadges.RenderRuleBadge(result, definitionName), SvgMediaType);
+                (Task<IRuleDefinitionRepository> rulesetTask, Task<IpMaturityModel> immTask) =
+                    this.FetchFromGitHub(org, project, rulesObjectName, projectObjectName);
+                try
+                {
+                    await Task.WhenAll(rulesetTask, immTask).ConfigureAwait(false);
+                    IRuleDefinitionRepository ruleDefinitions = rulesetTask.Result;
+                    IpMaturityModel imm = immTask.Result;
+                    var evaluationEngine = new EvaluationEngine(ruleDefinitions);
+                    RuleEvaluation? result = evaluationEngine.Evaluate(imm).RuleEvaluations.FirstOrDefault(x => x.RuleAssertion.Id == ruleIdAsGuid);
+
+                    if (result is null)
+                    {
+                        // The evaluation leaves out rules the IMM opts out of.
+                        ImmFailure failure = imm.Rules.Any(r => r is not null && r.Id == ruleIdAsGuid && r.OptOut)
+                            ? ImmFailure.RuleOptedOut(ruleIdAsGuid)
+                            : ImmFailure.RuleNotFound(ruleIdAsGuid);
+                        return this.CreateErrorBadgeResponse(
+                            activity, request, org, project, RuleSubject(rulesetTask, immTask, ruleIdAsGuid), failure, null);
+                    }
+
+                    string? definitionName = ruleDefinitions.GetDefinitionFor(result.RuleAssertion).Name;
+                    string svg;
+                    using (StartRenderActivity("rule"))
+                    {
+                        svg = ImmBadges.RenderRuleBadge(result, definitionName);
+                    }
+
+                    return CreateUncacheResponse(request, svg, SvgMediaType);
+                }
+                catch (Exception ex) when (TryDescribeFailure(ex, rulesetTask, org, project, rulesObjectName, projectObjectName, out ImmFailure? failure))
+                {
+                    return this.CreateErrorBadgeResponse(
+                        activity, request, org, project, RuleSubject(rulesetTask, immTask, ruleIdAsGuid), failure, ex);
+                }
             }
-            catch (Exception ex) when (TryDescribeFailure(ex, rulesetTask, org, project, rulesObjectName, projectObjectName, out ImmFailure? failure))
+            catch (Exception ex)
             {
-                return this.CreateErrorBadgeResponse(
-                    request, org, project, RuleSubject(rulesetTask, immTask, ruleIdAsGuid), failure, ex);
+                RecordUnexpectedException(activity, ex);
+                throw;
             }
         }
 
@@ -136,29 +180,47 @@ namespace Endjin.Ip.Maturity.Model.Host
             string project)
         {
             (string rulesObjectName, string projectObjectName) = GetGitHubBranchOrObjectNames(request);
-            (Task<IRuleDefinitionRepository> rulesetTask, Task<IpMaturityModel> immTask) =
-                this.FetchFromGitHub(org, project, rulesObjectName, projectObjectName);
+            using Activity? activity = StartBadgeActivity(ShowBadgesActivityName, org, project, rulesObjectName, projectObjectName);
             try
             {
-                await Task.WhenAll(rulesetTask, immTask).ConfigureAwait(false);
-                var evaluationEngine = new EvaluationEngine(rulesetTask.Result);
+                (Task<IRuleDefinitionRepository> rulesetTask, Task<IpMaturityModel> immTask) =
+                    this.FetchFromGitHub(org, project, rulesObjectName, projectObjectName);
+                try
+                {
+                    await Task.WhenAll(rulesetTask, immTask).ConfigureAwait(false);
+                    var evaluationEngine = new EvaluationEngine(rulesetTask.Result);
 
-                ImmEvaluation evaluationResult = evaluationEngine.Evaluate(immTask.Result);
+                    ImmEvaluation evaluationResult = evaluationEngine.Evaluate(immTask.Result);
 
-                string html = ImmBadges.RenderShowBadgesPage(org, project, rulesObjectName, projectObjectName, evaluationResult);
+                    string html;
+                    using (StartRenderActivity("showbadges"))
+                    {
+                        html = ImmBadges.RenderShowBadgesPage(org, project, rulesObjectName, projectObjectName, evaluationResult);
+                    }
 
-                return CreateUncacheResponse(
-                    request,
-                    html,
-                    "text/html");
+                    return CreateUncacheResponse(
+                        request,
+                        html,
+                        "text/html");
+                }
+                catch (Exception ex) when (TryDescribeFailure(ex, rulesetTask, org, project, rulesObjectName, projectObjectName, out ImmFailure? failure))
+                {
+                    this.RecordFailure(activity, org, project, failure, ex);
+                    string html;
+                    using (StartRenderActivity("error-page"))
+                    {
+                        html = ImmBadges.RenderShowBadgesErrorPage(
+                            org, project, rulesObjectName, projectObjectName, failure.BadgeMessage, failure.PageMessage, failure.Url, failure.Hint);
+                    }
+
+                    request.HttpContext.Response.Headers[ErrorHeaderName] = failure.Code;
+                    return CreateUncacheResponse(request, html, "text/html", failure.PageStatusCode);
+                }
             }
-            catch (Exception ex) when (TryDescribeFailure(ex, rulesetTask, org, project, rulesObjectName, projectObjectName, out ImmFailure? failure))
+            catch (Exception ex)
             {
-                this.LogFailure(org, project, failure, ex);
-                string html = ImmBadges.RenderShowBadgesErrorPage(
-                    org, project, rulesObjectName, projectObjectName, failure.BadgeMessage, failure.PageMessage, failure.Url, failure.Hint);
-                request.HttpContext.Response.Headers[ErrorHeaderName] = failure.Code;
-                return CreateUncacheResponse(request, html, "text/html", failure.PageStatusCode);
+                RecordUnexpectedException(activity, ex);
+                throw;
             }
         }
 
@@ -258,7 +320,57 @@ namespace Endjin.Ip.Maturity.Model.Host
             return (rulesetTask, immTask);
         }
 
+        /// <summary>
+        /// Starts the span for a badge endpoint, tagged with what was requested.
+        /// </summary>
+        private static Activity? StartBadgeActivity(
+            string name,
+            string org,
+            string project,
+            string rulesObjectName,
+            string projectObjectName)
+        {
+            Activity? activity = HostTelemetry.Source.StartActivity(name, ActivityKind.Internal);
+            if (activity is not null)
+            {
+                activity.SetTag("imm.github.owner", org);
+                activity.SetTag("imm.github.repo", project);
+                activity.SetTag("imm.ruleset.ref", rulesObjectName);
+                activity.SetTag("imm.github.ref", projectObjectName);
+            }
+
+            return activity;
+        }
+
+        /// <summary>
+        /// Starts the span around rendering a badge or page.
+        /// </summary>
+        /// <param name="kind">
+        /// What is rendered: <c>total</c>, <c>rule</c>, <c>showbadges</c>, <c>error-badge</c> or
+        /// <c>error-page</c>.
+        /// </param>
+        private static Activity? StartRenderActivity(string kind)
+        {
+            Activity? activity = HostTelemetry.Source.StartActivity(RenderActivityName, ActivityKind.Internal);
+            activity?.SetTag("imm.render.kind", kind);
+            return activity;
+        }
+
+        /// <summary>
+        /// Marks an endpoint's span as failed by an exception that propagates, which is a bug.
+        /// </summary>
+        private static void RecordUnexpectedException(Activity? activity, Exception exception)
+        {
+            if (activity is not null)
+            {
+                activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+                activity.SetTag("error.type", exception.GetType().FullName);
+                activity.AddException(exception);
+            }
+        }
+
         private ContentResult CreateErrorBadgeResponse(
+            Activity? activity,
             HttpRequest request,
             string org,
             string project,
@@ -266,23 +378,57 @@ namespace Endjin.Ip.Maturity.Model.Host
             ImmFailure failure,
             Exception? exception)
         {
-            this.LogFailure(org, project, failure, exception);
+            this.RecordFailure(activity, org, project, failure, exception);
             request.HttpContext.Response.Headers[ErrorHeaderName] = failure.Code;
-            return CreateUncacheResponse(request, ImmBadges.RenderErrorBadge(subject, failure.BadgeMessage), SvgMediaType);
+            string svg;
+            using (StartRenderActivity("error-badge"))
+            {
+                svg = ImmBadges.RenderErrorBadge(subject, failure.BadgeMessage);
+            }
+
+            return CreateUncacheResponse(request, svg, SvgMediaType);
         }
 
-        private void LogFailure(string org, string project, ImmFailure failure, Exception? exception)
+        /// <summary>
+        /// Logs a problem shown as an error badge or page, and records it on the endpoint's span.
+        /// </summary>
+        /// <remarks>
+        /// The span's status follows the logging policy: a problem that is logged as a warning
+        /// (or worse) is one we want to hear about, so it makes the span an error; the others are
+        /// a correct answer to a request for something that is missing or not valid, so they only
+        /// tag it.
+        /// </remarks>
+        private void RecordFailure(Activity? activity, string org, string project, ImmFailure failure, Exception? exception)
         {
-            this.logger.Log(
+            bool isWarning = failure.LogLevel >= LogLevel.Warning;
+            if (activity is not null)
+            {
+                activity.SetTag("imm.error", failure.Code);
+                if (isWarning)
+                {
+                    activity.SetStatus(ActivityStatusCode.Error, failure.PageMessage);
+                }
+            }
+
+            this.LogImmNotShown(
                 failure.LogLevel,
-                failure.LogLevel >= LogLevel.Warning ? exception : null,
-                "IMM for {Org}/{Project} not shown ({ImmError}): {Detail} (URL: {Url})",
+                isWarning ? exception : null,
                 org,
                 project,
                 failure.Code,
                 failure.PageMessage,
                 failure.Url ?? "none");
         }
+
+        [LoggerMessage(EventId = 1, Message = "IMM for {Org}/{Project} not shown ({ImmError}): {Detail} (URL: {Url})")]
+        private partial void LogImmNotShown(
+            LogLevel level,
+            Exception? exception,
+            string org,
+            string project,
+            string immError,
+            string detail,
+            string url);
 
         /// <summary>
         /// Describes a problem that is shown to the requester as an error badge or page.

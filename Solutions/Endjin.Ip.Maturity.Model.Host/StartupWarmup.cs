@@ -35,9 +35,21 @@ namespace Endjin.Ip.Maturity.Model.Host
     /// down. It writes one log line when it finishes, starting "Warm-up:", with the time each
     /// step took and whether it succeeded.
     /// </para>
+    /// <para>
+    /// It is also traced, as a trace of its own rather than part of whatever was going on when the
+    /// worker started: an <c>imm.warmup</c> span from <see cref="HostTelemetry.ActivitySourceName"/>
+    /// with a child for each step (<c>imm.warmup.badges</c>, <c>imm.warmup.yaml</c> and
+    /// <c>imm.warmup.ruleset</c>). A step that fails has status Error, as does <c>imm.warmup</c>,
+    /// whose <c>imm.warmup.failed</c> tag says whether any step failed.
+    /// </para>
     /// </remarks>
-    public sealed class StartupWarmup : IHostedService
+    public sealed partial class StartupWarmup : IHostedService
     {
+        private const string WarmupActivityName = "imm.warmup";
+        private const string BadgesActivityName = "imm.warmup.badges";
+        private const string YamlActivityName = "imm.warmup.yaml";
+        private const string RuleSetActivityName = "imm.warmup.ruleset";
+
         /// <summary>
         /// The branch of the rule set that the badges use when no other branch is requested.
         /// </summary>
@@ -139,26 +151,45 @@ namespace Endjin.Ip.Maturity.Model.Host
         {
             try
             {
-                (long badgesMs, Exception? badgesFailure) = Measure(WarmUpBadges);
-                (long yamlMs, Exception? yamlFailure) = Measure(WarmUpYamlAndEvaluation);
+                // Make the warm-up a trace of its own. A default parent context on its own is not
+                // enough, because StartActivity then uses Activity.Current as the parent, and
+                // whatever was current when the worker started has flowed into this task. (This
+                // only changes Activity.Current inside the warm-up.)
+                Activity.Current = null;
+                using Activity? activity = HostTelemetry.Source.StartActivity(WarmupActivityName, ActivityKind.Internal, parentContext: default);
+
+                (long badgesMs, Exception? badgesFailure) = Measure(BadgesActivityName, WarmUpBadges);
+                (long yamlMs, Exception? yamlFailure) = Measure(YamlActivityName, WarmUpYamlAndEvaluation);
 
                 long startTimestamp = Stopwatch.GetTimestamp();
                 Exception? ruleSetFailure = null;
-                try
+                using (Activity? ruleSetActivity = HostTelemetry.Source.StartActivity(RuleSetActivityName, ActivityKind.Internal))
                 {
-                    await this.ruleDefinitionRepositorySource.GetRuleDefinitionRepositoryAsync(DefaultRuleSetBranch).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    ruleSetFailure = ex;
+                    try
+                    {
+                        await this.ruleDefinitionRepositorySource.GetRuleDefinitionRepositoryAsync(DefaultRuleSetBranch).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        ruleSetFailure = ex;
+                        RecordFailure(ruleSetActivity, ex);
+                    }
                 }
 
                 long ruleSetMs = (long)Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds;
 
                 bool anyFailed = badgesFailure is not null || yamlFailure is not null || ruleSetFailure is not null;
-                this.logger.Log(
+                if (activity is not null)
+                {
+                    activity.SetTag("imm.warmup.failed", anyFailed);
+                    if (anyFailed)
+                    {
+                        activity.SetStatus(ActivityStatusCode.Error);
+                    }
+                }
+
+                this.LogWarmupFinished(
                     anyFailed ? LogLevel.Warning : LogLevel.Information,
-                    "Warm-up: badges {BadgesMs} ms ({BadgesOutcome}), yaml/evaluate {YamlMs} ms ({YamlOutcome}), rule set {RuleSetMs} ms ({RuleSetOutcome})",
                     badgesMs,
                     Describe(badgesFailure),
                     yamlMs,
@@ -168,13 +199,14 @@ namespace Endjin.Ip.Maturity.Model.Host
             }
             catch (Exception)
             {
-                // Only logging can get here. The warm-up is an optimization, so nothing it does is
-                // allowed to fault the task (which would be an unobserved exception).
+                // Only logging and tracing can get here. The warm-up is an optimization, so nothing
+                // it does is allowed to fault the task (which would be an unobserved exception).
             }
         }
 
-        private static (long ElapsedMs, Exception? Failure) Measure(Action step)
+        private static (long ElapsedMs, Exception? Failure) Measure(string activityName, Action step)
         {
+            using Activity? activity = HostTelemetry.Source.StartActivity(activityName, ActivityKind.Internal);
             long startTimestamp = Stopwatch.GetTimestamp();
             try
             {
@@ -183,8 +215,29 @@ namespace Endjin.Ip.Maturity.Model.Host
             }
             catch (Exception ex)
             {
-                return ((long)Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds, ex);
+                long elapsedMs = (long)Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds;
+                RecordFailure(activity, ex);
+                return (elapsedMs, ex);
             }
         }
+
+        private static void RecordFailure(Activity? activity, Exception failure)
+        {
+            if (activity is not null)
+            {
+                activity.SetStatus(ActivityStatusCode.Error, failure.Message);
+                activity.SetTag("error.type", failure.GetType().FullName);
+            }
+        }
+
+        [LoggerMessage(EventId = 1, Message = "Warm-up: badges {BadgesMs} ms ({BadgesOutcome}), yaml/evaluate {YamlMs} ms ({YamlOutcome}), rule set {RuleSetMs} ms ({RuleSetOutcome})")]
+        private partial void LogWarmupFinished(
+            LogLevel level,
+            long badgesMs,
+            string badgesOutcome,
+            long yamlMs,
+            string yamlOutcome,
+            long ruleSetMs,
+            string ruleSetOutcome);
     }
 }

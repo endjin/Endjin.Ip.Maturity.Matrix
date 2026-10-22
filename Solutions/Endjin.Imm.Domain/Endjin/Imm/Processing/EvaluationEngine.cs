@@ -6,7 +6,22 @@
     using NodaTime.Text;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
 
+    /// <summary>
+    /// Scores a project's IP Maturity Model against the rule definitions.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// When something listens to <see cref="ImmTelemetry.ActivitySourceName"/>, each evaluation
+    /// is traced as an <c>imm.evaluate</c> span recording the number of rules evaluated
+    /// (<c>imm.rule_count</c>: those the IMM asserts, has not opted out of, and the rule set
+    /// defines), the score (<c>imm.score</c>) and the maximum possible score
+    /// (<c>imm.max_score</c>). If the evaluation fails, the span's status is
+    /// <see cref="ActivityStatusCode.Error"/> and its <c>error.type</c> tag names the exception's
+    /// type. With no listener, no span is created.
+    /// </para>
+    /// </remarks>
     public class EvaluationEngine : IEvaluationEngine
     {
         private readonly RuleCalculatorFactory ruleCalculatorFactory;
@@ -20,8 +35,28 @@
 
         public ImmEvaluation Evaluate(IpMaturityModel imm, IEvaluationContext? context = null)
         {
-            context ??= new Context();
+            using Activity? activity = ImmTelemetry.Source.StartActivity("imm.evaluate", ActivityKind.Internal);
+            try
+            {
+                ImmEvaluation evaluation = this.EvaluateRules(imm, context ?? new Context());
+                if (activity is not null)
+                {
+                    activity.SetTag("imm.rule_count", evaluation.RuleEvaluations.Count);
+                    activity.SetTag("imm.score", evaluation.TotalScore);
+                    activity.SetTag("imm.max_score", evaluation.MaximumPossibleTotalScore);
+                }
 
+                return evaluation;
+            }
+            catch (Exception ex)
+            {
+                activity.RecordFailure(ex);
+                throw;
+            }
+        }
+
+        private ImmEvaluation EvaluateRules(IpMaturityModel imm, IEvaluationContext context)
+        {
             IList<RuleAssertion> rules = imm.Rules;
             var ruleEvaluations = new List<RuleEvaluation>(rules.Count);
             long totalScore = 0;
