@@ -567,6 +567,64 @@ public class GitHubContentCachingTests
         retried.Rules.Single().Measures.Single().Score.ShouldBe(1);
     }
 
+    // YamlDotNet reports most problems as a YamlException, but a document that aliases itself into a
+    // rule's measures fails with a bare InvalidCastException when the alias is resolved. That is
+    // still an invalid IMM, and must be reported as one rather than as an unexpected error.
+    [TestMethod]
+    public async Task GetIpMaturityModelAsync_ImmAliasingTheWholeDocumentIntoMeasures_ThrowsInvalidImmContentExceptionAndDoesNotCacheTheFailure()
+    {
+        // Arrange
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingInSequence(
+            () => StubHttpMessageHandler.Ok("&all\n- {Measures: *all}", "\"broken\"", OneHour),
+            () => StubHttpMessageHandler.Ok(ImmYaml.SharedEngineeringStandardsConfigured, "\"fixed\"", OneHour));
+
+        // Act
+        InvalidImmContentException exception = await Should.ThrowAsync<InvalidImmContentException>(() => GetImmAsync(fixture));
+        IpMaturityModel retried = await GetImmAsync(fixture);
+
+        // Assert
+        exception.Url.ShouldBe(new Uri(ImmUrl));
+        InvalidCastException conversionError = exception.InnerException.ShouldBeOfType<InvalidCastException>();
+        exception.Line.ShouldBeNull();
+        exception.Column.ShouldBeNull();
+        exception.Problem.ShouldBe(conversionError.Message);
+        exception.Message.ShouldBe($"The content at {ImmUrl} is not valid: {conversionError.Message}");
+        fixture.Handler.Requests.Count.ShouldBe(2);
+        fixture.Handler.Requests[1].IfNoneMatch.ShouldBeEmpty();
+        retried.Rules.Single().Measures.Single().Score.ShouldBe(1);
+    }
+
+    [TestMethod]
+    public async Task GetIpMaturityModelAsync_ImmAliasingTheWholeDocumentAsAMeasure_ThrowsInvalidImmContentException()
+    {
+        // Arrange
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingWith(
+            () => StubHttpMessageHandler.Ok("&all\n- {Measures: [*all]}", "\"broken\"", OneHour));
+
+        // Act
+        InvalidImmContentException exception = await Should.ThrowAsync<InvalidImmContentException>(() => GetImmAsync(fixture));
+
+        // Assert
+        exception.Url.ShouldBe(new Uri(ImmUrl));
+        exception.InnerException.ShouldBeOfType<InvalidCastException>();
+    }
+
+    [TestMethod]
+    public async Task GetRuleDefinitionRepositoryAsync_RuleSetAliasingTheWholeDocumentIntoMeasures_ThrowsInvalidImmContentException()
+    {
+        // Arrange
+        using ImmSourceFixture fixture = ImmSourceFixture.RespondingWith(
+            () => StubHttpMessageHandler.Ok("&all\n- {Measures: *all}", "\"broken\"", OneHour));
+
+        // Act
+        InvalidImmContentException exception = await Should.ThrowAsync<InvalidImmContentException>(
+            () => fixture.RuleDefinitionSource.GetRuleDefinitionRepositoryAsync(Branch));
+
+        // Assert
+        exception.Url.ShouldBe(new Uri(IpMaturityModelRuleset.DefinitionsUrlForName(Branch)));
+        exception.InnerException.ShouldBeOfType<InvalidCastException>();
+    }
+
     // The ETag of content that could not be deserialized must not be remembered: revalidating with it
     // would get a 304, and the cache would then serve the previous, valid IMM as if it were current,
     // hiding the broken update from the project's owner until the file changed again.

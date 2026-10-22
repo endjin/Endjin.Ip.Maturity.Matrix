@@ -131,6 +131,26 @@ public class ErrorBadgeTests
         ShouldBeErrorBadge(result, request, "IMM", "invalid imm.yaml", "invalid-imm");
     }
 
+    // Not every deserialization failure carries a position: the badge is the same without one.
+    [TestMethod]
+    public async Task GitHubImmTotalScore_ImmFailingToDeserializeWithoutAPosition_ReturnsASvgBadgeSayingInvalidImmYaml()
+    {
+        // Arrange
+        ImmFunctionFixture fixture = new(HostYaml.TwoRuleSet, HostYaml.BothRulesScored);
+        InvalidCastException conversionError = new("Object must implement IConvertible.");
+        fixture.ImmFailsWith(new InvalidImmContentException(new Uri(ImmUrl), conversionError));
+        HttpRequest request = ImmFunctionFixture.CreateRequest();
+
+        // Act
+        IActionResult result = await fixture.Functions.GitHubImmTotalScore(request, ImmFunctionFixture.Org, ImmFunctionFixture.Project);
+
+        // Assert
+        ShouldBeErrorBadge(result, request, "IMM", "invalid imm.yaml", "invalid-imm");
+        (LogLevel level, string message, _) = fixture.Logger.Entries.ShouldHaveSingleItem();
+        level.ShouldBe(LogLevel.Information);
+        message.ShouldContain(conversionError.Message);
+    }
+
     [TestMethod]
     public async Task GitHubImmTotalScore_ImmAssertingTwoLevelsOfADiscreteRule_ReturnsASvgBadgeSayingInvalidImmYaml()
     {

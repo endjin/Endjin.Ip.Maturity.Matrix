@@ -259,6 +259,14 @@
             {
                 throw new InvalidImmContentException(requestUri, ex);
             }
+            catch (Exception ex) when (ex is FormatException or InvalidCastException or OverflowException)
+            {
+                // YamlDotNet reports most failures as a YamlException, but a value it converts
+                // after the document has been read (an alias to a node that was still being
+                // deserialized, such as the whole document aliased into a rule's measures) fails
+                // with the bare conversion exception. That is still content we cannot read.
+                throw new InvalidImmContentException(requestUri, ex);
+            }
             catch (HttpRequestException ex)
             {
                 // The connection failed while the body was being read.
