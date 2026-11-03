@@ -4,7 +4,7 @@ $zerofailedExtensions = @(
         # TODO: Change 'GitRef' to a release tag when that version is released.
         Name = "ZeroFailed.Deploy.Azure"
         GitRepository = "https://github.com/zerofailed/ZeroFailed.Deploy.Azure"
-        GitRef = "21-support-flex-plans"
+        GitRef = "main"
     }
 )
 . ZeroFailed.tasks -ZfPath $here/.zf
