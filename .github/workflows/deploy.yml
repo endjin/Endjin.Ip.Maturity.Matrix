@@ -16,12 +16,16 @@ jobs:
   deploy:
     name: Deploy to ${{ inputs.environment }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     # The environment's federated credential lets this job sign in as its deployment identity. The identity, the
     # environment and its AZURE_CLIENT_ID and AZURE_SUBSCRIPTION_ID variables are managed in endjin/endjin-identity-ops.
     environment: ${{ inputs.environment }}
+    # One deployment per environment at a time. 'queue: max' keeps every waiting deployment, instead of only the
+    # newest, so that a tag's deployment is not replaced by a later build of 'main'.
     concurrency:
       group: deploy-${{ inputs.environment }}
       cancel-in-progress: false
+      queue: max
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
@@ -50,4 +54,6 @@ jobs:
         AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       with:
         azPSVersion: latest
-        inlineScript: ./deploy.ps1 -EnvironmentName '${{ inputs.environment }}'
+        # This action does not pass on the exit code of a script that the inline script runs, so pass it on here.
+        # Otherwise a failed deployment shows as a success.
+        inlineScript: ./deploy.ps1 -EnvironmentName '${{ inputs.environment }}'; exit $LASTEXITCODE
