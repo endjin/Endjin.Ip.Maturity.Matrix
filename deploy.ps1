@@ -15,10 +15,13 @@
     The name of the target environment. It matches a configuration file in the 'config' folder.
 .PARAMETER EnvironmentConfigName
     The name of the configuration file for the target environment, when it differs from the environment name.
-.PARAMETER FunctionAppPublishPath
-    The folder that contains the published Function App. './build.ps1' publishes it to this folder by default.
+    When it is not set, the ZF_DEPLOY_ENVIRONMENT_CONFIG_NAME environment variable is used if it is set.
 .PARAMETER PackagesDir
-    The output path for the deployment package.
+    The output path for the deployment package. It is also the folder that contains the published Function App,
+    unless FunctionAppPublishPath is set. Use the same value as for './build.ps1'.
+.PARAMETER FunctionAppPublishPath
+    The folder that contains the published Function App. By default, it is the folder in PackagesDir that
+    './build.ps1' publishes the app to.
 .PARAMETER ZfModulePath
     The path to import the ZeroFailed module from. This is useful when testing pre-release
     versions of ZeroFailed that are not yet available in the PowerShell Gallery.
@@ -37,13 +40,13 @@ param (
     [string] $EnvironmentName,
 
     [Parameter()]
-    [string] $EnvironmentConfigName = $EnvironmentName,
-
-    [Parameter()]
-    [string] $FunctionAppPublishPath = "_packages/Endjin.Ip.Maturity.Model.Host/linux-x64",
+    [string] $EnvironmentConfigName,
 
     [Parameter()]
     [string] $PackagesDir = "_packages",
+
+    [Parameter()]
+    [string] $FunctionAppPublishPath = (Join-Path $PackagesDir "Endjin.Ip.Maturity.Model.Host/linux-x64"),
 
     [Parameter()]
     [string] $ZfModulePath,

@@ -12,7 +12,8 @@ $zerofailedExtensions = @(
 #
 # Deployment process configuration
 #
-$EnvironmentConfigPath = "$here/config"
+# The environment configuration is read from the 'config' folder, which is ZeroFailed's default. To use another
+# folder, set the ZF_DEPLOY_ENVIRONMENT_CONFIG_PATH environment variable.
 
 # Provision the Function App, its Flex Consumption plan, its storage account and Application Insights.
 # The other configuration settings are passed to the template as parameters with the same names.
@@ -74,24 +75,39 @@ task PreDeploy {
 
 # Synopsis: Check that the deployed Function App renders an IMM badge
 task PostTest {
-    $hostName = (Get-AzWebApp -ResourceGroupName $DeploymentConfig.resourceGroupName -Name $DeploymentConfig.functionAppName).DefaultHostName
+    # The Bicep template outputs the host name
+    $hostName = $ZF_ArmDeploymentOutputs.functionAppDefaultHostName
+    if (!$hostName) {
+        throw "The ARM deployment did not output 'functionAppDefaultHostName'. The smoke test needs the Provision stage to run."
+    }
     # The README uses this repo for its example badges
     $badgeUri = "https://$hostName/api/imm/github/ais-dotnet/Ais.Net/total"
     Write-Build White "Requesting a badge: $badgeUri"
 
-    # The first request after a deployment waits for a cold start, so retry for up to 3 minutes
+    # The first request after a deployment waits for a cold start, so retry for about 3 minutes.
+    # Network errors (DNS, TLS, connection resets and timeouts) are retried too.
+    $maxAttempts = 18
     $response = $null
-    for ($attempt = 1; $attempt -le 18; $attempt++) {
-        $response = Invoke-WebRequest -Uri $badgeUri -SkipHttpErrorCheck
+    for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+        try {
+            $response = Invoke-WebRequest -Uri $badgeUri -SkipHttpErrorCheck -TimeoutSec 30
+            $result = "HTTP $($response.StatusCode)"
+        }
+        catch {
+            $response = $null
+            $result = "request failed: $($_.Exception.Message)"
+        }
         if ($response.StatusCode -eq 200) {
             break
         }
-        Write-Build White "Attempt $($attempt): HTTP $($response.StatusCode). Retrying in 10 seconds..."
-        Start-Sleep -Seconds 10
+        if ($attempt -lt $maxAttempts) {
+            Write-Build White "Attempt $($attempt): $result. Retrying in 10 seconds..."
+            Start-Sleep -Seconds 10
+        }
     }
 
     if ($response.StatusCode -ne 200) {
-        throw "The badge request failed with HTTP $($response.StatusCode): $badgeUri"
+        throw "The badge request failed after $maxAttempts attempts ($result): $badgeUri"
     }
     if ($response.Headers['Content-Type'] -notlike 'image/svg+xml*') {
         throw "The badge request returned the content type '$($response.Headers['Content-Type'])' instead of 'image/svg+xml'."
