@@ -1,12 +1,11 @@
 # Settings for the 'dev' environment of the IMM Host.
-# The subscription and tenant IDs come from environment variables, so that this repository does not contain them.
-# Set these variables before you run './deploy.ps1 -EnvironmentName dev':
-#   $env:AZURE_SUBSCRIPTION_ID = '<subscription-id>'
-#   $env:AZURE_TENANT_ID = '<tenant-id>'
+# The subscription ID comes from an environment variable, so that this repository does not contain it. Each environment
+# has its own variable, so that a shell set up for one environment cannot deploy another one to the wrong subscription.
+# Set it before you run './deploy.ps1 -EnvironmentName dev':
+#   $env:IMM_DEV_SUBSCRIPTION_ID = '<subscription-id>'
+# In GitHub Actions, AZURE_SUBSCRIPTION_ID is used instead. It comes from the 'dev' GitHub environment.
 @{
-    azureSubscriptionId = $env:AZURE_SUBSCRIPTION_ID
-    azureTenantId = $env:AZURE_TENANT_ID
-    azureLocation = 'uksouth'
+    azureSubscriptionId = $env:IMM_DEV_SUBSCRIPTION_ID ?? ($env:GITHUB_ACTIONS -eq 'true' ? $env:AZURE_SUBSCRIPTION_ID : $null)
     resourceGroupName = 'rg-imm-dev'
 
     # The suffix makes the names of the Function App and the storage account unique in Azure
