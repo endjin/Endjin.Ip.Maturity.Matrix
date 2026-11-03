@@ -7,7 +7,10 @@ $zerofailedExtensions = @(
         GitRef = "main"
     }
 )
-. ZeroFailed.tasks -ZfPath $here/.zf
+# The deployment uses its own ZeroFailed folder. It has its own extensions lock file ('extensions.lock.json') and
+# extensions folder there, so that the build and the deployment, which use different extensions, do not overwrite
+# each other's lock file.
+. ZeroFailed.tasks -ZfPath $here/.zf/deploy
 
 #
 # Deployment process configuration

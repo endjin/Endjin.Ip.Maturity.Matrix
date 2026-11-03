@@ -319,7 +319,9 @@ The full build process, which is the same one CI runs, uses [ZeroFailed](https:/
 ./build.ps1
 ```
 
-It versions the build with GitVersion, then builds, tests, writes a code coverage report to `_codeCoverage/`, and publishes the Functions app to `_packages/`. Its configuration is in `.zf/build-config.ps1`.
+It versions the build with GitVersion, then builds, tests, writes a code coverage report to `_codeCoverage/`, and publishes the Functions app to `_packages/`. Its configuration is in `.zf/build/config.ps1`.
+
+ZeroFailed records the exact version of each extension that a process uses in a lock file. The build's lock file is `.zf/build/extensions.lock.json`, and the deployment's lock file is `.zf/deploy/extensions.lock.json`. In GitHub Actions, `build.ps1` and `deploy.ps1` run in `Frozen` mode. In this mode, they install the versions in the lock file, and they fail if the configured extensions differ from it. Other runs use `Write` mode, which resolves the extensions again and updates the lock file. To update the extensions, for example to get the latest commit of an extension that uses `main`, run the script locally and commit the changed lock file. To check the lock file without changing it, use `-ZfExtensionsLockMode Frozen`.
 
 There are three test projects. They are written with MSTest and [Shouldly](https://docs.shouldly.org/), and run on Microsoft.Testing.Platform. None of them uses the network: GitHub is replaced by a stub HTTP handler or by [NSubstitute](https://nsubstitute.github.io/) substitutes.
 
@@ -392,7 +394,7 @@ From GitHub Actions, you can instead deploy the `function-app` artifact with [`A
 
 - `infra/main.bicep` creates the storage account, Application Insights, the Flex Consumption plan and the Function App. It uses the settings that this section describes. The app connects to its storage account with a user-assigned managed identity (`id-<function app name>`), which the template creates and gives storage roles before it creates the app.
 - `config/common.ps1` lists the settings that every environment needs, and sets the ones that are the same for every environment. `config/<environment>.ps1` sets the values for one environment, for example `config/dev.ps1`.
-- `.zf/deploy-config.ps1` configures the deployment process.
+- `.zf/deploy/config.ps1` configures the deployment process.
 
 The deployment needs:
 

@@ -6,7 +6,7 @@ $zerofailedExtensions = @(
         GitRef = "main"
     }
 )
-. ZeroFailed.tasks -ZfPath $here/.zf
+. ZeroFailed.tasks -ZfPath $here/.zf/build
 
 #
 # Build process control options
