@@ -403,6 +403,18 @@ To deploy:
 
 The process waits for the deployment of the package to finish. If the deployment fails, the process fails too. Then the process requests a badge from the app, to check that the app works.
 
+#### Deploy from GitHub Actions
+
+The `build` workflow runs the same deployment after a build:
+
+- A build of `main` deploys to `dev`.
+- A build of a tag deploys to `dev`, and then to `prod` if the `dev` deployment succeeds.
+- Pull request builds do not deploy.
+
+Each deployment job (`.github/workflows/deploy.yml`) runs in the GitHub environment with the same name. It downloads the `function-app` artifact, signs in to Azure with OpenID Connect, and runs `./deploy.ps1`. It signs in as the environment's deployment identity, `ip-maturity-matrix-dev` or `ip-maturity-matrix-prod`. These identities are defined in [endjin/endjin-identity-ops](https://github.com/endjin/endjin-identity-ops) (`identities/<nonprod|prod>/endjin/ip-maturity-matrix.yml`). That repo also creates the environments and sets their `AZURE_CLIENT_ID` and `AZURE_SUBSCRIPTION_ID` variables, and the repository variable `AZURE_TENANT_ID`. To change what an identity can access, change its file there.
+
+An identity has the Owner role on its environment's resource group only (`rg-imm-dev` or `rg-imm-prod`), so `resourceGroupName` in `config/<environment>.ps1` must match that group.
+
 `.zf/deploy-config.ps1` uses a development branch of the ZeroFailed.Deploy.Azure extension, because the released versions cannot report the result of a Flex Consumption deployment. When a release supports Flex Consumption, change the extension's `GitRef` to that release.
 
 #### Startup warm-up
