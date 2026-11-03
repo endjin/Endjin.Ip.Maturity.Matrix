@@ -390,25 +390,32 @@ From GitHub Actions, you can instead deploy the `function-app` artifact with [`A
 
 `deploy.ps1` runs a [ZeroFailed](https://github.com/zerofailed/ZeroFailed) deployment, which does the steps in this section for you. It provisions the Function App, zips the package and deploys it. The deployment uses these files:
 
-- `infra/main.bicep` creates the storage account, Application Insights, the Flex Consumption plan and the Function App. It uses the settings that this section describes.
-- `config/common.ps1` lists the settings that every environment needs. `config/<environment>.ps1` sets their values for one environment, for example `config/dev.ps1`.
+- `infra/main.bicep` creates the storage account, Application Insights, the Flex Consumption plan and the Function App. It uses the settings that this section describes. The app connects to its storage account with a user-assigned managed identity (`id-<function app name>`), which the template creates and gives storage roles before it creates the app.
+- `config/common.ps1` lists the settings that every environment needs, and sets the ones that are the same for every environment. `config/<environment>.ps1` sets the values for one environment, for example `config/dev.ps1`.
 - `.zf/deploy-config.ps1` configures the deployment process.
+
+The deployment needs:
+
+- The [Bicep CLI](https://learn.microsoft.com/azure/azure-resource-manager/bicep/install) on your `PATH`. If it is not installed, the deployment installs it with the [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli), so you need one of the two.
+- The Owner role (or another role that can assign roles) on the environment's resource group, because the template assigns storage roles to the app's managed identity. If the resource group does not exist, you also need the right to create it in the subscription.
 
 To deploy:
 
-1. Sign in to Azure PowerShell with `Connect-AzAccount`. You need the Owner role on the subscription, because the template assigns storage roles to the app's managed identity.
-2. Set the environment variables `AZURE_SUBSCRIPTION_ID` and `AZURE_TENANT_ID` to the IDs of the target subscription and its tenant. `config/dev.ps1` reads these variables, so the repository does not contain the IDs.
-3. Run `./build.ps1`. The build publishes the app to `_packages/Endjin.Ip.Maturity.Model.Host/linux-x64/`.
+1. Sign in to Azure PowerShell with `Connect-AzAccount`.
+2. Set the environment variable `AZURE_TENANT_ID` to the ID of the tenant, and the environment's subscription variable to the ID of its subscription: `IMM_DEV_SUBSCRIPTION_ID` for dev, or `IMM_PROD_SUBSCRIPTION_ID` for prod. The configuration files read these variables, so the repository does not contain the IDs. Each environment has its own variable, so that a deployment of prod cannot go to the dev subscription by mistake.
+3. Run `./build.ps1 -Configuration Release`. The build publishes the app to `_packages/Endjin.Ip.Maturity.Model.Host/linux-x64/`. If you use `-PackagesDir`, pass the same value to `./deploy.ps1`.
 4. Run `./deploy.ps1 -EnvironmentName dev`.
 
 The process waits for the deployment of the package to finish. If the deployment fails, the process fails too. Then the process requests a badge from the app, to check that the app works.
+
+The deployment sets all the app's settings and its instance memory size, and replaces any value set by hand, for example in the Azure portal. To change them, change `instanceMemoryMB` or `additionalAppSettings` in `config/<environment>.ps1`, and deploy again.
 
 #### Deploy from GitHub Actions
 
 The `build` workflow runs the same deployment after a build:
 
 - A build of `main` deploys to `dev`.
-- A build of a tag deploys to `dev`, and then to `prod` if the `dev` deployment succeeds.
+- A build of a tag deploys to `dev`. If the tag is a release version (it has no pre-release label, for example `1.2.0`), the build then deploys to `prod` if the `dev` deployment succeeds.
 - Pull request builds do not deploy.
 
 Each deployment job (`.github/workflows/deploy.yml`) runs in the GitHub environment with the same name. It downloads the `function-app` artifact, signs in to Azure with OpenID Connect, and runs `./deploy.ps1`. It signs in as the environment's deployment identity, `ip-maturity-matrix-dev` or `ip-maturity-matrix-prod`. These identities are defined in [endjin/endjin-identity-ops](https://github.com/endjin/endjin-identity-ops) (`identities/<nonprod|prod>/endjin/ip-maturity-matrix.yml`). That repo also creates the environments and sets their `AZURE_CLIENT_ID` and `AZURE_SUBSCRIPTION_ID` variables, and the repository variable `AZURE_TENANT_ID`. To change what an identity can access, change its file there.
@@ -429,11 +436,11 @@ info: Endjin.Ip.Maturity.Model.Host.StartupWarmup[0] Warm-up: badges 104 ms (ok)
 
 A failed step shows `failed:` and the exception instead of `ok`, and the line is logged as a warning. A failure does not stop the Host: the step's work is done when the first request needs it, as it would be without the warm-up. If the rule set step fails, check that the app can reach `raw.githubusercontent.com`.
 
-To measure the effect of the warm-up, set the app setting `IMM_DISABLE_WARMUP` to `true`, which turns it off. `tools/Measure-ColdStart.ps1` measures cold starts locally under the Core Tools, with and without ReadyToRun and the warm-up. Its results show the relative effect of each, but they are not the times you will see on Flex Consumption.
+To measure the effect of the warm-up, set the app setting `IMM_DISABLE_WARMUP` to `true`, which turns it off. In an environment that you deploy with `deploy.ps1`, set it in `additionalAppSettings` in `config/<environment>.ps1`, because a deployment removes app settings that are set by hand. `tools/Measure-ColdStart.ps1` measures cold starts locally under the Core Tools, with and without ReadyToRun and the warm-up. Its results show the relative effect of each, but they are not the times you will see on Flex Consumption.
 
 #### Troubleshooting
 
-If the worker process fails at startup with exit code 139 (a segmentation fault), you might have hit [azure-functions-dotnet-worker#3335](https://github.com/Azure/azure-functions-dotnet-worker/issues/3335), which affects .NET 10 isolated apps on Flex Consumption. The workarounds are to set the app setting `WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED` to `0` (cold starts are then slower), or to use 4096 MB instances.
+If the worker process fails at startup with exit code 139 (a segmentation fault), you might have hit [azure-functions-dotnet-worker#3335](https://github.com/Azure/azure-functions-dotnet-worker/issues/3335), which affects .NET 10 isolated apps on Flex Consumption. The workarounds are to set the app setting `WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED` to `0` (cold starts are then slower), or to use 4096 MB instances. In an environment that you deploy with `deploy.ps1`, make the change in `config/<environment>.ps1` (`additionalAppSettings` or `instanceMemoryMB`), because the next deployment undoes a change made by hand.
 
 ### Benchmarks
 
