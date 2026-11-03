@@ -27,10 +27,11 @@ param instanceMemoryMB int = 2048
 @description('The maximum number of instances that the app scales out to.')
 param maximumInstanceCount int = 40
 
-@description('The tags to apply to all the resources.')
-param tags object = {}
+@description('Extra app settings, for example the workarounds in the README\'s Troubleshooting section. The deployment replaces all the app settings, so it removes any setting made by hand. If a key is also set by this template, the template\'s value is used.')
+param additionalAppSettings object = {}
 
 var deploymentContainerName = 'app-package'
+var identityName = 'id-${functionAppName}'
 
 // The roles that the app's managed identity needs on the storage account, for its host storage and deployment packages
 var storageRoleDefinitionIds = [
@@ -42,7 +43,6 @@ var storageRoleDefinitionIds = [
 resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   name: storageAccountName
   location: location
-  tags: tags
   kind: 'StorageV2'
   sku: {
     name: 'Standard_LRS'
@@ -63,10 +63,29 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   }
 }
 
+// The app uses a user-assigned identity, so that:
+// - its storage role assignments exist before the app is created and its package is deployed.
+// - recreating the app does not leave role assignments for an identity that no longer exists.
+resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: identityName
+  location: location
+}
+
+resource storageRoleAssignments 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
+  for roleDefinitionId in storageRoleDefinitionIds: {
+    name: guid(storage.id, identity.id, roleDefinitionId)
+    scope: storage
+    properties: {
+      roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleDefinitionId)
+      principalId: identity.properties.principalId
+      principalType: 'ServicePrincipal'
+    }
+  }
+]
+
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   name: appInsightsName
   location: location
-  tags: tags
   properties: {
     sku: {
       name: 'PerGB2018'
@@ -78,7 +97,6 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: appInsightsName
   location: location
-  tags: tags
   kind: 'web'
   properties: {
     Application_Type: 'web'
@@ -89,7 +107,6 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
 resource plan 'Microsoft.Web/serverfarms@2024-04-01' = {
   name: functionAppName
   location: location
-  tags: tags
   kind: 'functionapp'
   sku: {
     tier: 'FlexConsumption'
@@ -103,11 +120,17 @@ resource plan 'Microsoft.Web/serverfarms@2024-04-01' = {
 resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
   name: functionAppName
   location: location
-  tags: tags
   kind: 'functionapp,linux'
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${identity.id}': {}
+    }
   }
+  // Create the app only when its identity can already use the storage account
+  dependsOn: [
+    storageRoleAssignments
+  ]
   properties: {
     serverFarmId: plan.id
     httpsOnly: true
@@ -121,7 +144,8 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
           type: 'blobContainer'
           value: '${storage.properties.primaryEndpoints.blob}${deploymentContainerName}'
           authentication: {
-            type: 'SystemAssignedIdentity'
+            type: 'UserAssignedIdentity'
+            userAssignedIdentityResourceId: identity.id
           }
         }
       }
@@ -138,24 +162,14 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
 
   resource appSettings 'config' = {
     name: 'appsettings'
-    properties: {
+    properties: union(additionalAppSettings, {
       AzureWebJobsStorage__accountName: storage.name
+      AzureWebJobsStorage__credential: 'managedidentity'
+      AzureWebJobsStorage__clientId: identity.properties.clientId
       APPLICATIONINSIGHTS_CONNECTION_STRING: appInsights.properties.ConnectionString
-    }
+    })
   }
 }
-
-resource storageRoleAssignments 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
-  for roleDefinitionId in storageRoleDefinitionIds: {
-    name: guid(storage.id, functionApp.id, roleDefinitionId)
-    scope: storage
-    properties: {
-      roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleDefinitionId)
-      principalId: functionApp.identity.principalId
-      principalType: 'ServicePrincipal'
-    }
-  }
-]
 
 output functionAppName string = functionApp.name
 output functionAppDefaultHostName string = functionApp.properties.defaultHostName

@@ -13,4 +13,10 @@
     functionAppName = 'func-imm-prod-s1k8s'
     storageAccountName = 'stimmprods1k8s'
     appInsightsName = 'appi-imm-prod-s1k8s'
+
+    # Each deployment sets these values, and replaces any value set by hand. To work around the worker crash in the
+    # README's Troubleshooting section, set 'instanceMemoryMB' to 4096, or add WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED = '0'
+    # to 'additionalAppSettings'.
+    instanceMemoryMB = 2048
+    additionalAppSettings = @{}
 }
