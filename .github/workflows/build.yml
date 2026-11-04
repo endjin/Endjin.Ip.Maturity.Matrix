@@ -6,8 +6,6 @@ on:
     tags:
     - '*'
   pull_request:
-    branches:
-    - main
   workflow_dispatch:
     inputs:
       forcePublish:
@@ -16,9 +14,11 @@ on:
         default: false
         type: boolean
 
+# Group by ref, so that a build of 'main' and a build of a tag on the same commit do not cancel each other.
+# Only pull request builds are cancelled by a newer build, so that a deployment is never stopped part way through.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.sha }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   actions: write  # enable cache clean-up
@@ -83,3 +83,31 @@ jobs:
         path: _packages/Endjin.Ip.Maturity.Model.Host/linux-x64/
         include-hidden-files: true
         if-no-files-found: error
+
+  # Builds of 'main' deploy to dev. Builds of a tag deploy to dev. Builds of a release tag (a version with no
+  # pre-release label) then deploy to prod.
+  deploy_dev:
+    name: Deploy dev
+    needs: build
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: dev
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+
+  deploy_prod:
+    name: Deploy prod
+    needs: [build, deploy_dev]
+    if: startsWith(github.ref, 'refs/tags/') && needs.build.outputs.preReleaseTag == ''
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read

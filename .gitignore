@@ -341,7 +341,7 @@ coverage.cobertura.xml
 # ZeroFailed build output and downloaded extensions
 /_packages/
 /_codeCoverage/
-/.zf/extensions/
+/.zf/**/extensions/
 # Microsoft.Testing.Platform diagnostic logs written to the repo root by the ZeroFailed test task
 /*.diag
 *.sbom.*

@@ -1,0 +1,62 @@
+name: deploy
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: The environment to deploy to. It names a GitHub environment and a file in the 'config' folder.
+        type: string
+        required: true
+
+permissions:
+  actions: read  # enable downloading the build's artifact
+  contents: read
+  id-token: write  # enable OIDC sign-in to Azure
+  packages: read  # enable installing the ZeroFailed module from GitHub Packages
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # The environment's federated credential lets this job sign in as its deployment identity. The identity, the
+    # environment and its AZURE_CLIENT_ID and AZURE_SUBSCRIPTION_ID variables are managed in endjin/endjin-identity-ops.
+    environment: ${{ inputs.environment }}
+    # One deployment per environment at a time. 'queue: max' keeps every waiting deployment, instead of only the
+    # newest, so that a tag's deployment is not replaced by a later build of 'main'.
+    concurrency:
+      group: deploy-${{ inputs.environment }}
+      cancel-in-progress: false
+      queue: max
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
+
+    # Put the published Function App where './deploy.ps1' expects it by default
+    - name: Download Function App
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: function-app
+        path: _packages/Endjin.Ip.Maturity.Model.Host/linux-x64
+
+    - name: Sign in to Azure
+      uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+      with:
+        client-id: ${{ vars.AZURE_CLIENT_ID }}
+        tenant-id: ${{ vars.AZURE_TENANT_ID }}
+        subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+        enable-AzPSSession: true
+
+    # The deployment uses the Az PowerShell session from the previous step. Do not set AZURE_CLIENT_ID as an
+    # environment variable here: without a session, Corvus.Deployment then tries a managed identity sign-in.
+    - name: Run deployment
+      uses: azure/powershell@f5b8adcfff1904872c7b98d4012d4914d74b1a82 # v3.0.0
+      env:
+        AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+        AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+        # './deploy.ps1' uses this token to install the ZeroFailed module from GitHub Packages
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        azPSVersion: latest
+        # This action does not pass on the exit code of a script that the inline script runs, so pass it on here.
+        # Otherwise a failed deployment shows as a success.
+        inlineScript: ./deploy.ps1 -EnvironmentName '${{ inputs.environment }}'; exit $LASTEXITCODE
