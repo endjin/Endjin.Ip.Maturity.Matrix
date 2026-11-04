@@ -97,6 +97,7 @@ jobs:
       actions: read
       contents: read
       id-token: write
+      packages: read
 
   deploy_prod:
     name: Deploy prod
@@ -109,3 +110,4 @@ jobs:
       actions: read
       contents: read
       id-token: write
+      packages: read

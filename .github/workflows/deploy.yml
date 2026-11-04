@@ -11,6 +11,7 @@ permissions:
   actions: read  # enable downloading the build's artifact
   contents: read
   id-token: write  # enable OIDC sign-in to Azure
+  packages: read  # enable installing the ZeroFailed module from GitHub Packages
 
 jobs:
   deploy:
@@ -52,6 +53,8 @@ jobs:
       env:
         AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
         AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+        # './deploy.ps1' uses this token to install the ZeroFailed module from GitHub Packages
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         azPSVersion: latest
         # This action does not pass on the exit code of a script that the inline script runs, so pass it on here.
