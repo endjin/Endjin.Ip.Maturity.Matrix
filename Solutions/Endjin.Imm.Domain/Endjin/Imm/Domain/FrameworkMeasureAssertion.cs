@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace Endjin.Imm.Domain
 {
@@ -10,7 +9,6 @@ namespace Endjin.Imm.Domain
     [DebuggerDisplay("Framework = {Framework}, {Description}")]
     public class FrameworkMeasureAssertion : MeasureAssertion
     {
-        [JsonProperty("framework")]
         public string Framework { get; set; } = "";
     }
 }

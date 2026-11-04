@@ -20,7 +20,7 @@
         /// <inheritdoc />
         public async Task<IRuleDefinitionRepository> GetRuleDefinitionRepositoryAsync(string objectName)
         {
-            string ruleUrl = IpMaturityMatrixRuleset.DefinitionsUrlForName(objectName);
+            string ruleUrl = IpMaturityModelRuleset.DefinitionsUrlForName(objectName);
             IRuleDefinitionRepository repository = await cache.GetAsync(ruleUrl).ConfigureAwait(false);
             return repository;
         }

@@ -1,0 +1,53 @@
+<Project>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <!-- Runtime dependencies -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.1.1" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.13" />
+    <PackageVersion Include="NodaTime" Version="3.3.5" />
+    <PackageVersion Include="YamlDotNet" Version="18.1.0" />
+  </ItemGroup>
+
+  <!--
+  OpenTelemetry for the Host: traces and logs, exported to Application Insights and/or an OTLP endpoint
+  (such as the Aspire dashboard) when one is configured. The domain needs none of these, because
+  ActivitySource is part of the runtime.
+  -->
+  <ItemGroup>
+    <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.10.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.OpenTelemetry" Version="1.2.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.20.1" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.20.1" />
+  </ItemGroup>
+
+  <!--
+  Test dependencies. MSTest, Microsoft.Testing.Platform and its extensions are supplied by MSTest.Sdk,
+  whose version is pinned in global.json; the SDK adds its own PackageVersion items when CPM is enabled.
+  -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
+    <PackageVersion Include="NSubstitute" Version="6.2.0" />
+    <PackageVersion Include="Shouldly" Version="4.3.0" />
+  </ItemGroup>
+
+  <!--
+  Used by Endjin.Imm.Tests, which builds a real MemoryCache for the GitHub sources (HttpDeserializingCache).
+  Projects that reference the ASP.NET Core shared framework (the Host, Endjin.Ip.Maturity.Model.Host.Tests
+  and Endjin.Imm.Benchmarks) must not reference it, because the framework already provides it (NU1510).
+  -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.13" />
+  </ItemGroup>
+
+  <!-- Benchmark dependencies (Endjin.Imm.Benchmarks only). -->
+  <ItemGroup>
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+  </ItemGroup>
+
+</Project>

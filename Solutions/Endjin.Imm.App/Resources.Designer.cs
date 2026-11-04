@@ -66,7 +66,7 @@ namespace Endjin.Imm.App {
         ///  &apos;http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd&apos;&gt;
         ///&lt;svg width=&apos;100%&apos; height=&apos;100%&apos; xmlns=&apos;http://www.w3.org/2000/svg&apos; xmlns:xlink=&apos;http://www.w3.org/1999/xlink&apos;&gt;
         ///
-        ///   &lt;g id=&apos;columnGroup&apos; font-family=&quot;DejaVu Sans,Verdana,Geneva,sans-serif&quot;&gt;
+        ///   &lt;g id=&apos;columnGroup&apos; font-family=&quot;Verdana,Geneva,DejaVu Sans,sans-serif&quot;&gt;
         ///
         ///      &lt;text x=&apos;30&apos; y=&apos;30&apos; font-size=&apos;11px&apos; font-weight=&apos;bold&apos;&gt;
         ///         {0}

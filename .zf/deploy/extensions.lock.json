@@ -1,0 +1,45 @@
+{
+  "lockVersion": 1,
+  "extensions": {
+    "ZeroFailed.Deploy.Azure": {
+      "source": {
+        "type": "git",
+        "folderPath": "module",
+        "repository": "https://github.com/zerofailed/ZeroFailed.Deploy.Azure"
+      },
+      "requested": "main",
+      "resolved": "7d51adfa5f415e456818806c2b3a45fddeb20ba5",
+      "contentHash": "sha256:aba833a7fb9f3ea164102aad05a321b64edf331c3c09c2a5d03259e239dbd19a",
+      "direct": true,
+      "requiredBy": []
+    },
+    "ZeroFailed.Deploy.Common": {
+      "source": {
+        "type": "git",
+        "folderPath": "module",
+        "repository": "https://github.com/zerofailed/ZeroFailed.Deploy.Common"
+      },
+      "requested": "main",
+      "resolved": "0cb6f1bdfb5b8fffc25dad643dcb2923030edeed",
+      "contentHash": "sha256:83f56cc038793238127b15a0b820e1bc0e1e6bbc59bf61235eed2302a9d48898",
+      "direct": false,
+      "requiredBy": [
+        "ZeroFailed.Deploy.Azure"
+      ]
+    },
+    "ZeroFailed.DevOps.Common": {
+      "source": {
+        "type": "git",
+        "folderPath": "module",
+        "repository": "https://github.com/zerofailed/ZeroFailed.DevOps.Common"
+      },
+      "requested": "main",
+      "resolved": "ea7799ec437c2a0cb380968903b8611e0733f812",
+      "contentHash": "sha256:2434243da7607d2cba16d47ae505325f8881647dce2a8eb9728ff085d9e5b6b4",
+      "direct": false,
+      "requiredBy": [
+        "ZeroFailed.Deploy.Common"
+      ]
+    }
+  }
+}

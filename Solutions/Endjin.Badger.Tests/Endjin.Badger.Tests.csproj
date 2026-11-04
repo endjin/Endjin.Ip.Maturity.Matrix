@@ -1,0 +1,11 @@
+<Project Sdk="MSTest.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Shouldly" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Endjin.Badger\Endjin.Badger.csproj" />
+  </ItemGroup>
+
+</Project>

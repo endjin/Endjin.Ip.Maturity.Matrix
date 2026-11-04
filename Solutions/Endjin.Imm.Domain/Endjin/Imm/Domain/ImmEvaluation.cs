@@ -3,7 +3,7 @@
     using System.Collections.Generic;
 
     /// <summary>
-    /// The results of evaluation a project's IP Maturity Matrix.
+    /// The results of evaluation a project's IP Maturity Model.
     /// </summary>
     public class ImmEvaluation
     {

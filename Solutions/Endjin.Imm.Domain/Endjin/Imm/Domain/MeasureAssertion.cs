@@ -1,6 +1,5 @@
 ﻿namespace Endjin.Imm.Domain
 {
-    using Newtonsoft.Json;
     using System.Diagnostics;
 
     /// <summary>
@@ -10,10 +9,8 @@
     [DebuggerDisplay("Score = {Score}, {Description}")]
     public partial class MeasureAssertion
     {
-        [JsonProperty("score")]
         public long Score { get; set; }
 
-        [JsonProperty("description")]
         public string Description { get; set; } = "";
 
         /// <summary>
@@ -24,7 +21,6 @@
         /// This may be true only if the corresponding <see cref="MeasureDefinition.CanOptOut"/>
         /// property is true.
         /// </remarks>
-        [JsonProperty("optOut")]
         public bool OptOut { get; set; }
     }
 }

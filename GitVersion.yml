@@ -1,0 +1,17 @@
+mode: ContinuousDeployment
+branches:
+  main:
+    regex: ^main
+    tag: preview
+    increment: patch
+  dependabot-pr:
+    regex: ^dependabot
+    tag: dependabot
+    source-branches:
+    - develop
+    - main
+    - release
+    - feature
+    - support
+    - hotfix
+next-version: "1.0"

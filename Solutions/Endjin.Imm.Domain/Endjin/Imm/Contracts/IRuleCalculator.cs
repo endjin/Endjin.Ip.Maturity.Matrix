@@ -37,5 +37,19 @@
         /// <param name="context"></param>
         /// <returns></returns>
         long Score(RuleAssertion ruleAssertion, IEvaluationContext context);
+
+        /// <summary>
+        /// Calculates the score achieved by a rule assertion, the maximum score it could achieve, and
+        /// the proportion of that maximum the score represents, taking opt-outs into account.
+        /// </summary>
+        /// <param name="ruleAssertion">The assertion to evaluate.</param>
+        /// <param name="context">The <see cref="IEvaluationContext"/>.</param>
+        /// <returns>
+        /// A <see cref="RuleEvaluation"/> whose <see cref="RuleEvaluation.Percentage"/> and
+        /// <see cref="RuleEvaluation.Score"/> are the values that <see cref="Percentage"/> and
+        /// <see cref="Score"/> would return, and whose <see cref="RuleEvaluation.MaximumScore"/> is
+        /// the maximum that percentage is calculated against.
+        /// </returns>
+        RuleEvaluation Evaluate(RuleAssertion ruleAssertion, IEvaluationContext context);
     }
 }

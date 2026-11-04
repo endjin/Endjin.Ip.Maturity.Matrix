@@ -17,12 +17,12 @@
         private static async Task Main()
         {
             var client = new HttpClient();
-            HttpResponseMessage ruleSetResponse = await client.GetAsync(IpMaturityMatrixRuleset.RuleSetDefinitionsUrl).ConfigureAwait(false);
+            HttpResponseMessage ruleSetResponse = await client.GetAsync(IpMaturityModelRuleset.RuleSetDefinitionsUrl).ConfigureAwait(false);
             ruleSetResponse.EnsureSuccessStatusCode();
             string yamlRuleText = await ruleSetResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-            var yamlRules = IpMaturityMatrixRuleset.FromYaml(yamlRuleText);
-            var immProjectScore = IpMaturityMatrix.FromYaml(File.ReadAllText("imm-default.yaml"));
+            var yamlRules = IpMaturityModelRuleset.FromYaml(yamlRuleText);
+            var immProjectScore = IpMaturityModel.FromYaml(File.ReadAllText("imm-default.yaml"));
 
             var evaluationEngine = new EvaluationEngine(new RuleDefinitionRepository(yamlRules));
 

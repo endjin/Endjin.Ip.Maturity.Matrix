@@ -19,10 +19,10 @@
 
             services.AddSingleton(typeof(HttpDeserializingCache<>));
             services.AddSingleton<IHttpDeserializer<IRuleDefinitionRepository>, RuleDefinitionRepositoryHttpDeserializer>();
-            services.AddSingleton<IHttpDeserializer<IpMaturityMatrix>, IpMaturityMatrixHttpDeserializer>();
+            services.AddSingleton<IHttpDeserializer<IpMaturityModel>, IpMaturityModelHttpDeserializer>();
 
             services.AddSingleton<IRuleDefinitionRepositorySource, RuleDefinitionRepositorySource>();
-            services.AddSingleton<IIpMaturityMatrixSource, IpMaturityMatrixSource>();
+            services.AddSingleton<IIpMaturityModelSource, IpMaturityModelSource>();
 
             return services;
         }
