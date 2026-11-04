@@ -9,7 +9,7 @@
       },
       "requested": "main",
       "resolved": "57ff8211cd75b4bd34297d9192ceb90e7d2df86c",
-      "contentHash": "sha256:a27c56919fb34f5b16e4d8c5ba1dec69b4f518b950fa6df042b5dfd98ba9f83c",
+      "contentHash": "sha256:ca10d4dd47ebf1ca8deeb5da78e3a930ca35cfe0c60acafa9b9b314d95533bfd",
       "direct": false,
       "requiredBy": [
         "ZeroFailed.Build.DotNet"
