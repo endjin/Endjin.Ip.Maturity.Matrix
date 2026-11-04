@@ -30,6 +30,9 @@ param maximumInstanceCount int = 40
 @description('Extra app settings, for example the workarounds in the README\'s Troubleshooting section. The deployment replaces all the app settings, so it removes any setting made by hand. If a key is also set by this template, the template\'s value is used.')
 param additionalAppSettings object = {}
 
+@description('Skips the role assignments, so that you can deploy without the Owner role, for example to test the deployment locally. The app can use its storage account only if the role assignments already exist, for example from an earlier deployment by an Owner.')
+param skipRbacOperations bool = false
+
 var deploymentContainerName = 'app-package'
 var identityName = 'id-${functionAppName}'
 
@@ -72,7 +75,7 @@ resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' 
 }
 
 resource storageRoleAssignments 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
-  for roleDefinitionId in storageRoleDefinitionIds: {
+  for roleDefinitionId in storageRoleDefinitionIds: if (!skipRbacOperations) {
     name: guid(storage.id, identity.id, roleDefinitionId)
     scope: storage
     properties: {
@@ -127,7 +130,8 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
       '${identity.id}': {}
     }
   }
-  // Create the app only when its identity can already use the storage account
+  // Create the app only when its identity can already use the storage account.
+  // When 'skipRbacOperations' is true, ARM ignores this dependency, because the role assignments are not deployed.
   dependsOn: [
     storageRoleAssignments
   ]

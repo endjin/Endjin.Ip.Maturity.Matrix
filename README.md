@@ -399,7 +399,7 @@ From GitHub Actions, you can instead deploy the `function-app` artifact with [`A
 The deployment needs:
 
 - The [Bicep CLI](https://learn.microsoft.com/azure/azure-resource-manager/bicep/install) on your `PATH`. If it is not installed, the deployment installs it with the [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli), so you need one of the two.
-- The Owner role (or another role that can assign roles) on the environment's resource group, because the template assigns storage roles to the app's managed identity. If the resource group does not exist, you also need the right to create it in the subscription.
+- The Owner role (or another role that can assign roles) on the environment's resource group, because the template assigns storage roles to the app's managed identity. If the resource group does not exist, you also need the right to create it in the subscription. To deploy without the Owner role, for example to test the deployment locally, set the environment variable `IMM_SKIP_RBAC_OPERATIONS` to `true`, and the template skips the storage role assignments. This works only if the role assignments already exist, for example from an earlier deployment by an Owner. Otherwise, the deployment of the package fails, because the app cannot use its storage account.
 
 To deploy:
 

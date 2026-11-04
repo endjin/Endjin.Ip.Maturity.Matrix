@@ -15,4 +15,7 @@
 
     azureTenantId = $env:AZURE_TENANT_ID
     azureLocation = 'uksouth'
+
+    # Set IMM_SKIP_RBAC_OPERATIONS to 'true' to deploy without the Owner role. The template then skips its role assignments.
+    skipRbacOperations = $env:IMM_SKIP_RBAC_OPERATIONS -eq 'true'
 }
